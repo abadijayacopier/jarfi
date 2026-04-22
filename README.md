@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JARFI - ISP Management System 🚀
 
-## Getting Started
+**JARFI** adalah sistem manajemen ISP (Internet Service Provider) modern yang dirancang untuk memudahkan administrasi pelanggan PPPoE, pemantauan jaringan real-time, dan otomatisasi billing yang terintegrasi langsung dengan RouterOS Mikrotik.
 
-First, run the development server:
+![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3.4-blue?style=for-the-badge&logo=tailwind-css)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-orange?style=for-the-badge&logo=mysql)
+![Mikrotik](https://img.shields.io/badge/Mikrotik-RouterOS-red?style=for-the-badge&logo=mikrotik)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ Fitur Unggulan
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 📊 1. Dashboard Monitoring Real-Time
+*   Pantau penggunaan CPU, Uptime, dan jumlah sesi aktif dari seluruh router Anda secara live.
+*   Statistik pendapatan dan jumlah pelanggan dalam tampilan visual yang elegan.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 👥 2. Manajemen Pelanggan (PPPoE)
+*   Sinkronisasi otomatis data *Secret* dari Mikrotik ke database lokal.
+*   Registrasi pelanggan baru dengan geolokasi (Latitude/Longitude).
+*   Monitor trafik (Upload/Download) pelanggan secara real-time.
+*   Fitur **Isolir** satu klik untuk memutus koneksi pelanggan yang menunggak.
 
-## Learn More
+### 🤖 3. Automation Hub (Auto-Isolir & WA)
+*   **Auto-Billing:** Membuat tagihan otomatis setiap bulan sesuai tanggal jatuh tempo.
+*   **Auto-Isolir:** Otomatis memutus koneksi pelanggan yang belum bayar lewat dari jatuh tempo.
+*   **WhatsApp Notification:** Mengirim pesan pengingat tagihan dan isolir otomatis via WA API.
 
-To learn more about Next.js, take a look at the following resources:
+### 🗺️ 4. Network Map (ODP)
+*   Visualisasi sebaran titik ODP (Optical Distribution Point) di peta.
+*   Pemetaan lokasi rumah pelanggan berbasis koordinat geografis.
+*   Manajemen port ODP (memantau port yang terpakai vs kapasitas total).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 🛠️ 5. Maintenance & Tools
+*   **Backup & Restore:** Amankan seluruh data database ke file `.json` dengan satu klik.
+*   **Export Data:** Unduh daftar pelanggan ke format CSV/Excel untuk kebutuhan pelaporan.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🛠️ Teknologi yang Digunakan
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Framework:** Next.js 14 (App Router)
+- **Styling:** Tailwind CSS (Glassmorphism Design)
+- **Database:** MySQL
+- **Icons:** Lucide React
+- **Maps:** Leaflet & React Leaflet
+- **Alerts:** SweetAlert2
+- **Mikrotik API:** RouterOS Client for Node.js
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 🚀 Cara Instalasi
+
+1.  **Clone Repository:**
+    ```bash
+    git clone https://github.com/abadijayacopier/jarfi.git
+    cd jarfi
+    ```
+
+2.  **Instal Dependensi:**
+    ```bash
+    npm install
+    ```
+
+3.  **Konfigurasi Database:**
+    *   Buat database MySQL baru bernama `jarfi_db`.
+    *   Update kredensial database di `src/lib/db.ts`.
+
+4.  **Jalankan Aplikasi:**
+    ```bash
+    npm run dev
+    ```
+
+5.  **Akses Dashboard:**
+    Buka [http://localhost:3000](http://localhost:3000) di browser Anda.
+
+---
+
+## 📸 Tampilan Aplikasi
+
+> *Segera hadir: Cuplikan layar dashboard JARFI.*
+
+---
+
+## 📝 Lisensi
+
+Proyek ini dikembangkan untuk kebutuhan internal manajemen ISP. Seluruh hak cipta dilindungi.
+
+---
+
+**Developed with ❤️ by JARFI Dev Team**
