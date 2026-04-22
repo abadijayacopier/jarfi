@@ -9,6 +9,7 @@ export default function CustomersPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [routers, setRouters] = useState([]);
     const [packages, setPackages] = useState([]);
+    const [pppProfiles, setPppProfiles] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     const [showForm, setShowForm] = useState(false);
@@ -79,6 +80,17 @@ export default function CustomersPage() {
     const getTrafficInfo = (pppoeUsername: string) => {
         return trafficData.find(t => t.name === pppoeUsername);
     };
+
+    useEffect(() => {
+        if (formData.router_id) {
+            fetch(`/api/mikrotik/profiles?routerId=${formData.router_id}&type=ppp`)
+                .then(res => res.json())
+                .then(data => setPppProfiles(data.profiles || []))
+                .catch(() => setPppProfiles([]));
+        } else {
+            setPppProfiles([]);
+        }
+    }, [formData.router_id]);
 
     const fetchCustomers = async () => {
         try {
@@ -398,10 +410,38 @@ export default function CustomersPage() {
                             <input type="text" required={!isEditing} value={formData.pppoe_password} onChange={(e) => setFormData({ ...formData, pppoe_password: e.target.value })} className="w-full bg-slate-900/50 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-400 transition-colors shadow-inner font-mono" placeholder={isEditing ? '******' : ''} />
                         </div>
                         <div>
-                            <label className="block text-sm text-slate-400 mb-1">Paket Internet</label>
+                            <label className="block text-sm text-slate-400 mb-1">Pilih Profil Mikrotik (Live)</label>
+                            <select 
+                                required 
+                                value={packages.find((p: any) => p.id.toString() === formData.package_id)?.name || ''} 
+                                onChange={(e) => {
+                                    const selectedProfileName = e.target.value;
+                                    const matchingPackage = packages.find((p: any) => p.name === selectedProfileName);
+                                    if (matchingPackage) {
+                                        setFormData({ ...formData, package_id: (matchingPackage as any).id.toString() });
+                                    } else {
+                                        Swal.fire({
+                                            icon: 'warning',
+                                            title: 'Paket Tidak Ditemukan',
+                                            text: `Profil "${selectedProfileName}" belum terdaftar sebagai Paket di JARFI. Silakan sinkronkan paket di menu Pengaturan ISP dulu agar penagihan otomatis berjalan.`,
+                                            background: '#1e293b',
+                                            color: '#fff'
+                                        });
+                                    }
+                                }} 
+                                className="w-full bg-slate-900/50 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-400 transition-colors shadow-inner font-bold"
+                            >
+                                <option value="">-- Deteksi Profile Router --</option>
+                                {pppProfiles.map((p: any) => (
+                                    <option key={p.name} value={p.name}>{p.name} {p['rate-limit'] ? `(${p['rate-limit']})` : ''}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm text-slate-400 mb-1">Paket Internet (Sistem Penagihan)</label>
                             <select required value={formData.package_id} onChange={(e) => setFormData({ ...formData, package_id: e.target.value })} className="w-full bg-slate-900/50 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-400 transition-colors shadow-inner">
-                                <option value="">-- Paket --</option>
-                                {packages.map((p: any) => <option key={p.id} value={p.id}>{p.name} - Rp {p.price}</option>)}
+                                <option value="">-- Pilih Paket --</option>
+                                {packages.map((p: any) => <option key={p.id} value={p.id}>{p.name} - Rp {parseInt(p.price).toLocaleString()}</option>)}
                             </select>
                         </div>
                         <div className="lg:col-span-3 flex justify-end gap-3 mt-2">

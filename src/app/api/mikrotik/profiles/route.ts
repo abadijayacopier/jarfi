@@ -6,6 +6,7 @@ export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
         const routerId = searchParams.get('routerId');
+        const type = searchParams.get('type') || 'ppp'; // Default to ppp
 
         if (!routerId) return NextResponse.json({ error: 'Router ID required' }, { status: 400 });
 
@@ -20,7 +21,13 @@ export async function GET(req: Request) {
             port: router.api_port
         });
 
-        const profiles = await mk.getHotspotProfiles();
+        let profiles = [];
+        if (type === 'ppp') {
+            profiles = await mk.getPPPProfiles();
+        } else {
+            profiles = await mk.getHotspotProfiles();
+        }
+        
         return NextResponse.json({ profiles });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });

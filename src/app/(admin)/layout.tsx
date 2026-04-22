@@ -11,6 +11,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const [currentTime, setCurrentTime] = useState(new Date());
     const [mounted, setMounted] = useState(false);
     const [settings, setSettings] = useState<any>(null);
+    const [stats, setStats] = useState({ activePppoe: 0 });
 
     const navItems = [
         { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -30,7 +31,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             if (data.settings) setSettings(data.settings);
         });
 
-        return () => clearInterval(timer);
+        // Initial fetch and then every 10s for online status badge
+        const fetchStats = () => {
+            fetch('/api/dashboard/stats').then(res => res.json()).then(data => {
+                if (data.activePppoe !== undefined) setStats({ activePppoe: data.activePppoe });
+            });
+        };
+        fetchStats();
+        const statsTimer = setInterval(fetchStats, 10000);
+
+        return () => {
+            clearInterval(timer);
+            clearInterval(statsTimer);
+        };
     }, []);
 
     const formatDate = (date: Date) => {
@@ -94,6 +107,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             >
                                 <Icon className={`w-5 h-5 shrink-0 ${isCollapsed ? '' : 'mr-3'}`} />
                                 {!isCollapsed && <span>{item.label}</span>}
+
+                                {/* Active User Badge for Customers */}
+                                {!isCollapsed && item.href === '/customers' && stats.activePppoe > 0 && (
+                                    <span className="ml-auto px-2 py-0.5 text-[10px] font-black bg-teal-500/20 text-teal-400 rounded-full border border-teal-500/30 shadow-[0_0_8px_rgba(20,184,166,0.2)] animate-pulse">
+                                        {stats.activePppoe}
+                                    </span>
+                                )}
 
                                 {/* Active Indicator Pipe for Collapsed State */}
                                 {isCollapsed && isActive && <div className="absolute left-0 w-1 h-6 bg-indigo-500 rounded-r-md"></div>}

@@ -53,10 +53,10 @@ export async function GET() {
                     routerStats.push({
                         id: router.id,
                         name: router.name,
-                        cpu: resources['cpu-load'],
-                        uptime: resources['uptime'],
+                        cpu: resources.cpuLoad || resources['cpu-load'] || 0,
+                        uptime: resources.uptime || '0s',
                         activeUsers: active.length,
-                        version: resources['version']
+                        version: resources.version || '?'
                     });
                 } finally {
                     client.close();
