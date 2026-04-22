@@ -41,7 +41,7 @@ export async function POST() {
             );
 
             if (existing.length === 0) {
-                // Create new invoice
+                // Create new invoice (even if 0, but user will be warned in dashboard)
                 await pool.query(
                     'INSERT INTO Invoices (customer_id, amount, status, billing_month) VALUES (?, ?, ?, ?)',
                     [customer.id, finalAmount, 'UNPAID', currentMonth]
@@ -49,8 +49,9 @@ export async function POST() {
                 created++;
             } else if (existing[0].status === 'UNPAID') {
                 // Always re-sync UNPAID invoices with the latest package price
-                const currentAmount = parseFloat(existing[0].amount);
-                if (currentAmount !== finalAmount) {
+                // Use parseFloat to avoid string vs number comparison issues
+                const currentAmount = parseFloat(existing[0].amount || '0');
+                if (Math.abs(currentAmount - finalAmount) > 0.01) {
                     await pool.query(
                         'UPDATE Invoices SET amount = ? WHERE id = ?',
                         [finalAmount, existing[0].id]

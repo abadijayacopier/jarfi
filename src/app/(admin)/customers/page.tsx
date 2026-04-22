@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { RefreshCw, X, DownloadCloud, Edit, Trash2, ShieldAlert, Search, Users, Wifi, Calendar, Activity, Zap } from 'lucide-react';
+import { RefreshCw, X, DownloadCloud, Edit, Trash2, ShieldAlert, Search, Users, Wifi, Calendar, Activity, Zap, ArrowDown, ArrowUp } from 'lucide-react';
 
 export default function CustomersPage() {
     const [customers, setCustomers] = useState([]);
@@ -34,11 +34,11 @@ export default function CustomersPage() {
         fetchRoutersAndPackages();
     }, []);
 
-    // Auto-refresh traffic every 30s
+    // Auto-refresh traffic every 5s for real-time feel
     useEffect(() => {
         if (routers.length > 0) {
             fetchAllTraffic();
-            const timer = setInterval(fetchAllTraffic, 30000);
+            const timer = setInterval(fetchAllTraffic, 5000);
             return () => clearInterval(timer);
         }
     }, [routers]);
@@ -56,7 +56,22 @@ export default function CustomersPage() {
                     }
                 } catch { /* skip unavailable routers */ }
             }
-            setTrafficData(allTraffic);
+            
+            setTrafficData(prev => {
+                return allTraffic.map(curr => {
+                    const prevData = prev.find(p => p.name === curr.name);
+                    let rxSpeed = 0;
+                    let txSpeed = 0;
+                    if (prevData && curr.rxBytes && prevData.rxBytes) {
+                        // interval = 5 seconds
+                        const rxDiff = Math.max(0, curr.rxBytes - prevData.rxBytes);
+                        const txDiff = Math.max(0, curr.txBytes - prevData.txBytes);
+                        rxSpeed = (rxDiff * 8) / (5 * 1000); // Kbps
+                        txSpeed = (txDiff * 8) / (5 * 1000); // Kbps
+                    }
+                    return { ...curr, rxSpeed, txSpeed };
+                });
+            });
         } catch (err) { console.error(err); }
         finally { setTrafficLoading(false); }
     };
@@ -120,12 +135,12 @@ export default function CustomersPage() {
 
     const openEditForm = (c: any) => {
         setFormData({
-            user_id: c.user_id,
-            name: c.name,
+            user_id: c.user_id || '',
+            name: c.name || '',
             phone: c.phone || '',
             router_id: c.router_id ? c.router_id.toString() : '',
             package_id: c.package_id ? c.package_id.toString() : '',
-            pppoe_username: c.pppoe_username,
+            pppoe_username: c.pppoe_username || '',
             pppoe_password: '', // blank by default for edit for security
             due_date: c.due_date || 1
         });
@@ -477,11 +492,17 @@ export default function CustomersPage() {
                                                         const traffic = getTrafficInfo(c.pppoe_username);
                                                         if (traffic) {
                                                             return (
-                                                                <div className="flex items-center gap-2.5">
-                                                                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse"></div>
-                                                                    <div>
-                                                                        <p className="text-emerald-400 font-black text-[10px] uppercase tracking-wider">Online</p>
-                                                                        <p className="text-slate-500 text-[10px] font-bold">{traffic.uptime} | {traffic.address}</p>
+                                                                <div className="flex flex-col gap-2">
+                                                                    <div className="flex items-center gap-2.5">
+                                                                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse"></div>
+                                                                        <div>
+                                                                            <p className="text-emerald-400 font-black text-[10px] uppercase tracking-wider">Online</p>
+                                                                            <p className="text-slate-500 text-[10px] font-bold">{traffic.uptime} | {traffic.address}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-3 text-[10px] font-bold">
+                                                                        <span className="text-blue-400 flex items-center gap-1" title="Download"><ArrowDown className="w-3 h-3"/> {traffic.txSpeed > 1000 ? (traffic.txSpeed / 1000).toFixed(2) + ' Mbps' : traffic.txSpeed?.toFixed(1) + ' Kbps'}</span>
+                                                                        <span className="text-green-400 flex items-center gap-1" title="Upload"><ArrowUp className="w-3 h-3"/> {traffic.rxSpeed > 1000 ? (traffic.rxSpeed / 1000).toFixed(2) + ' Mbps' : traffic.rxSpeed?.toFixed(1) + ' Kbps'}</span>
                                                                     </div>
                                                                 </div>
                                                             );
@@ -579,12 +600,20 @@ export default function CustomersPage() {
                                     {(() => {
                                         const traffic = getTrafficInfo(c.pppoe_username);
                                         return (
-                                            <div className={`p-3 rounded-2xl flex items-center gap-3 border ${traffic ? 'bg-emerald-500/5 border-emerald-500/10' : 'bg-slate-900/30 border-white/5'}`}>
-                                                <div className={`w-3 h-3 rounded-full ${traffic ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse' : 'bg-slate-600'}`}></div>
-                                                <div className="flex-1">
-                                                    <p className={`font-black text-[10px] uppercase tracking-wider ${traffic ? 'text-emerald-400' : 'text-slate-600'}`}>{traffic ? 'Online' : 'Offline'}</p>
-                                                    {traffic && <p className="text-slate-500 text-[10px] font-bold">Uptime: {traffic.uptime} | IP: {traffic.address}</p>}
+                                            <div className={`p-3 rounded-2xl flex flex-col gap-2 border ${traffic ? 'bg-emerald-500/5 border-emerald-500/10' : 'bg-slate-900/30 border-white/5'}`}>
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-3 h-3 rounded-full ${traffic ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse' : 'bg-slate-600'}`}></div>
+                                                    <div className="flex-1">
+                                                        <p className={`font-black text-[10px] uppercase tracking-wider ${traffic ? 'text-emerald-400' : 'text-slate-600'}`}>{traffic ? 'Online' : 'Offline'}</p>
+                                                        {traffic && <p className="text-slate-500 text-[10px] font-bold">Uptime: {traffic.uptime} | IP: {traffic.address}</p>}
+                                                    </div>
                                                 </div>
+                                                {traffic && (
+                                                    <div className="flex items-center gap-4 text-[10px] font-bold pt-1">
+                                                        <span className="text-blue-400 flex items-center gap-1"><ArrowDown className="w-3 h-3"/> {traffic.txSpeed > 1000 ? (traffic.txSpeed / 1000).toFixed(2) + ' Mbps' : traffic.txSpeed?.toFixed(1) + ' Kbps'}</span>
+                                                        <span className="text-green-400 flex items-center gap-1"><ArrowUp className="w-3 h-3"/> {traffic.rxSpeed > 1000 ? (traffic.rxSpeed / 1000).toFixed(2) + ' Mbps' : traffic.rxSpeed?.toFixed(1) + ' Kbps'}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     })()}

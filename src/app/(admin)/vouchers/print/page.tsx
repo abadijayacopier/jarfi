@@ -36,6 +36,73 @@ export default function PrintVouchersPage() {
 
     if (loading) return <div className="p-10 text-center">Loading Vouchers...</div>;
 
+    const isThermal = settings?.printer_type === 'thermal';
+    const thermalWidthClass = settings?.printer_width === '58' ? 'max-w-[58mm]' : 'max-w-[80mm]';
+
+    if (isThermal) {
+        return (
+            <div className="min-h-screen bg-slate-200 flex justify-center p-4 print:p-0 print:bg-white font-mono">
+                {/* Header Controls (Hidden during print) */}
+                <div className="absolute top-4 left-4 flex gap-2 print:hidden">
+                    <button onClick={() => window.history.back()} className="bg-white px-4 py-2 rounded-lg text-sm font-bold shadow hover:bg-slate-50 flex items-center gap-2">
+                        <ArrowLeft className="w-4 h-4" /> Kembali
+                    </button>
+                    <button onClick={handlePrint} className="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow hover:bg-teal-700 flex items-center gap-2">
+                        <Printer className="w-4 h-4" /> Cetak Thermal ({settings?.printer_width}mm)
+                    </button>
+                </div>
+
+                {/* Thermal Vouchers List */}
+                <div className={`bg-white shadow-2xl print:shadow-none w-full ${thermalWidthClass}`}>
+                    {vouchers.map((v: any, index: number) => (
+                        <div key={v.id} className={`p-4 text-[11px] leading-tight text-black text-center ${index !== vouchers.length - 1 ? 'border-b-2 border-dashed border-black print:break-after-page' : ''}`}>
+                            <div className="mb-2 border-b border-black pb-2 border-dashed flex flex-col items-center justify-center">
+                                <Wifi className="w-5 h-5 mb-1" />
+                                <h1 className="text-sm font-black uppercase tracking-widest">{settings?.company_name || 'JARFI'} HOTSPOT</h1>
+                            </div>
+
+                            <p className="text-[10px] font-bold uppercase tracking-wider mb-1">Kode Voucher</p>
+                            <div className="border-2 border-black p-2 mb-2 font-mono text-lg font-black tracking-widest uppercase">
+                                {v.code}
+                            </div>
+                            
+                            <div className="flex justify-between border-b border-black border-dashed pb-1 mb-2 font-bold">
+                                <span>Pass: {v.password}</span>
+                                <span>{v.profile}</span>
+                            </div>
+
+                            <div className="flex justify-between items-center text-sm font-black mt-2">
+                                <span>Harga</span>
+                                <span>Rp {parseInt(v.price).toLocaleString('id-ID')}</span>
+                            </div>
+                            
+                            <div className="text-[9px] mt-4 font-bold">
+                                <p>Gunakan sebelum kadaluarsa.</p>
+                                <p>CS: {settings?.company_whatsapp || '-'}</p>
+                            </div>
+                        </div>
+                    ))}
+                    
+                    {vouchers.length === 0 && (
+                        <div className="p-8 text-center text-slate-500 font-bold">
+                            Belum ada voucher untuk dicetak.
+                        </div>
+                    )}
+                </div>
+
+                <style jsx global>{`
+                    @media print {
+                        @page { margin: 0; size: auto; }
+                        body, html { background: white !important; padding: 0 !important; margin: 0 !important; color: black !important; }
+                        aside, header, nav, button { display: none !important; }
+                        .min-h-screen { min-height: auto !important; }
+                    }
+                `}</style>
+            </div>
+        );
+    }
+
+    // A4 Layout
     return (
         <div className="min-h-screen bg-slate-100 p-4 sm:p-8">
             {/* Header Controls (Hidden during print) */}
@@ -52,7 +119,7 @@ export default function PrintVouchersPage() {
                         onClick={handlePrint}
                         className="flex items-center gap-2 bg-teal-600 text-white px-6 py-3 rounded-xl hover:bg-teal-700 transition-all shadow-lg font-bold"
                     >
-                        <Printer className="w-5 h-5" /> Cetak Sekarang
+                        <Printer className="w-5 h-5" /> Cetak A4 Sekarang
                     </button>
                 </div>
             </div>

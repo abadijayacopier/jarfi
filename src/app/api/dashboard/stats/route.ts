@@ -7,6 +7,29 @@ export async function GET() {
         const [customers]: any = await pool.query('SELECT COUNT(*) as count FROM Customers');
         const [routers]: any = await pool.query('SELECT * FROM Routers');
         const totalCustomers = customers[0].count;
+        
+        // Calculate expected revenue from active customers
+        const [revenueRow]: any = await pool.query(`
+            SELECT SUM(CAST(p.price AS DECIMAL(10,2))) as expected_revenue 
+            FROM Customers c 
+            LEFT JOIN Packages p ON c.package_id = p.id 
+            WHERE c.status = 'ACTIVE'
+        `);
+        const expectedRevenue = revenueRow[0].expected_revenue || 0;
+
+        // Calculate unpaid invoices
+        const [unpaidRow]: any = await pool.query(`
+            SELECT SUM(CAST(amount AS DECIMAL(10,2))) as unpaid_total, COUNT(*) as unpaid_count 
+            FROM Invoices 
+            WHERE status = 'UNPAID'
+        `);
+        const unpaidTotal = unpaidRow[0].unpaid_total || 0;
+        const unpaidCount = unpaidRow[0].unpaid_count || 0;
+
+        // Count customers without packages
+        const [noPackageRow]: any = await pool.query('SELECT COUNT(*) as count FROM Customers WHERE package_id IS NULL AND status = \'ACTIVE\'');
+        const customersWithoutPackage = noPackageRow[0].count;
+
         let activePppoe = 0;
 
         // Gather real mikrotik stats for all routers
@@ -45,6 +68,10 @@ export async function GET() {
 
         return NextResponse.json({
             totalCustomers,
+            expectedRevenue,
+            unpaidTotal,
+            unpaidCount,
+            customersWithoutPackage,
             activePppoe,
             routerStats
         });

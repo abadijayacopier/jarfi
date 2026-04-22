@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { Printer, Edit, Trash2, CheckCircle, X, Save, Search } from 'lucide-react';
+import { Printer, Edit, Trash2, CheckCircle, X, Save, Search, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function InvoicesPage() {
@@ -218,7 +218,19 @@ export default function InvoicesPage() {
                                                 <div className="font-bold text-white text-base leading-tight">{inv.customer_name}</div>
                                                 <div className="text-xs font-mono text-slate-500 mt-0.5">{inv.pppoe_username}</div>
                                             </td>
-                                            <td className="p-5 font-black text-indigo-400 text-lg">Rp {parseInt(inv.amount).toLocaleString('id-ID')}</td>
+                                             <td className="p-5 font-black text-indigo-400 text-lg">
+                                                 <div className="flex items-center gap-2">
+                                                     Rp {parseInt(inv.amount).toLocaleString('id-ID')}
+                                                     {parseInt(inv.amount) === 0 && (
+                                                         <div className="group/warn relative">
+                                                             <AlertTriangle className="w-4 h-4 text-amber-500 animate-pulse" />
+                                                             <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded whitespace-nowrap opacity-0 group-hover/warn:opacity-100 transition-opacity pointer-events-none z-50">
+                                                                 Paket belum diatur
+                                                             </div>
+                                                         </div>
+                                                     )}
+                                                 </div>
+                                             </td>
                                             <td className="p-5">
                                                 <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black tracking-widest uppercase border ${inv.status === 'PAID' ? 'bg-teal-500/10 text-teal-400 border-teal-500/30' : 'bg-red-500/10 text-red-400 border-red-500/30'}`}>
                                                     {inv.status}

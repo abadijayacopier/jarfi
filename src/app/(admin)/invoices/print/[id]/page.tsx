@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { Printer, Download, ArrowLeft } from 'lucide-react';
+import { Printer, ArrowLeft } from 'lucide-react';
 
 export default function PrintInvoicePage() {
     const { id } = useParams();
@@ -41,6 +41,110 @@ export default function PrintInvoicePage() {
         window.print();
     };
 
+    const isThermal = settings?.printer_type === 'thermal';
+    const thermalWidthClass = settings?.printer_width === '58' ? 'max-w-[58mm]' : 'max-w-[80mm]';
+
+    if (isThermal) {
+        return (
+            <div className="min-h-screen bg-slate-200 flex justify-center p-4 print:p-0 print:bg-white font-mono">
+                {/* Header Controls (Hidden during print) */}
+                <div className="absolute top-4 left-4 flex gap-2 print:hidden">
+                    <button onClick={() => window.history.back()} className="bg-white px-4 py-2 rounded-lg text-sm font-bold shadow hover:bg-slate-50 flex items-center gap-2">
+                        <ArrowLeft className="w-4 h-4" /> Kembali
+                    </button>
+                    <button onClick={handlePrint} className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow hover:bg-indigo-700 flex items-center gap-2">
+                        <Printer className="w-4 h-4" /> Cetak Thermal
+                    </button>
+                </div>
+
+                {/* Thermal Layout */}
+                <div className={`bg-white shadow-2xl print:shadow-none w-full ${thermalWidthClass} p-4 text-[11px] leading-tight text-black`}>
+                    <div className="text-center mb-4 border-b border-black pb-4 border-dashed">
+                        <h1 className="text-lg font-black uppercase mb-1">{settings?.company_name || 'JARFI'}</h1>
+                        <p>{settings?.company_address || 'Alamat Perusahaan'}</p>
+                        <p>WA: +62 {settings?.company_whatsapp || '-'}</p>
+                    </div>
+
+                    <div className="mb-4">
+                        <div className="flex justify-between">
+                            <span>No:</span>
+                            <span>INV-{invoice.id.toString().padStart(6, '0')}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Tgl:</span>
+                            <span>{new Date(invoice.created_at).toLocaleDateString('id-ID')}</span>
+                        </div>
+                        <div className="flex justify-between mt-2">
+                            <span>Plg:</span>
+                            <span className="font-bold">{invoice.customer_name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>ID:</span>
+                            <span>{invoice.pppoe_username}</span>
+                        </div>
+                    </div>
+
+                    <div className="border-t border-b border-black border-dashed py-2 mb-4">
+                        <div className="flex justify-between font-bold mb-1">
+                            <span>Item</span>
+                            <span>Harga</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="w-2/3 truncate">Paket {invoice.package_name || 'Internet'} ({invoice.billing_month})</span>
+                            <span>{parseInt(invoice.amount).toLocaleString('id-ID')}</span>
+                        </div>
+                    </div>
+
+                    <div className="mb-4 space-y-1">
+                        <div className="flex justify-between">
+                            <span>Subtotal</span>
+                            <span>{parseInt(invoice.amount).toLocaleString('id-ID')}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>PPN ({settings?.tax_enabled === '1' ? '11%' : '0%'})</span>
+                            <span>{settings?.tax_enabled === '1' ? Math.round(parseInt(invoice.amount) / 1.11 * 0.11).toLocaleString('id-ID') : '0'}</span>
+                        </div>
+                        <div className="flex justify-between text-sm font-black pt-2 border-t border-black border-dashed mt-2">
+                            <span>TOTAL</span>
+                            <span>Rp {parseInt(invoice.amount).toLocaleString('id-ID')}</span>
+                        </div>
+                    </div>
+
+                    <div className="text-center mt-6">
+                        <p className="font-bold text-sm uppercase mb-1">
+                            {invoice.status === 'PAID' ? '- L U N A S -' : '- B E L U M  L U N A S -'}
+                        </p>
+                        {invoice.status === 'PAID' && invoice.paid_at && (
+                            <p className="text-[9px] mb-4">Tgl Bayar: {new Date(invoice.paid_at).toLocaleString('id-ID')}</p>
+                        )}
+                        {!invoice.status || invoice.status !== 'PAID' && (
+                            <div className="text-left mt-4 border border-black p-2 rounded">
+                                <p className="font-bold text-[10px] mb-1">Transfer Pembayaran:</p>
+                                <p>{settings?.bank_name || 'BCA'} - {settings?.bank_account || '-'}</p>
+                                <p>A/N: {settings?.bank_holder || settings?.company_name || '-'}</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="text-center mt-6 text-[10px]">
+                        <p>Terima Kasih</p>
+                        <p className="font-bold">{settings?.company_name || 'JARFI'}</p>
+                    </div>
+                </div>
+
+                <style jsx global>{`
+                    @media print {
+                        @page { margin: 0; size: auto; }
+                        body, html { background: white !important; padding: 0 !important; margin: 0 !important; color: black !important; }
+                        aside, header, nav, button { display: none !important; }
+                        .min-h-screen { min-height: auto !important; }
+                    }
+                `}</style>
+            </div>
+        );
+    }
+
+    // A4 Layout
     return (
         <div className="min-h-screen bg-slate-50 p-4 sm:p-8 font-sans text-slate-900">
             {/* Header Controls (Hidden during print) */}
@@ -56,7 +160,7 @@ export default function PrintInvoicePage() {
                         onClick={handlePrint}
                         className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition-all shadow-lg"
                     >
-                        <Printer className="w-4 h-4" /> Cetak Invoice
+                        <Printer className="w-4 h-4" /> Cetak Invoice (A4)
                     </button>
                 </div>
             </div>
