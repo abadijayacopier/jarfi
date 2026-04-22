@@ -436,18 +436,19 @@ export default function CustomersPage() {
                             <thead>
                                 <tr className="bg-white/5 uppercase text-[10px] tracking-widest font-black text-slate-400 border-b border-white/5">
                                     <th className="p-5">Customer</th>
-                                    <th className="p-5">PPPoE Account</th>
+                                    <th className="p-5">PPPoE User</th>
+                                    <th className="p-5">Paket</th>
                                     <th className="p-5">Router</th>
+                                    <th className="p-5">Status Akun</th>
                                     <th className="p-5">Koneksi</th>
-                                    <th className="p-5">Status</th>
-                                    <th className="p-5 text-center">Aksi (Live API)</th>
+                                    <th className="p-5 text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5 text-sm">
                                 {loading ? (
-                                    <tr><td colSpan={6} className="p-20 text-center text-slate-500 animate-pulse font-bold tracking-widest uppercase">Memuat Data...</td></tr>
+                                    <tr><td colSpan={7} className="p-20 text-center text-slate-500 animate-pulse font-bold tracking-widest uppercase">Memuat Data...</td></tr>
                                 ) : customers.length === 0 ? (
-                                    <tr><td colSpan={6} className="p-20 text-center text-slate-500">Tidak ada pelanggan ditemukan.</td></tr>
+                                    <tr><td colSpan={7} className="p-20 text-center text-slate-500">Tidak ada pelanggan ditemukan.</td></tr>
                                 ) : (
                                     customers
                                         .filter((c: any) => 
@@ -471,16 +472,23 @@ export default function CustomersPage() {
                                                 </td>
                                                 <td className="p-5">
                                                     <p className="text-white font-mono font-bold">{c.pppoe_username}</p>
+                                                </td>
+                                                <td className="p-5">
                                                     {c.package_name ? (
-                                                        <p className="text-[10px] font-black uppercase tracking-wide text-indigo-400 mt-1">{c.package_name}</p>
+                                                        <span className="px-3 py-1.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[11px] font-black uppercase tracking-wider">
+                                                            {c.package_name}
+                                                        </span>
                                                     ) : (
-                                                        <p className="text-[10px] font-black uppercase tracking-wide text-red-500 mt-1 flex items-center gap-1">
-                                                            <ShieldAlert className="w-3 h-3" /> TANPA PAKET
-                                                        </p>
+                                                        <span className="px-3 py-1.5 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 w-fit">
+                                                            <ShieldAlert className="w-3.5 h-3.5" /> Tanpa Paket
+                                                        </span>
                                                     )}
                                                 </td>
-                                                <td className="p-5 text-slate-300">
-                                                    <span className="bg-slate-800 border border-white/5 px-2 py-1 rounded text-xs font-medium">{c.router_name}</span>
+                                                <td className="p-5">
+                                                    <div className="flex items-center gap-2 text-slate-400">
+                                                        <Wifi className="w-3.5 h-3.5 text-slate-500" />
+                                                        <span className="text-xs font-bold">{c.router_name}</span>
+                                                    </div>
                                                 </td>
                                                 <td className="p-5">
                                                     <span className={`px-2.5 py-1.5 rounded-full text-[10px] uppercase font-black tracking-widest ${c.status === 'ACTIVE' ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30' : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'}`}>
