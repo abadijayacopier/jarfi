@@ -153,7 +153,7 @@ export default function InvoicesPage() {
                 </button>
             </div>
 
-            <div className="glass rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
+            <div className="glass rounded-4xl border border-white/10 overflow-hidden shadow-2xl">
                 <div className="overflow-x-auto min-h-[400px]">
                     <table className="w-full text-left border-collapse">
                         <thead>
@@ -222,7 +222,7 @@ export default function InvoicesPage() {
             {/* Edit Modal */}
             {showEditForm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-md animate-in fade-in duration-200">
-                    <div className="bg-slate-800 w-full max-w-lg p-8 rounded-[2rem] border border-white/10 shadow-2xl animate-in zoom-in-95 duration-200">
+                    <div className="bg-slate-800 w-full max-w-lg p-8 rounded-4xl border border-white/10 shadow-2xl animate-in zoom-in-95 duration-200">
                         <div className="flex justify-between items-center mb-8">
                             <h4 className="text-2xl font-black text-white flex items-center gap-3">
                                 <Edit className="text-teal-400 w-6 h-6" /> Edit Tagihan

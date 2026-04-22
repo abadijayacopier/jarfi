@@ -170,9 +170,26 @@ export default function PrintInvoicePage() {
             
             <style jsx global>{`
                 @media print {
-                    body { background: white !important; }
+                    /* Hide everything from the main layout */
+                    aside, header, nav, button { display: none !important; }
+                    
+                    /* Reset background and padding of the main containers */
+                    body, html, .min-h-screen { background: white !important; color: black !important; margin: 0 !important; padding: 0 !important; }
+                    .flex.h-screen { display: block !important; height: auto !important; background: white !important; }
+                    main { padding: 0 !important; margin: 0 !important; display: block !important; background: white !important; }
+                    .glass { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; }
+                    
+                    /* Layout Invoice */
                     .min-h-screen { background: white !important; padding: 0 !important; }
-                    .max-w-4xl { max-width: 100% !important; margin: 0 !important; }
+                    .max-w-4xl { max-width: 100% !important; width: 100% !important; margin: 0 !important; }
+                    .bg-white { border-radius: 0 !important; box-shadow: none !important; }
+                    
+                    /* Colors for Print */
+                    .text-indigo-600 { color: #4f46e5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    .bg-indigo-600 { background-color: #4f46e5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    .bg-slate-50 { background-color: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    .bg-teal-50 { background-color: #f0fdfa !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    .bg-red-50 { background-color: #fef2f2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                 }
             `}</style>
         </div>
