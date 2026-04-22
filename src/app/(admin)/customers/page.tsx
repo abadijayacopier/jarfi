@@ -380,77 +380,95 @@ export default function CustomersPage() {
             )}
 
             {showForm && (
-                <div className="glass p-6 rounded-2xl mb-8 border border-white/20 animate-in slide-in-from-top-4 shadow-xl">
-                    <h4 className="text-xl font-semibold text-white mb-4 border-b border-white/10 pb-2 flex items-center gap-2">
-                        {isEditing ? <Edit className="w-5 h-5 text-indigo-400" /> : <RefreshCw className="w-5 h-5 text-indigo-400" />}
-                        {isEditing ? 'Edit Profil & Sinkronisasi PPPoE' : 'Registrasi Pelanggan & Sinkronisasi API'}
-                    </h4>
-                    <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                        <div>
-                            <label className="block text-sm text-slate-400 mb-1">Nama Lengkap</label>
-                            <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full bg-slate-900/50 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-400 transition-colors shadow-inner" />
-                        </div>
-                        <div>
-                            <label className="block text-sm text-slate-400 mb-1">Nomor WhatsApp</label>
-                            <input type="text" required value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-slate-900/50 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-400 transition-colors shadow-inner" />
-                        </div>
-                        <div>
-                            <label className="block text-sm text-slate-400 mb-1">Pilih Router Mikrotik {isEditing && <span className="text-orange-400 text-[10px] ml-2">(Locked)</span>}</label>
-                            <select required value={formData.router_id} disabled={isEditing} onChange={(e) => setFormData({ ...formData, router_id: e.target.value })} className="w-full bg-slate-900/50 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-400 transition-colors shadow-inner disabled:opacity-50">
-                                <option value="">-- Pilih Router --</option>
-                                {routers.map((r: any) => <option key={r.id} value={r.id}>{r.name} ({r.ip_address})</option>)}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm text-slate-400 mb-1">PPPoE Username {isEditing && <span className="text-orange-400 text-[10px] ml-2">(Locked)</span>}</label>
-                            <input type="text" required value={formData.pppoe_username} disabled={isEditing} onChange={(e) => setFormData({ ...formData, pppoe_username: e.target.value })} className="w-full bg-slate-900/50 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-400 transition-colors shadow-inner disabled:opacity-50 font-mono" />
-                        </div>
-                        <div>
-                            <label className="block text-sm text-slate-400 mb-1">{isEditing ? 'Ubah Sandi PPPoE (Kosongkan bila tidak diubah)' : 'PPPoE Password'}</label>
-                            <input type="text" required={!isEditing} value={formData.pppoe_password} onChange={(e) => setFormData({ ...formData, pppoe_password: e.target.value })} className="w-full bg-slate-900/50 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-400 transition-colors shadow-inner font-mono" placeholder={isEditing ? '******' : ''} />
-                        </div>
-                        <div>
-                            <label className="block text-sm text-slate-400 mb-1">Pilih Profil Mikrotik (Live)</label>
-                            <select 
-                                required 
-                                value={packages.find((p: any) => p.id.toString() === formData.package_id)?.name || ''} 
-                                onChange={(e) => {
-                                    const selectedProfileName = e.target.value;
-                                    const matchingPackage = packages.find((p: any) => p.name === selectedProfileName);
-                                    if (matchingPackage) {
-                                        setFormData({ ...formData, package_id: (matchingPackage as any).id.toString() });
-                                    } else {
-                                        Swal.fire({
-                                            icon: 'warning',
-                                            title: 'Paket Tidak Ditemukan',
-                                            text: `Profil "${selectedProfileName}" belum terdaftar sebagai Paket di JARFI. Silakan sinkronkan paket di menu Pengaturan ISP dulu agar penagihan otomatis berjalan.`,
-                                            background: '#1e293b',
-                                            color: '#fff'
-                                        });
-                                    }
-                                }} 
-                                className="w-full bg-slate-900/50 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-400 transition-colors shadow-inner font-bold"
-                            >
-                                <option value="">-- Deteksi Profile Router --</option>
-                                {pppProfiles.map((p: any) => (
-                                    <option key={p.name} value={p.name}>{p.name} {p['rate-limit'] ? `(${p['rate-limit']})` : ''}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm text-slate-400 mb-1">Paket Internet (Sistem Penagihan)</label>
-                            <select required value={formData.package_id} onChange={(e) => setFormData({ ...formData, package_id: e.target.value })} className="w-full bg-slate-900/50 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-400 transition-colors shadow-inner">
-                                <option value="">-- Pilih Paket --</option>
-                                {packages.map((p: any) => <option key={p.id} value={p.id}>{p.name} - Rp {parseInt(p.price).toLocaleString()}</option>)}
-                            </select>
-                        </div>
-                        <div className="lg:col-span-3 flex justify-end gap-3 mt-2">
-                            <button type="button" onClick={closeForm} className="px-6 py-3 rounded-xl bg-transparent hover:bg-slate-800 text-slate-300 font-medium transition-colors border border-transparent hover:border-slate-700">Tutup Batal</button>
-                            <button type="submit" className="px-8 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold transition-colors shadow-[0_0_15px_rgba(99,102,241,0.3)]">
-                                {isEditing ? 'Update & Sinkron Mikrotik' : 'Pendaftaran PPPoE Baru'}
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-slate-800 w-full max-w-5xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[95vh] animate-in zoom-in-95 duration-300">
+                        <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/30">
+                                    {isEditing ? <Edit className="w-6 h-6" /> : <RefreshCw className="w-6 h-6" />}
+                                </div>
+                                <div>
+                                    <h4 className="text-xl font-black text-white">{isEditing ? 'Edit Profil & Sinkronisasi' : 'Registrasi Pelanggan Baru'}</h4>
+                                    <p className="text-xs text-slate-400 font-medium">Lengkapi data untuk sinkronisasi otomatis ke Mikrotik</p>
+                                </div>
+                            </div>
+                            <button onClick={closeForm} className="p-2 hover:bg-white/10 rounded-xl text-slate-400 transition-colors">
+                                <X className="w-6 h-6" />
                             </button>
                         </div>
-                    </form>
+                        
+                        <div className="p-8 overflow-y-auto">
+                            <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="space-y-1.5">
+                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Nama Lengkap</label>
+                                    <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner placeholder:text-slate-700" placeholder="Contoh: Budi Santoso" />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Nomor WhatsApp</label>
+                                    <input type="text" required value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner placeholder:text-slate-700" placeholder="08123456789" />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Pilih Router Mikrotik {isEditing && <span className="text-orange-400 text-[10px] ml-2">(Locked)</span>}</label>
+                                    <select required value={formData.router_id} disabled={isEditing} onChange={(e) => setFormData({ ...formData, router_id: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner disabled:opacity-50">
+                                        <option value="">-- Pilih Router --</option>
+                                        {routers.map((r: any) => <option key={r.id} value={r.id}>{r.name} ({r.ip_address})</option>)}
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">PPPoE Username {isEditing && <span className="text-orange-400 text-[10px] ml-2">(Locked)</span>}</label>
+                                    <input type="text" required value={formData.pppoe_username} disabled={isEditing} onChange={(e) => setFormData({ ...formData, pppoe_username: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner disabled:opacity-50 font-mono font-bold" placeholder="username_ppp" />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">{isEditing ? 'Ubah Sandi PPPoE' : 'PPPoE Password'}</label>
+                                    <input type="text" required={!isEditing} value={formData.pppoe_password} onChange={(e) => setFormData({ ...formData, pppoe_password: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner font-mono" placeholder={isEditing ? 'Biarkan kosong jika tetap' : 'password123'} />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Jatuh Tempo (Tanggal)</label>
+                                    <select required value={formData.due_date} onChange={(e) => setFormData({ ...formData, due_date: parseInt(e.target.value) })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner">
+                                        {[...Array(31)].map((_, i) => (
+                                            <option key={i + 1} value={i + 1}>Tanggal {i + 1}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Profil Mikrotik (Live)</label>
+                                    <select 
+                                        required 
+                                        value={packages.find((p: any) => p.id.toString() === formData.package_id)?.name || ''} 
+                                        onChange={(e) => {
+                                            const selectedProfileName = e.target.value;
+                                            const matchingPackage = packages.find((p: any) => p.name === selectedProfileName);
+                                            if (matchingPackage) {
+                                                setFormData({ ...formData, package_id: (matchingPackage as any).id.toString() });
+                                            } else {
+                                                Swal.fire({ icon: 'warning', title: 'Paket Tidak Ditemukan', text: `Profil "${selectedProfileName}" belum terdaftar sebagai Paket di JARFI.`, background: '#1e293b', color: '#fff' });
+                                            }
+                                        }} 
+                                        className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-indigo-400 focus:outline-none focus:border-indigo-500 transition-all shadow-inner font-bold"
+                                    >
+                                        <option value="">-- Deteksi Profile Router --</option>
+                                        {pppProfiles.map((p: any) => (
+                                            <option key={p.name} value={p.name}>{p.name} {p['rate-limit'] ? `(${p['rate-limit']})` : ''}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Sistem Penagihan</label>
+                                    <select required value={formData.package_id} onChange={(e) => setFormData({ ...formData, package_id: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner font-bold">
+                                        <option value="">-- Pilih Paket --</option>
+                                        {packages.map((p: any) => <option key={p.id} value={p.id}>{p.name} - Rp {parseInt(p.price).toLocaleString()}</option>)}
+                                    </select>
+                                </div>
+
+                                <div className="lg:col-span-3 pt-6 flex justify-end gap-4 border-t border-white/5 mt-4">
+                                    <button type="button" onClick={closeForm} className="px-8 py-3.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold transition-all">Batal</button>
+                                    <button type="submit" className="px-10 py-3.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:shadow-[0_0_30px_rgba(99,102,241,0.6)]">
+                                        {isEditing ? 'Simpan Perubahan' : 'Daftarkan Pelanggan'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             )}
 
