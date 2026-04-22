@@ -167,9 +167,9 @@ export default function PrintInvoicePage() {
 
             {/* Invoice Layout */}
             <div className="max-w-4xl mx-auto bg-white shadow-2xl rounded-3xl overflow-hidden print:shadow-none print:rounded-none">
-                <div className="p-8 sm:p-12">
+                <div className="p-6 sm:p-10 print:p-4">
                     {/* Invoice Header */}
-                    <div className="flex flex-col sm:flex-row justify-between items-start mb-12 gap-8">
+                    <div className="flex flex-col sm:flex-row justify-between items-start mb-6 gap-8">
                         <div>
                             <h1 className="text-4xl font-black text-indigo-600 tracking-tight mb-2 uppercase">{settings?.company_name || 'JARFI'}</h1>
                             <p className="text-slate-500 font-medium">Layanan Internet Cepat & Stabil</p>
@@ -190,7 +190,7 @@ export default function PrintInvoicePage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-12 mb-12 border-t border-slate-100 pt-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-6 border-t border-slate-100 pt-6">
                         <div>
                             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Ditujukan Untuk</h3>
                             <p className="text-lg font-bold text-slate-900">{invoice.customer_name}</p>
@@ -214,7 +214,7 @@ export default function PrintInvoicePage() {
                     </div>
 
                     {/* Table */}
-                    <div className="mb-12">
+                    <div className="mb-6">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b-2 border-slate-900">
@@ -237,7 +237,7 @@ export default function PrintInvoicePage() {
                     </div>
 
                     {/* Footer Totals */}
-                    <div className="flex justify-end border-t-2 border-slate-900 pt-8">
+                    <div className="flex justify-end border-t-2 border-slate-900 pt-6">
                         <div className="w-full sm:w-1/2 space-y-4">
                             <div className="flex justify-between text-slate-500 font-medium">
                                 <span>Subtotal</span>
@@ -255,7 +255,7 @@ export default function PrintInvoicePage() {
                     </div>
 
                     {/* Payment Info */}
-                    <div className="mt-16 p-8 bg-slate-50 rounded-2xl border border-slate-100 text-sm">
+                    <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-100 text-sm">
                         <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
                              Metode Pembayaran
                         </h4>
@@ -274,7 +274,7 @@ export default function PrintInvoicePage() {
                         </div>
                     </div>
 
-                    <div className="mt-16 pt-8 border-t border-slate-100 text-center">
+                    <div className="mt-8 pt-6 border-t border-slate-100 text-center">
                         <p className="text-slate-400 text-sm">Terima kasih telah berlangganan layanan {settings?.company_name || 'JARFI'}.</p>
                         <p className="text-indigo-600 font-bold text-sm mt-1">{settings?.company_email ? `support@${settings.company_email.split('@')[1]}` : 'www.jarfi.com'}</p>
                     </div>
@@ -283,6 +283,7 @@ export default function PrintInvoicePage() {
             
             <style jsx global>{`
                 @media print {
+                    @page { size: A4; margin: 1cm; }
                     /* Hide everything from the main layout */
                     aside, header, nav, button { display: none !important; }
                     
@@ -296,6 +297,12 @@ export default function PrintInvoicePage() {
                     .min-h-screen { background: white !important; padding: 0 !important; }
                     .max-w-4xl { max-width: 100% !important; width: 100% !important; margin: 0 !important; }
                     .bg-white { border-radius: 0 !important; box-shadow: none !important; }
+                    
+                    /* Tighten spacing for A4 */
+                    .p-6, .sm\\:p-10 { padding: 0.5rem !important; }
+                    .mb-6, .mb-12 { margin-bottom: 0.75rem !important; }
+                    .mt-8, .mt-16 { margin-top: 1rem !important; }
+                    .py-6 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
                     
                     /* Colors for Print */
                     .text-indigo-600 { color: #4f46e5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
