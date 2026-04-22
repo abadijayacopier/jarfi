@@ -385,7 +385,13 @@ export default function CustomersPage() {
                                         </td>
                                         <td className="p-4">
                                             <p className="text-white font-mono font-bold">{c.pppoe_username}</p>
-                                            <p className="text-[10px] font-black uppercase tracking-wide text-indigo-400 mt-1">{c.package_name}</p>
+                                            {c.package_name ? (
+                                                <p className="text-[10px] font-black uppercase tracking-wide text-indigo-400 mt-1">{c.package_name}</p>
+                                            ) : (
+                                                <p className="text-[10px] font-black uppercase tracking-wide text-red-500 mt-1 flex items-center gap-1">
+                                                    <ShieldAlert className="w-3 h-3" /> TANPA PAKET
+                                                </p>
+                                            )}
                                         </td>
                                         <td className="p-4 text-slate-300">
                                             <span className="bg-slate-800 border border-slate-700 px-2 py-1 rounded text-xs">{c.router_name}</span>
