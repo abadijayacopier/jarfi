@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Router as RouterIcon, Users, Activity, Ticket, Receipt, Settings, LogOut, ChevronLeft, ChevronRight, Menu, Package, Zap } from 'lucide-react';
+import { LayoutDashboard, Router as RouterIcon, Users, Activity, Ticket, Receipt, Settings, LogOut, ChevronLeft, ChevronRight, Menu, Package, Zap, Map, Database } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -19,9 +19,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { href: '/customers', label: 'Customers', icon: Users },
         { href: '/packages', label: 'Paket Internet', icon: Package },
         { href: '/system', label: 'System Monitor', icon: Activity },
+        { href: '/map', label: 'Network Map (ODP)', icon: Map },
         { href: '/vouchers', label: 'Hotspot Vouchers', icon: Ticket },
         { href: '/invoices', label: 'Invoices (Tagihan)', icon: Receipt },
         { href: '/automation', label: 'Auto-Isolir & WA', icon: Zap },
+        { href: '/tools', label: 'Maintenance & Tools', icon: Database },
     ];
 
     useEffect(() => {

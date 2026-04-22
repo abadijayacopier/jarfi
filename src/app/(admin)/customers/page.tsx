@@ -5,17 +5,18 @@ import Swal from 'sweetalert2';
 import { RefreshCw, X, DownloadCloud, Edit, Trash2, ShieldAlert, Search, Users, Wifi, Calendar, Activity, Zap, ArrowDown, ArrowUp } from 'lucide-react';
 
 export default function CustomersPage() {
-    const [customers, setCustomers] = useState([]);
+    const [customers, setCustomers] = useState<any[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [routers, setRouters] = useState([]);
-    const [packages, setPackages] = useState([]);
+    const [routers, setRouters] = useState<any[]>([]);
+    const [packages, setPackages] = useState<any[]>([]);
+    const [odps, setOdps] = useState<any[]>([]);
     const [pppProfiles, setPppProfiles] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     const [showForm, setShowForm] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editId, setEditId] = useState<number | null>(null);
-    const [formData, setFormData] = useState({ user_id: '', name: '', phone: '', router_id: '', package_id: '', pppoe_username: '', pppoe_password: '', due_date: 1 });
+    const [formData, setFormData] = useState({ user_id: '', name: '', phone: '', router_id: '', package_id: '', pppoe_username: '', pppoe_password: '', due_date: 1, latitude: '', longitude: '', odp_id: '' });
 
     const [showImportModal, setShowImportModal] = useState(false);
     const [importRouterId, setImportRouterId] = useState('');
@@ -33,6 +34,7 @@ export default function CustomersPage() {
     useEffect(() => {
         fetchCustomers();
         fetchRoutersAndPackages();
+        fetch('/api/odps').then(res => res.json()).then(data => setOdps(data.odps || []));
     }, []);
 
     // Auto-refresh traffic every 5s for real-time feel
@@ -154,7 +156,10 @@ export default function CustomersPage() {
             package_id: c.package_id ? c.package_id.toString() : '',
             pppoe_username: c.pppoe_username || '',
             pppoe_password: '', // blank by default for edit for security
-            due_date: c.due_date || 1
+            due_date: c.due_date || 1,
+            latitude: c.latitude ? c.latitude.toString() : '',
+            longitude: c.longitude ? c.longitude.toString() : '',
+            odp_id: c.odp_id ? c.odp_id.toString() : ''
         });
         setEditId(c.id);
         setIsEditing(true);
@@ -280,7 +285,7 @@ export default function CustomersPage() {
         setShowForm(false);
         setIsEditing(false);
         setEditId(null);
-        setFormData({ user_id: '', name: '', phone: '', router_id: '', package_id: '', pppoe_username: '', pppoe_password: '', due_date: 1 });
+        setFormData({ user_id: '', name: '', phone: '', router_id: '', package_id: '', pppoe_username: '', pppoe_password: '', due_date: 1, latitude: '', longitude: '', odp_id: '' });
     };
 
     return (
@@ -429,6 +434,21 @@ export default function CustomersPage() {
                                             <option key={i + 1} value={i + 1}>Tanggal {i + 1}</option>
                                         ))}
                                     </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Titik ODP Jaringan</label>
+                                    <select value={formData.odp_id} onChange={(e) => setFormData({ ...formData, odp_id: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner">
+                                        <option value="">-- Tanpa ODP --</option>
+                                        {odps.map((o: any) => <option key={o.id} value={o.id}>{o.name} ({o.used_ports}/{o.capacity})</option>)}
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Latitude</label>
+                                    <input type="text" value={formData.latitude} onChange={(e) => setFormData({ ...formData, latitude: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner" placeholder="-6.2088" />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Longitude</label>
+                                    <input type="text" value={formData.longitude} onChange={(e) => setFormData({ ...formData, longitude: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner" placeholder="106.8456" />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Profil Mikrotik (Live)</label>
