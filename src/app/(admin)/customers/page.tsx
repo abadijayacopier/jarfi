@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { RefreshCw, X, DownloadCloud, Edit, Trash2, ShieldAlert, Search, Users, Wifi, Calendar, Activity, Zap, ArrowDown, ArrowUp } from 'lucide-react';
+import { RefreshCw, X, DownloadCloud, Edit, Trash2, ShieldAlert, Search, Users, Wifi, Calendar, Activity, Zap, ArrowDown, ArrowUp, MapPin } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const LocationPicker = dynamic(() => import('@/components/LocationPicker'), { ssr: false });
 
 export default function CustomersPage() {
     const [customers, setCustomers] = useState<any[]>([]);
@@ -441,6 +444,16 @@ export default function CustomersPage() {
                                         <option value="">-- Tanpa ODP --</option>
                                         {odps.map((o: any) => <option key={o.id} value={o.id}>{o.name} ({o.used_ports}/{o.capacity})</option>)}
                                     </select>
+                                </div>
+                                <div className="lg:col-span-3 space-y-2">
+                                    <label className="block text-xs font-black uppercase tracking-widest text-indigo-400 ml-1 flex items-center gap-2">
+                                        <MapPin className="w-4 h-4" /> Pilih Titik Lokasi di Peta
+                                    </label>
+                                    <LocationPicker 
+                                        initialLat={formData.latitude} 
+                                        initialLng={formData.longitude} 
+                                        onLocationChange={(lat, lng) => setFormData({ ...formData, latitude: lat, longitude: lng })} 
+                                    />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Latitude</label>
