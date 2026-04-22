@@ -5,21 +5,29 @@ import { Printer, ArrowLeft, Wifi } from 'lucide-react';
 
 export default function PrintVouchersPage() {
     const [vouchers, setVouchers] = useState([]);
+    const [settings, setSettings] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchVouchers = async () => {
+        const fetchData = async () => {
             try {
-                const res = await fetch('/api/vouchers');
-                const data = await res.json();
-                if (res.ok) setVouchers(data.vouchers || []);
+                const [vRes, sRes] = await Promise.all([
+                    fetch('/api/vouchers'),
+                    fetch('/api/settings')
+                ]);
+                const [vData, sData] = await Promise.all([
+                    vRes.json(),
+                    sRes.json()
+                ]);
+                if (vRes.ok) setVouchers(vData.vouchers || []);
+                if (sRes.ok) setSettings(sData.settings);
             } catch (err) {
                 console.error(err);
             } finally {
                 setLoading(false);
             }
         };
-        fetchVouchers();
+        fetchData();
     }, []);
 
     const handlePrint = () => {
@@ -57,7 +65,7 @@ export default function PrintVouchersPage() {
                         <div className="bg-indigo-600 p-2 text-center">
                             <div className="flex items-center justify-center gap-1 text-white">
                                 <Wifi className="w-3 h-3" />
-                                <span className="text-[10px] font-black tracking-widest uppercase">JARFI HOTSPOT</span>
+                                <span className="text-[10px] font-black tracking-widest uppercase">{settings?.company_name || 'JARFI'} HOTSPOT</span>
                             </div>
                         </div>
                         
@@ -83,7 +91,7 @@ export default function PrintVouchersPage() {
                         {/* Voucher Footer */}
                         <div className="bg-slate-50 p-2 border-t border-slate-100 flex justify-between items-center">
                             <span className="text-[10px] font-black text-slate-800">Rp {parseInt(v.price).toLocaleString('id-ID')}</span>
-                            <span className="text-[8px] font-bold text-slate-400">www.jarfi.com</span>
+                            <span className="text-[8px] font-bold text-slate-400">{settings?.company_email ? `www.${settings.company_email.split('@')[1]}` : 'www.jarfi.com'}</span>
                         </div>
                         
                         {/* Cut lines for printer (subtle) */}

@@ -10,6 +10,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const pathname = usePathname();
     const [currentTime, setCurrentTime] = useState(new Date());
     const [mounted, setMounted] = useState(false);
+    const [settings, setSettings] = useState<any>(null);
 
     const navItems = [
         { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -24,6 +25,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     useEffect(() => {
         setMounted(true);
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        
+        fetch('/api/settings').then(res => res.json()).then(data => {
+            if (data.settings) setSettings(data.settings);
+        });
+
         return () => clearInterval(timer);
     }, []);
 
@@ -52,16 +58,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
                 <div className={`p-6 border-b border-white/5 flex items-center justify-between`}>
                     {!isCollapsed && (
-                        <div>
-                            <h1 className="text-3xl font-extrabold bg-linear-to-r from-teal-400 to-blue-500 bg-clip-text text-transparent transition-opacity duration-300">
-                                JARFI
+                        <div className="overflow-hidden max-w-[170px]">
+                            <h1 className={`font-extrabold bg-linear-to-r from-teal-400 to-blue-500 bg-clip-text text-transparent transition-opacity duration-300 uppercase leading-tight ${(settings?.company_name || 'JARFI').length > 10 ? 'text-lg' : (settings?.company_name || 'JARFI').length > 6 ? 'text-2xl' : 'text-3xl'}`}>
+                                {settings?.company_name || 'JARFI'}
                             </h1>
                             <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold whitespace-nowrap">Admin Panel</p>
                         </div>
                     )}
                     {isCollapsed && (
                         <h1 className="text-2xl font-extrabold bg-linear-to-r from-teal-400 to-blue-500 bg-clip-text text-transparent mx-auto">
-                            J
+                            {(settings?.company_name || 'JARFI').charAt(0).toUpperCase()}
                         </h1>
                     )}
                 </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { RefreshCw, X, DownloadCloud, Edit, Trash2, ShieldAlert, Search, Users, Wifi, Calendar } from 'lucide-react';
+import { RefreshCw, X, DownloadCloud, Edit, Trash2, ShieldAlert, Search, Users, Wifi, Calendar, Activity, Zap } from 'lucide-react';
 
 export default function CustomersPage() {
     const [customers, setCustomers] = useState([]);
@@ -25,10 +25,45 @@ export default function CustomersPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
 
+    // Real-time traffic
+    const [trafficData, setTrafficData] = useState<any[]>([]);
+    const [trafficLoading, setTrafficLoading] = useState(false);
+
     useEffect(() => {
         fetchCustomers();
         fetchRoutersAndPackages();
     }, []);
+
+    // Auto-refresh traffic every 30s
+    useEffect(() => {
+        if (routers.length > 0) {
+            fetchAllTraffic();
+            const timer = setInterval(fetchAllTraffic, 30000);
+            return () => clearInterval(timer);
+        }
+    }, [routers]);
+
+    const fetchAllTraffic = async () => {
+        setTrafficLoading(true);
+        try {
+            const allTraffic: any[] = [];
+            for (const r of routers as any[]) {
+                try {
+                    const res = await fetch(`/api/mikrotik/traffic?router_id=${r.id}`);
+                    const data = await res.json();
+                    if (res.ok && data.traffic) {
+                        allTraffic.push(...data.traffic);
+                    }
+                } catch { /* skip unavailable routers */ }
+            }
+            setTrafficData(allTraffic);
+        } catch (err) { console.error(err); }
+        finally { setTrafficLoading(false); }
+    };
+
+    const getTrafficInfo = (pppoeUsername: string) => {
+        return trafficData.find(t => t.name === pppoeUsername);
+    };
 
     const fetchCustomers = async () => {
         try {
@@ -388,15 +423,16 @@ export default function CustomersPage() {
                                     <th className="p-5">Customer</th>
                                     <th className="p-5">PPPoE Account</th>
                                     <th className="p-5">Router</th>
+                                    <th className="p-5">Koneksi</th>
                                     <th className="p-5">Status</th>
                                     <th className="p-5 text-center">Aksi (Live API)</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5 text-sm">
                                 {loading ? (
-                                    <tr><td colSpan={5} className="p-20 text-center text-slate-500 animate-pulse font-bold tracking-widest uppercase">Memuat Data...</td></tr>
+                                    <tr><td colSpan={6} className="p-20 text-center text-slate-500 animate-pulse font-bold tracking-widest uppercase">Memuat Data...</td></tr>
                                 ) : customers.length === 0 ? (
-                                    <tr><td colSpan={5} className="p-20 text-center text-slate-500">Tidak ada pelanggan ditemukan.</td></tr>
+                                    <tr><td colSpan={6} className="p-20 text-center text-slate-500">Tidak ada pelanggan ditemukan.</td></tr>
                                 ) : (
                                     customers
                                         .filter((c: any) => 
@@ -435,6 +471,28 @@ export default function CustomersPage() {
                                                     <span className={`px-2.5 py-1.5 rounded-full text-[10px] uppercase font-black tracking-widest ${c.status === 'ACTIVE' ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30' : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'}`}>
                                                         {c.status}
                                                     </span>
+                                                </td>
+                                                <td className="p-5">
+                                                    {(() => {
+                                                        const traffic = getTrafficInfo(c.pppoe_username);
+                                                        if (traffic) {
+                                                            return (
+                                                                <div className="flex items-center gap-2.5">
+                                                                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse"></div>
+                                                                    <div>
+                                                                        <p className="text-emerald-400 font-black text-[10px] uppercase tracking-wider">Online</p>
+                                                                        <p className="text-slate-500 text-[10px] font-bold">{traffic.uptime} | {traffic.address}</p>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        }
+                                                        return (
+                                                            <div className="flex items-center gap-2.5">
+                                                                <div className="w-2.5 h-2.5 rounded-full bg-slate-600"></div>
+                                                                <span className="text-slate-600 font-bold text-[10px] uppercase tracking-wider">Offline</span>
+                                                            </div>
+                                                        );
+                                                    })()}
                                                 </td>
                                                 <td className="p-5 text-right">
                                                     <div className="flex items-center justify-center gap-2">
@@ -517,6 +575,19 @@ export default function CustomersPage() {
                                             {c.status}
                                         </span>
                                     </div>
+                                    {/* Connection Status */}
+                                    {(() => {
+                                        const traffic = getTrafficInfo(c.pppoe_username);
+                                        return (
+                                            <div className={`p-3 rounded-2xl flex items-center gap-3 border ${traffic ? 'bg-emerald-500/5 border-emerald-500/10' : 'bg-slate-900/30 border-white/5'}`}>
+                                                <div className={`w-3 h-3 rounded-full ${traffic ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse' : 'bg-slate-600'}`}></div>
+                                                <div className="flex-1">
+                                                    <p className={`font-black text-[10px] uppercase tracking-wider ${traffic ? 'text-emerald-400' : 'text-slate-600'}`}>{traffic ? 'Online' : 'Offline'}</p>
+                                                    {traffic && <p className="text-slate-500 text-[10px] font-bold">Uptime: {traffic.uptime} | IP: {traffic.address}</p>}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                     <div className="flex gap-2 pt-2">
                                         <button onClick={() => handleIsolir(c.id, c.name)} className="flex-1 py-3 rounded-xl bg-orange-500/10 text-orange-400 border border-orange-500/20 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
                                             <ShieldAlert className="w-3 h-3" /> Isolir

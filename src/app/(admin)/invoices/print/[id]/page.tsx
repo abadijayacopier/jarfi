@@ -7,21 +7,31 @@ import { Printer, Download, ArrowLeft } from 'lucide-react';
 export default function PrintInvoicePage() {
     const { id } = useParams();
     const [invoice, setInvoice] = useState<any>(null);
+    const [settings, setSettings] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchInvoice = async () => {
+        const fetchData = async () => {
             try {
-                const res = await fetch(`/api/invoices/${id}`);
-                const data = await res.json();
-                if (res.ok) setInvoice(data.invoice);
+                const [invRes, setRes] = await Promise.all([
+                    fetch(`/api/invoices/${id}`),
+                    fetch('/api/settings')
+                ]);
+                
+                const [invData, setData] = await Promise.all([
+                    invRes.json(),
+                    setRes.json()
+                ]);
+
+                if (invRes.ok) setInvoice(invData.invoice);
+                if (setRes.ok) setSettings(setData.settings);
             } catch (err) {
                 console.error(err);
             } finally {
                 setLoading(false);
             }
         };
-        fetchInvoice();
+        fetchData();
     }, [id]);
 
     if (loading) return <div className="p-10 text-center">Loading Invoice...</div>;
@@ -57,13 +67,12 @@ export default function PrintInvoicePage() {
                     {/* Invoice Header */}
                     <div className="flex flex-col sm:flex-row justify-between items-start mb-12 gap-8">
                         <div>
-                            <h1 className="text-4xl font-black text-indigo-600 tracking-tight mb-2">JARFI</h1>
+                            <h1 className="text-4xl font-black text-indigo-600 tracking-tight mb-2 uppercase">{settings?.company_name || 'JARFI'}</h1>
                             <p className="text-slate-500 font-medium">Layanan Internet Cepat & Stabil</p>
                             <div className="mt-4 text-sm text-slate-500 space-y-1">
-                                <p>Jl. Raya Utama No. 123</p>
-                                <p>Kota Network, Indonesia 12345</p>
-                                <p>Telp: (021) 1234-5678</p>
-                                <p>Email: billing@jarfi.com</p>
+                                <p className="whitespace-pre-line">{settings?.company_address || 'Alamat Perusahaan'}</p>
+                                <p>WhatsApp: +62 {settings?.company_whatsapp || '-'}</p>
+                                <p>Email: {settings?.company_email || '-'}</p>
                             </div>
                         </div>
                         <div className="text-right">
@@ -130,9 +139,9 @@ export default function PrintInvoicePage() {
                                 <span>Subtotal</span>
                                 <span>Rp {parseInt(invoice.amount).toLocaleString('id-ID')}</span>
                             </div>
-                            <div className="flex justify-between text-slate-500 font-medium">
-                                <span>Pajak (0%)</span>
-                                <span>Rp 0</span>
+                             <div className="flex justify-between text-slate-500 font-medium">
+                                <span>Pajak (PPN {settings?.tax_enabled === '1' ? '11%' : '0%'})</span>
+                                <span>Rp {settings?.tax_enabled === '1' ? Math.round(parseInt(invoice.amount) / 1.11 * 0.11).toLocaleString('id-ID') : '0'}</span>
                             </div>
                             <div className="flex justify-between items-center pt-4 border-t border-slate-100">
                                 <span className="text-lg font-bold text-slate-900 uppercase">Total Tagihan</span>
@@ -148,9 +157,9 @@ export default function PrintInvoicePage() {
                         </h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                             <div>
-                                <p className="font-bold text-slate-700 mb-1">Transfer Bank (BCA)</p>
-                                <p className="text-slate-600">No. Rekening: 1234567890</p>
-                                <p className="text-slate-600">A/N: PT JARFI TEKNOLOGI</p>
+                                <p className="font-bold text-slate-700 mb-1">Transfer Bank ({settings?.bank_name || 'BCA'})</p>
+                                <p className="text-slate-600">No. Rekening: {settings?.bank_account || '-'}</p>
+                                <p className="text-slate-600">A/N: {settings?.bank_holder || settings?.company_name || '-'}</p>
                             </div>
                             <div>
                                 <p className="font-bold text-slate-700 mb-1">Penting</p>
@@ -162,8 +171,8 @@ export default function PrintInvoicePage() {
                     </div>
 
                     <div className="mt-16 pt-8 border-t border-slate-100 text-center">
-                        <p className="text-slate-400 text-sm">Terima kasih telah berlangganan layanan JARFI.</p>
-                        <p className="text-indigo-600 font-bold text-sm mt-1">www.jarfi.com</p>
+                        <p className="text-slate-400 text-sm">Terima kasih telah berlangganan layanan {settings?.company_name || 'JARFI'}.</p>
+                        <p className="text-indigo-600 font-bold text-sm mt-1">{settings?.company_email ? `support@${settings.company_email.split('@')[1]}` : 'www.jarfi.com'}</p>
                     </div>
                 </div>
             </div>
