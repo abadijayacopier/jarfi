@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { RefreshCw, X, DownloadCloud, Edit, Trash2, ShieldAlert, Search } from 'lucide-react';
+import { RefreshCw, X, DownloadCloud, Edit, Trash2, ShieldAlert, Search, Users, Wifi, Calendar } from 'lucide-react';
 
 export default function CustomersPage() {
     const [customers, setCustomers] = useState([]);
@@ -20,6 +20,10 @@ export default function CustomersPage() {
     const [importRouterId, setImportRouterId] = useState('');
     const [mikrotikSecrets, setMikrotikSecrets] = useState([]);
     const [importing, setImporting] = useState(false);
+
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
 
     useEffect(() => {
         fetchCustomers();
@@ -360,86 +364,208 @@ export default function CustomersPage() {
                 </div>
             )}
 
-            <div className="glass rounded-2xl border border-white/10 overflow-hidden shadow-xl">
-                <div className="p-6 border-b border-white/10 bg-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <h4 className="text-xl font-bold text-white">Database Pelanggan</h4>
-                    <div className="relative w-full md:w-96">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                        <input 
-                            type="text" 
-                            placeholder="Cari nama, username, atau nomor WA..." 
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner"
-                        />
+            {/* Content View: Table (Desktop) & Cards (Mobile) */}
+            <div className="space-y-4">
+                {/* Desktop Table View */}
+                <div className="hidden md:block glass rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
+                    <div className="p-6 border-b border-white/10 bg-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <h4 className="text-xl font-bold text-white">Database Pelanggan</h4>
+                        <div className="relative w-full md:w-96">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                            <input 
+                                type="text" 
+                                placeholder="Cari nama, username, atau nomor WA..." 
+                                value={searchTerm}
+                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner"
+                            />
+                        </div>
+                    </div>
+                    <div className="overflow-x-auto min-h-[300px]">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-white/5 uppercase text-[10px] tracking-widest font-black text-slate-400 border-b border-white/5">
+                                    <th className="p-5">Customer</th>
+                                    <th className="p-5">PPPoE Account</th>
+                                    <th className="p-5">Router</th>
+                                    <th className="p-5">Status</th>
+                                    <th className="p-5 text-center">Aksi (Live API)</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5 text-sm">
+                                {loading ? (
+                                    <tr><td colSpan={5} className="p-20 text-center text-slate-500 animate-pulse font-bold tracking-widest uppercase">Memuat Data...</td></tr>
+                                ) : customers.length === 0 ? (
+                                    <tr><td colSpan={5} className="p-20 text-center text-slate-500">Tidak ada pelanggan ditemukan.</td></tr>
+                                ) : (
+                                    customers
+                                        .filter((c: any) => 
+                                            (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                            (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                            (c.phone && c.phone.includes(searchTerm))
+                                        )
+                                        .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                                        .map((c: any) => (
+                                            <tr key={c.id} className="hover:bg-white/5 transition-all group">
+                                                <td className="p-5">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-inner">
+                                                            <Users className="w-5 h-5" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-bold text-white text-base leading-tight">{c.name}</p>
+                                                            <p className="text-[11px] text-slate-500 font-medium">ID: #{c.id} | {c.phone || '-'}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="p-5">
+                                                    <p className="text-white font-mono font-bold">{c.pppoe_username}</p>
+                                                    {c.package_name ? (
+                                                        <p className="text-[10px] font-black uppercase tracking-wide text-indigo-400 mt-1">{c.package_name}</p>
+                                                    ) : (
+                                                        <p className="text-[10px] font-black uppercase tracking-wide text-red-500 mt-1 flex items-center gap-1">
+                                                            <ShieldAlert className="w-3 h-3" /> TANPA PAKET
+                                                        </p>
+                                                    )}
+                                                </td>
+                                                <td className="p-5 text-slate-300">
+                                                    <span className="bg-slate-800 border border-white/5 px-2 py-1 rounded text-xs font-medium">{c.router_name}</span>
+                                                </td>
+                                                <td className="p-5">
+                                                    <span className={`px-2.5 py-1.5 rounded-full text-[10px] uppercase font-black tracking-widest ${c.status === 'ACTIVE' ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30' : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'}`}>
+                                                        {c.status}
+                                                    </span>
+                                                </td>
+                                                <td className="p-5 text-right">
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <button onClick={() => openEditForm(c)} title="Edit Profil" className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 hover:scale-110 transition-all">
+                                                            <Edit className="w-4 h-4" />
+                                                        </button>
+                                                        <button onClick={() => handleIsolir(c.id, c.name)} title="Isolir" className="p-2.5 rounded-xl bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 border border-orange-500/20 hover:scale-110 transition-all">
+                                                            <ShieldAlert className="w-4 h-4" />
+                                                        </button>
+                                                        <button onClick={() => handleDelete(c.id, c.name)} title="Hapus" className="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 hover:scale-110 transition-all">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <div className="overflow-x-auto min-h-[300px]">
-                    <table className="w-full text-left border-collapse whitespace-nowrap">
-                        <thead>
-                            <tr className="border-b border-white/10 bg-white/5 uppercase text-xs tracking-wider font-semibold text-slate-300">
-                                <th className="p-4">Customer</th>
-                                <th className="p-4">PPPoE Account</th>
-                                <th className="p-4">Router</th>
-                                <th className="p-4">Status</th>
-                                <th className="p-4 text-center">Aksi (Terhubung API)</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5 text-sm">
-                            {loading ? (
-                                <tr><td colSpan={5} className="p-8 text-center text-slate-400">Loading customers...</td></tr>
-                            ) : customers.length === 0 ? (
-                                <tr key="empty-customers"><td colSpan={5} className="p-8 text-center text-slate-400">No customers found.</td></tr>
-                            ) : (
-                                customers
-                                    .filter((c: any) => 
-                                        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        c.pppoe_username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        (c.phone && c.phone.includes(searchTerm))
-                                    )
-                                    .map((c: any) => (
-                                    <tr key={c.id} className="hover:bg-white/5 transition-colors">
-                                        <td className="p-4">
-                                            <p className="font-bold text-white text-base">{c.name}</p>
-                                            <p className="text-xs text-slate-400">ID: #{c.id} | Ph: {c.phone}</p>
-                                        </td>
-                                        <td className="p-4">
-                                            <p className="text-white font-mono font-bold">{c.pppoe_username}</p>
-                                            {c.package_name ? (
-                                                <p className="text-[10px] font-black uppercase tracking-wide text-indigo-400 mt-1">{c.package_name}</p>
-                                            ) : (
-                                                <p className="text-[10px] font-black uppercase tracking-wide text-red-500 mt-1 flex items-center gap-1">
-                                                    <ShieldAlert className="w-3 h-3" /> TANPA PAKET
-                                                </p>
-                                            )}
-                                        </td>
-                                        <td className="p-4 text-slate-300">
-                                            <span className="bg-slate-800 border border-slate-700 px-2 py-1 rounded text-xs">{c.router_name}</span>
-                                        </td>
-                                        <td className="p-4">
-                                            <span className={`px-2.5 py-1.5 rounded-full text-[10px] uppercase font-bold tracking-widest ${c.status === 'ACTIVE' ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30' : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'}`}>
-                                                {c.status}
-                                            </span>
-                                        </td>
-                                        <td className="p-4 text-right">
-                                            <div className="flex items-center justify-center gap-2">
-                                                <button onClick={() => openEditForm(c)} title="Edit Nama & Sandi Mikrotik" className="p-2.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all border border-blue-500/30 hover:scale-110 shadow-sm">
-                                                    <Edit className="w-4 h-4" />
-                                                </button>
-                                                <button onClick={() => handleIsolir(c.id, c.name)} title="Isolir Pelanggan" className="p-2.5 rounded-lg bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 transition-all border border-orange-500/30 hover:scale-110 shadow-sm">
-                                                    <ShieldAlert className="w-4 h-4" />
-                                                </button>
-                                                <button onClick={() => handleDelete(c.id, c.name)} title="Hapus Permanen Akun" className="p-2.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all border border-red-500/30 hover:scale-110 shadow-sm">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-4">
+                    <div className="glass p-4 rounded-2xl border border-white/10 mb-4">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                            <input 
+                                type="text" 
+                                placeholder="Cari pelanggan..." 
+                                value={searchTerm}
+                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500"
+                            />
+                        </div>
+                    </div>
+                    {loading ? (
+                        <div className="p-10 text-center text-slate-500 animate-pulse">Memuat...</div>
+                    ) : customers.length === 0 ? (
+                        <div className="p-10 text-center text-slate-500">Kosong</div>
+                    ) : (
+                        customers
+                            .filter((c: any) => 
+                                (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                (c.phone && c.phone.includes(searchTerm))
+                            )
+                            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                            .map((c: any) => (
+                                <div key={c.id} className="glass p-5 rounded-3xl border border-white/10 space-y-4 shadow-xl">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-inner">
+                                                <Users className="w-6 h-6" />
                                             </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                            <div>
+                                                <h4 className="font-black text-white text-lg leading-tight">{c.name}</h4>
+                                                <p className="text-xs text-slate-500 font-bold tracking-wider">#{c.id} | {c.phone || 'No Phone'}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => openEditForm(c)} className="p-3 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 active:scale-95 transition-all">
+                                                <Edit className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
+                                        <div className="bg-slate-900/50 p-3 rounded-2xl">
+                                            <p className="text-[9px] uppercase font-black text-slate-500 mb-1">Username</p>
+                                            <p className="font-mono text-xs text-slate-200 truncate">{c.pppoe_username}</p>
+                                        </div>
+                                        <div className="bg-slate-900/50 p-3 rounded-2xl">
+                                            <p className="text-[9px] uppercase font-black text-slate-500 mb-1">Paket</p>
+                                            <p className="font-black text-xs text-indigo-400 truncate uppercase">{c.package_name || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-indigo-500/5 p-3 rounded-2xl flex items-center justify-between border border-white/5">
+                                        <span className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Router: {c.router_name}</span>
+                                        <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase ${c.status === 'ACTIVE' ? 'text-teal-400' : 'text-orange-400'}`}>
+                                            {c.status}
+                                        </span>
+                                    </div>
+                                    <div className="flex gap-2 pt-2">
+                                        <button onClick={() => handleIsolir(c.id, c.name)} className="flex-1 py-3 rounded-xl bg-orange-500/10 text-orange-400 border border-orange-500/20 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
+                                            <ShieldAlert className="w-3 h-3" /> Isolir
+                                        </button>
+                                        <button onClick={() => handleDelete(c.id, c.name)} className="flex-1 py-3 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
+                                            <Trash2 className="w-3 h-3" /> Hapus
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                    )}
                 </div>
+
+                {/* Pagination Controls */}
+                {!loading && customers.length > 0 && (
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-8 px-2">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                            Showing <span className="text-white">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="text-white">{Math.min(currentPage * itemsPerPage, customers.filter((c: any) => (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length)}</span> 
+                            {" "} of <span className="text-white">{customers.filter((c: any) => (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length}</span> Entries
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <button 
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="px-5 py-2.5 rounded-xl glass border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            >
+                                Prev
+                            </button>
+                            <div className="hidden sm:flex gap-1">
+                                {[...Array(Math.ceil(customers.filter((c: any) => (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length / itemsPerPage))].map((_, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => setCurrentPage(i + 1)}
+                                        className={`w-10 h-10 rounded-xl font-black text-xs transition-all ${currentPage === i + 1 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 border border-indigo-400/50' : 'glass border border-white/10 text-slate-500 hover:text-white'}`}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
+                            </div>
+                            <button 
+                                onClick={() => setCurrentPage(p => Math.min(Math.ceil(customers.filter((c: any) => (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length / itemsPerPage), p + 1))}
+                                disabled={currentPage === Math.ceil(customers.filter((c: any) => (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length / itemsPerPage)}
+                                className="px-5 py-2.5 rounded-xl glass border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

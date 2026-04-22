@@ -14,6 +14,10 @@ export default function RoutersPage() {
     const [formData, setFormData] = useState({ name: '', ip_address: '', username: '', password: '', api_port: 8728 });
     const [testSuccess, setTestSuccess] = useState(false);
 
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
+
     useEffect(() => {
         fetchRouters();
     }, []);
@@ -208,53 +212,126 @@ export default function RoutersPage() {
                 </button>
             </div>
 
-            <div className="glass rounded-2xl border border-white/10 overflow-hidden shadow-xl">
-                <div className="overflow-x-auto min-h-[300px]">
-                    <table className="w-full text-left border-collapse whitespace-nowrap">
-                        <thead>
-                            <tr className="border-b border-white/10 bg-white/5 uppercase text-xs tracking-wider font-semibold text-slate-300">
-                                <th className="p-4">Name</th>
-                                <th className="p-4">IP Address</th>
-                                <th className="p-4">Username</th>
-                                <th className="p-4">Status</th>
-                                <th className="p-4 text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5 text-sm">
-                            {loading ? (
-                                <tr><td colSpan={5} className="p-8 text-center text-slate-400">Loading routers...</td></tr>
-                            ) : routers.length === 0 ? (
-                                <tr><td colSpan={5} className="p-8 text-center text-slate-400">No routers added yet.</td></tr>
-                            ) : (
-                                routers.map((router: any) => (
-                                    <tr key={router.id} className="hover:bg-white/5 transition-colors">
-                                        <td className="p-4 font-medium text-white">{router.name}</td>
-                                        <td className="p-4 text-slate-300 font-mono text-sm">{router.ip_address}:{router.api_port}</td>
-                                        <td className="p-4 text-slate-300">{router.username}</td>
-                                        <td className="p-4">
-                                            <span className={`px-2.5 py-1 rounded-full text-[10px] tracking-widest uppercase font-bold ${router.status === 'ONLINE' ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
-                                                {router.status}
-                                            </span>
-                                        </td>
-                                        <td className="p-4 text-right">
-                                            <div className="flex items-center justify-center gap-2">
-                                                <button onClick={() => testConnectionExisting(router)} title="Test Ping API" className="p-2.5 rounded-lg bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 transition-all border border-teal-500/30 hover:scale-110 shadow-sm">
-                                                    <Wifi className="w-4 h-4" />
-                                                </button>
-                                                <button onClick={() => openEditModal(router)} title="Edit Router" className="p-2.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all border border-blue-500/30 hover:scale-110 shadow-sm">
-                                                    <Edit className="w-4 h-4" />
-                                                </button>
-                                                <button onClick={() => handleDelete(router.id)} title="Delete Router" className="p-2.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all border border-red-500/30 hover:scale-110 shadow-sm">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+            {/* Content View: Table (Desktop) & Cards (Mobile) */}
+            <div className="space-y-4">
+                {/* Desktop Table View */}
+                <div className="hidden md:block glass rounded-2xl border border-white/10 overflow-hidden shadow-xl">
+                    <div className="overflow-x-auto min-h-[300px]">
+                        <table className="w-full text-left border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr className="border-b border-white/10 bg-white/5 uppercase text-xs tracking-wider font-semibold text-slate-300">
+                                    <th className="p-4">Name</th>
+                                    <th className="p-4">IP Address</th>
+                                    <th className="p-4">Username</th>
+                                    <th className="p-4">Status</th>
+                                    <th className="p-4 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5 text-sm">
+                                {loading ? (
+                                    <tr><td colSpan={5} className="p-8 text-center text-slate-400">Loading routers...</td></tr>
+                                ) : routers.length === 0 ? (
+                                    <tr><td colSpan={5} className="p-8 text-center text-slate-400">No routers added yet.</td></tr>
+                                ) : (
+                                    routers
+                                        .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                                        .map((router: any) => (
+                                            <tr key={router.id} className="hover:bg-white/5 transition-colors">
+                                                <td className="p-4 font-medium text-white">{router.name}</td>
+                                                <td className="p-4 text-slate-300 font-mono text-sm">{router.ip_address}:{router.api_port}</td>
+                                                <td className="p-4 text-slate-300">{router.username}</td>
+                                                <td className="p-4">
+                                                    <span className={`px-2.5 py-1 rounded-full text-[10px] tracking-widest uppercase font-bold ${router.status === 'ONLINE' ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+                                                        {router.status}
+                                                    </span>
+                                                </td>
+                                                <td className="p-4 text-right">
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <button onClick={() => testConnectionExisting(router)} title="Test Ping API" className="p-2.5 rounded-lg bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 transition-all border border-teal-500/30 hover:scale-110 shadow-sm">
+                                                            <Wifi className="w-4 h-4" />
+                                                        </button>
+                                                        <button onClick={() => openEditModal(router)} title="Edit Router" className="p-2.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all border border-blue-500/30 hover:scale-110 shadow-sm">
+                                                            <Edit className="w-4 h-4" />
+                                                        </button>
+                                                        <button onClick={() => handleDelete(router.id)} title="Delete Router" className="p-2.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all border border-red-500/30 hover:scale-110 shadow-sm">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-4">
+                    {loading ? (
+                        <div className="p-10 text-center text-slate-500 animate-pulse">Memuat...</div>
+                    ) : routers.length === 0 ? (
+                        <div className="p-10 text-center text-slate-500">Kosong</div>
+                    ) : (
+                        routers
+                            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                            .map((router: any) => (
+                                <div key={router.id} className="glass p-5 rounded-3xl border border-white/10 space-y-4 shadow-xl">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal-400 border border-teal-500/20">
+                                                <Wifi className="w-5 h-5" />
+                                            </div>
+                                            <h4 className="font-black text-white text-lg">{router.name}</h4>
+                                        </div>
+                                        <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-tighter border ${router.status === 'ONLINE' ? 'bg-teal-500/10 text-teal-400 border-teal-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'}`}>
+                                            {router.status}
+                                        </span>
+                                    </div>
+                                    <div className="bg-slate-900/50 p-3 rounded-2xl border border-white/5 space-y-2">
+                                        <div className="flex justify-between text-[10px]">
+                                            <span className="text-slate-500 uppercase font-black">Host</span>
+                                            <span className="text-white font-mono">{router.ip_address}</span>
+                                        </div>
+                                        <div className="flex justify-between text-[10px]">
+                                            <span className="text-slate-500 uppercase font-black">User</span>
+                                            <span className="text-white font-bold">{router.username}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => testConnectionExisting(router)} className="flex-1 py-2.5 rounded-xl bg-teal-500/10 text-teal-400 border border-teal-500/20 text-[10px] font-black uppercase">Test</button>
+                                        <button onClick={() => openEditModal(router)} className="flex-1 py-2.5 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-black uppercase">Edit</button>
+                                        <button onClick={() => handleDelete(router.id)} className="flex-1 py-2.5 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 text-[10px] font-black uppercase">Hapus</button>
+                                    </div>
+                                </div>
+                            ))
+                    )}
+                </div>
+
+                {/* Pagination Controls */}
+                {!loading && routers.length > itemsPerPage && (
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-8 px-2">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                            Total <span className="text-white">{routers.length}</span> Router
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <button 
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="px-5 py-2.5 rounded-xl glass border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white disabled:opacity-30 transition-all shadow-sm"
+                            >
+                                Prev
+                            </button>
+                            <button 
+                                onClick={() => setCurrentPage(p => p + 1)}
+                                disabled={currentPage >= Math.ceil(routers.length / itemsPerPage)}
+                                className="px-5 py-2.5 rounded-xl glass border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white disabled:opacity-30 transition-all shadow-sm"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Pop Up Modal Form */}

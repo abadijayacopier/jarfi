@@ -12,6 +12,10 @@ export default function HotspotProfilesPage() {
     const [loading, setLoading] = useState(false);
     const [showAddForm, setShowAddForm] = useState(false);
 
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
+
     const [formData, setFormData] = useState({
         name: '',
         rateLimit: '1M/1M',
@@ -186,49 +190,125 @@ export default function HotspotProfilesPage() {
                 </div>
             )}
 
-            <div className="glass rounded-4xl border border-white/10 overflow-hidden shadow-2xl">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-white/5 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-white/10">
-                                <th className="p-6">Nama Profil</th>
-                                <th className="p-6"><div className="flex items-center gap-2"><Zap className="w-3 h-3" /> Rate Limit</div></th>
-                                <th className="p-6"><div className="flex items-center gap-2"><Clock className="w-3 h-3" /> Session Timeout</div></th>
-                                <th className="p-6"><div className="flex items-center gap-2"><Users className="w-3 h-3" /> Shared</div></th>
-                                <th className="p-6 text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {loading ? (
-                                <tr><td colSpan={5} className="p-20 text-center text-slate-500 font-bold uppercase tracking-widest animate-pulse">Menarik data profil dari Mikrotik...</td></tr>
-                            ) : profiles.length === 0 ? (
-                                <tr><td colSpan={5} className="p-20 text-center text-slate-500">Tidak ada profil ditemukan.</td></tr>
-                            ) : (
-                                profiles.map((p: any) => (
-                                    <tr key={p['.id']} className="hover:bg-white/5 transition-all group">
-                                        <td className="p-6">
-                                            <span className="text-lg font-black text-white group-hover:text-indigo-400 transition-colors">{p.name}</span>
-                                        </td>
-                                        <td className="p-6 font-mono text-slate-400 font-bold">{p['rate-limit'] || '-'}</td>
-                                        <td className="p-6 font-mono text-slate-400 font-bold">{p['session-timeout'] || '-'}</td>
-                                        <td className="p-6 text-slate-400 font-bold">{p['shared-users'] || '1'}</td>
-                                        <td className="p-6">
-                                            <div className="flex justify-center">
-                                                <button 
-                                                    onClick={() => handleDeleteProfile(p['.id'], p.name)}
-                                                    className={`p-3 rounded-xl transition-all ${p.name === 'default' ? 'opacity-20 cursor-not-allowed text-slate-500' : 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20'}`}
-                                                    disabled={p.name === 'default'}
-                                                >
-                                                    <Trash2 className="w-5 h-5" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+            {/* Content View: Table (Desktop) & Cards (Mobile) */}
+            <div className="space-y-4">
+                {/* Desktop Table View */}
+                <div className="hidden md:block glass rounded-4xl border border-white/10 overflow-hidden shadow-2xl">
+                    <div className="overflow-x-auto min-h-[300px]">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-white/5 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-white/10">
+                                    <th className="p-6">Nama Profil</th>
+                                    <th className="p-6"><div className="flex items-center gap-2"><Zap className="w-3 h-3" /> Rate Limit</div></th>
+                                    <th className="p-6"><div className="flex items-center gap-2"><Clock className="w-3 h-3" /> Session Timeout</div></th>
+                                    <th className="p-6"><div className="flex items-center gap-2"><Users className="w-3 h-3" /> Shared</div></th>
+                                    <th className="p-6 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {loading ? (
+                                    <tr><td colSpan={5} className="p-20 text-center text-slate-500 font-bold uppercase tracking-widest animate-pulse">Menarik data profil dari Mikrotik...</td></tr>
+                                ) : profiles.length === 0 ? (
+                                    <tr><td colSpan={5} className="p-20 text-center text-slate-500">Tidak ada profil ditemukan.</td></tr>
+                                ) : (
+                                    profiles
+                                        .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                                        .map((p: any) => (
+                                            <tr key={p['.id']} className="hover:bg-white/5 transition-all group">
+                                                <td className="p-6">
+                                                    <span className="text-lg font-black text-white group-hover:text-indigo-400 transition-colors">{p.name}</span>
+                                                </td>
+                                                <td className="p-6 font-mono text-slate-400 font-bold">{p['rate-limit'] || '-'}</td>
+                                                <td className="p-6 font-mono text-slate-400 font-bold">{p['session-timeout'] || '-'}</td>
+                                                <td className="p-6 text-slate-400 font-bold">{p['shared-users'] || '1'}</td>
+                                                <td className="p-6">
+                                                    <div className="flex justify-center">
+                                                        <button 
+                                                            onClick={() => handleDeleteProfile(p['.id'], p.name)}
+                                                            className={`p-3 rounded-xl transition-all ${p.name === 'default' ? 'opacity-20 cursor-not-allowed text-slate-500' : 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 shadow-sm'}`}
+                                                            disabled={p.name === 'default'}
+                                                        >
+                                                            <Trash2 className="w-5 h-5" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-4">
+                    {loading ? (
+                        <div className="p-10 text-center text-slate-500 animate-pulse uppercase font-black text-[10px] tracking-widest">Sinkronisasi Mikrotik...</div>
+                    ) : profiles.length === 0 ? (
+                        <div className="p-10 text-center text-slate-500">Kosong</div>
+                    ) : (
+                        profiles
+                            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                            .map((p: any) => (
+                                <div key={p['.id']} className="glass p-5 rounded-3xl border border-white/10 space-y-4 shadow-xl">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+                                                <Zap className="w-5 h-5" />
+                                            </div>
+                                            <h4 className="font-black text-white text-lg leading-tight">{p.name}</h4>
+                                        </div>
+                                        <button 
+                                            onClick={() => handleDeleteProfile(p['.id'], p.name)} 
+                                            disabled={p.name === 'default'}
+                                            className={`p-2.5 rounded-xl transition-all ${p.name === 'default' ? 'opacity-20 text-slate-500' : 'bg-red-500/10 text-red-500 border border-red-500/20 active:scale-95'}`}
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <div className="bg-slate-900/50 p-3 rounded-2xl border border-white/5">
+                                            <p className="text-[9px] uppercase font-black text-slate-500 mb-1">Limit</p>
+                                            <p className="text-[10px] font-mono font-bold text-teal-400">{p['rate-limit'] || '-'}</p>
+                                        </div>
+                                        <div className="bg-slate-900/50 p-3 rounded-2xl border border-white/5">
+                                            <p className="text-[9px] uppercase font-black text-slate-500 mb-1">Timeout</p>
+                                            <p className="text-[10px] font-mono font-bold text-blue-400">{p['session-timeout'] || '-'}</p>
+                                        </div>
+                                        <div className="bg-slate-900/50 p-3 rounded-2xl border border-white/5">
+                                            <p className="text-[9px] uppercase font-black text-slate-500 mb-1">Shared</p>
+                                            <p className="text-[10px] font-black text-white">{p['shared-users'] || '1'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                    )}
+                </div>
+
+                {/* Pagination Controls */}
+                {!loading && profiles.length > itemsPerPage && (
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-8 px-2">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                            Total <span className="text-white">{profiles.length}</span> Profil Tersedia
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <button 
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="px-5 py-2.5 rounded-xl glass border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white disabled:opacity-30 transition-all"
+                            >
+                                Prev
+                            </button>
+                            <button 
+                                onClick={() => setCurrentPage(p => p + 1)}
+                                disabled={currentPage >= Math.ceil(profiles.length / itemsPerPage)}
+                                className="px-5 py-2.5 rounded-xl glass border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white disabled:opacity-30 transition-all"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

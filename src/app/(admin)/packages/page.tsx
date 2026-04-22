@@ -15,6 +15,10 @@ export default function PackagesPage() {
     const [editId, setEditId] = useState<number | null>(null);
     const [formData, setFormData] = useState({ name: '', speed_limit: '', price: 0 });
 
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
+
     useEffect(() => {
         fetchPackages();
         fetchRouters();
@@ -240,87 +244,179 @@ export default function PackagesPage() {
                 </div>
             )}
 
-            <div className="glass rounded-4xl border border-white/10 overflow-hidden shadow-2xl">
-                <div className="p-6 border-b border-white/10 bg-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <h4 className="text-xl font-bold text-white flex items-center gap-3">
-                         Database Paket Layanan
-                    </h4>
-                    <div className="relative w-full md:w-96">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                        <input 
-                            type="text" 
-                            placeholder="Cari nama paket..." 
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner"
-                        />
+            {/* Content View: Table (Desktop) & Cards (Mobile) */}
+            <div className="space-y-4">
+                {/* Desktop Table View */}
+                <div className="hidden md:block glass rounded-4xl border border-white/10 overflow-hidden shadow-2xl">
+                    <div className="p-6 border-b border-white/10 bg-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <h4 className="text-xl font-bold text-white flex items-center gap-3">
+                             Database Paket Layanan
+                        </h4>
+                        <div className="relative w-full md:w-96">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                            <input 
+                                type="text" 
+                                placeholder="Cari nama paket..." 
+                                value={searchTerm}
+                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner"
+                            />
+                        </div>
+                    </div>
+                    <div className="overflow-x-auto min-h-[300px]">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-white/5 uppercase text-[10px] tracking-widest font-black text-slate-400 border-b border-white/5">
+                                    <th className="p-5">Nama Paket (Mikrotik Profile)</th>
+                                    <th className="p-5">Kecepatan (Limit)</th>
+                                    <th className="p-5">Harga Tagihan</th>
+                                    <th className="p-5 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5 text-sm">
+                                {loading ? (
+                                    <tr><td colSpan={4} className="p-20 text-center text-slate-400">Loading...</td></tr>
+                                ) : packages.length === 0 ? (
+                                    <tr><td colSpan={4} className="p-20 text-center text-slate-500">Belum ada paket. Klik sinkron dari Mikrotik!</td></tr>
+                                ) : (
+                                    packages
+                                        .filter((p: any) => (p.name || '').toLowerCase().includes(searchTerm.toLowerCase()))
+                                        .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                                        .map((p: any) => (
+                                            <tr key={p.id} className="hover:bg-white/5 transition-all group">
+                                                <td className="p-5">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-inner">
+                                                            <Wifi className="w-5 h-5" />
+                                                        </div>
+                                                        <span className="font-bold text-white text-lg">{p.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="p-5 font-mono text-teal-400 font-bold">{p.speed_limit || p.bandwidth_limit || 'Tidak Ada Limit'}</td>
+                                                <td className="p-5">
+                                                    <span className="text-xl font-black text-white">Rp {parseInt(p.price).toLocaleString('id-ID')}</span>
+                                                    <span className="text-[10px] text-slate-500 block">per bulan</span>
+                                                </td>
+                                                <td className="p-5 text-center">
+                                                    <div className="flex justify-center gap-2">
+                                                        <button 
+                                                            onClick={() => {
+                                                                setIsEditing(true);
+                                                                setEditId(p.id);
+                                                                setFormData({ 
+                                                                    name: p.name, 
+                                                                    speed_limit: p.speed_limit || p.bandwidth_limit || '', 
+                                                                    price: parseInt(p.price) 
+                                                                });
+                                                                setShowForm(true);
+                                                            }}
+                                                            className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 transition-all hover:scale-110 shadow-sm"
+                                                        >
+                                                            <Edit className="w-4 h-4" />
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => handleDelete(p.id, p.name)}
+                                                            className="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 transition-all hover:scale-110 shadow-sm"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <div className="overflow-x-auto min-h-[300px]">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-white/5 uppercase text-[10px] tracking-widest font-black text-slate-400">
-                                <th className="p-5">Nama Paket (Mikrotik Profile)</th>
-                                <th className="p-5">Kecepatan (Limit)</th>
-                                <th className="p-5">Harga Tagihan</th>
-                                <th className="p-5 text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5 text-sm">
-                            {loading ? (
-                                <tr><td colSpan={4} className="p-20 text-center text-slate-400">Loading...</td></tr>
-                            ) : packages.length === 0 ? (
-                                <tr><td colSpan={4} className="p-20 text-center text-slate-500">Belum ada paket. Klik sinkron dari Mikrotik!</td></tr>
-                            ) : (
-                                packages
-                                    .filter((p: any) => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                                    .map((p: any) => (
-                                        <tr key={p.id} className="hover:bg-white/5 transition-all group">
-                                            <td className="p-5">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
-                                                        <Wifi className="w-5 h-5" />
-                                                    </div>
-                                                    <span className="font-bold text-white text-lg">{p.name}</span>
-                                                </div>
-                                            </td>
-                                            <td className="p-5 font-mono text-teal-400 font-bold">{p.speed_limit || 'Tidak Ada Limit'}</td>
-                                            <td className="p-5">
-                                                <span className="text-xl font-black text-white">Rp {parseInt(p.price).toLocaleString('id-ID')}</span>
-                                                <span className="text-[10px] text-slate-500 block">per bulan</span>
-                                            </td>
-                                            <td className="p-5 text-center">
-                                                <div className="flex justify-center gap-2">
-                                                    <button 
-                                                        onClick={() => {
-                                                            setIsEditing(true);
-                                                            setEditId(p.id);
-                                                            setFormData({ 
-                                                                name: p.name, 
-                                                                speed_limit: p.speed_limit || p.bandwidth_limit || '', 
-                                                                price: parseInt(p.price) 
-                                                            });
-                                                            setShowForm(true);
-                                                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                                                        }}
-                                                        className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 transition-all hover:scale-110"
-                                                    >
-                                                        <Edit className="w-4 h-4" />
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => handleDelete(p.id, p.name)}
-                                                        className="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 transition-all hover:scale-110"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                            )}
-                        </tbody>
-                    </table>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-4">
+                    <div className="glass p-4 rounded-2xl border border-white/10 mb-4">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                            <input 
+                                type="text" 
+                                placeholder="Cari paket..." 
+                                value={searchTerm}
+                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500 shadow-inner"
+                            />
+                        </div>
+                    </div>
+                    {loading ? (
+                        <div className="p-10 text-center text-slate-500 animate-pulse uppercase font-black text-xs tracking-widest">Memuat...</div>
+                    ) : packages.length === 0 ? (
+                        <div className="p-10 text-center text-slate-500">Kosong</div>
+                    ) : (
+                        packages
+                            .filter((p: any) => (p.name || '').toLowerCase().includes(searchTerm.toLowerCase()))
+                            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                            .map((p: any) => (
+                                <div key={p.id} className="glass p-5 rounded-3xl border border-white/10 space-y-4 shadow-xl">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-inner">
+                                                <Package className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-black text-white text-lg leading-tight">{p.name}</h4>
+                                                <p className="text-xs text-slate-500 font-bold tracking-wider">Rp {parseInt(p.price).toLocaleString('id-ID')} / bln</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={() => {
+                                                    setIsEditing(true);
+                                                    setEditId(p.id);
+                                                    setFormData({ name: p.name, speed_limit: p.speed_limit || p.bandwidth_limit || '', price: parseInt(p.price) });
+                                                    setShowForm(true);
+                                                }}
+                                                className="p-3 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 active:scale-95 transition-all"
+                                            >
+                                                <Edit className="w-5 h-5" />
+                                            </button>
+                                            <button onClick={() => handleDelete(p.id, p.name)} className="p-3 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 active:scale-95 transition-all">
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="bg-slate-900/50 p-4 rounded-2xl flex items-center justify-between border border-white/5">
+                                        <div className="flex items-center gap-2">
+                                            <Wifi className="w-4 h-4 text-teal-400" />
+                                            <span className="text-[10px] font-black text-teal-400 uppercase tracking-[0.2em]">{p.speed_limit || p.bandwidth_limit || 'No Limit'}</span>
+                                        </div>
+                                        <div className="w-2 h-2 rounded-full bg-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.5)]"></div>
+                                    </div>
+                                </div>
+                            ))
+                    )}
                 </div>
+
+                {/* Pagination Controls */}
+                {!loading && packages.length > itemsPerPage && (
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-8 px-2">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                            Total <span className="text-white">{packages.filter((p: any) => (p.name || '').toLowerCase().includes(searchTerm.toLowerCase())).length}</span> Paket Tersedia
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <button 
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="px-5 py-2.5 rounded-xl glass border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            >
+                                Prev
+                            </button>
+                            <button 
+                                onClick={() => setCurrentPage(p => p + 1)}
+                                disabled={currentPage >= Math.ceil(packages.filter((p: any) => (p.name || '').toLowerCase().includes(searchTerm.toLowerCase())).length / itemsPerPage)}
+                                className="px-5 py-2.5 rounded-xl glass border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
