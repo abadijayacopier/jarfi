@@ -1,7 +1,7 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  serverExternalPackages: ['routeros-client', 'node-routeros', 'mysql2', 'source-map-support'],
 };
 
 export default nextConfig;
