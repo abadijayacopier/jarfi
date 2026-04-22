@@ -332,8 +332,8 @@ export default function CustomersPage() {
                                     {mikrotikSecrets.length === 0 ? (
                                         <tr key="empty-secrets"><td colSpan={4} className="p-12 text-center text-slate-500 font-medium">Pilih router di atas agar sistem bisa mendeteksi isi mikrotiknya sekarang juga.</td></tr>
                                     ) : (
-                                        mikrotikSecrets.map((s: any) => (
-                                            <tr key={s.id} className="hover:bg-white/5 transition-colors">
+                                        mikrotikSecrets.map((s: any, idx: number) => (
+                                            <tr key={s.id || `secret-${idx}`} className="hover:bg-white/5 transition-colors">
                                                 <td className="p-4 font-mono font-bold text-white text-lg">{s.name}</td>
                                                 <td className="p-4 font-mono text-slate-400">{s.password || '-'}</td>
                                                 <td className="p-4 text-blue-400 font-bold uppercase text-xs">{s.profile}</td>
