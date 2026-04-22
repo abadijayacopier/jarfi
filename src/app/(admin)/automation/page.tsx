@@ -125,9 +125,9 @@ export default function AutomationPage() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                                 <div className="bg-slate-900/50 p-4 rounded-2xl border border-white/5">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Status Sistem</p>
-                                    <p className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                                    <div className="text-lg font-bold text-emerald-400 flex items-center gap-2">
                                         <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div> Ready
-                                    </p>
+                                    </div>
                                 </div>
                                 <div className="bg-slate-900/50 p-4 rounded-2xl border border-white/5">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Terakhir Jalan</p>
