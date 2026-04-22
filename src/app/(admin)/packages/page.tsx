@@ -27,7 +27,7 @@ export default function PackagesPage() {
     const fetchPackages = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/packages');
+            const res = await fetch('/api/packages', { cache: 'no-store' });
             const data = await res.json();
             if (res.ok) setPackages(data.packages || []);
         } catch (err) {
@@ -87,10 +87,12 @@ export default function PackagesPage() {
         }
     };
 
+    const [saving, setSaving] = useState(false);
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSaving(true);
         const method = isEditing ? 'PUT' : 'POST';
-        const url = '/api/packages/manage'; // I'll create this helper API
+        const url = '/api/packages/manage';
 
         try {
             const res = await fetch(url, {
@@ -99,15 +101,29 @@ export default function PackagesPage() {
                 body: JSON.stringify(isEditing ? { ...formData, id: editId } : formData)
             });
             if (res.ok) {
+                await fetchPackages();
                 setShowForm(false);
                 setIsEditing(false);
                 setEditId(null);
                 setFormData({ name: '', speed_limit: '', price: 0 });
-                fetchPackages();
-                Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Paket berhasil disimpan!', background: '#1e293b', color: '#fff', timer: 1500, showConfirmButton: false });
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: 'Berhasil', 
+                    text: 'Paket berhasil disimpan!', 
+                    background: '#1e293b', 
+                    color: '#fff', 
+                    timer: 1500, 
+                    showConfirmButton: false 
+                });
+            } else {
+                const data = await res.json();
+                Swal.fire({ icon: 'error', title: 'Gagal', text: data.error || 'Terjadi kesalahan saat menyimpan.', background: '#1e293b', color: '#fff' });
             }
         } catch (err) {
             console.error(err);
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Koneksi ke server gagal.', background: '#1e293b', color: '#fff' });
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -234,9 +250,19 @@ export default function PackagesPage() {
                                 </button>
                                 <button 
                                     type="submit" 
-                                    className="px-10 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black shadow-xl shadow-indigo-600/20 transition-all flex items-center gap-3 hover:scale-105 active:scale-95"
+                                    disabled={saving}
+                                    className={`px-10 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black shadow-xl shadow-indigo-600/20 transition-all flex items-center gap-3 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed`}
                                 >
-                                    <Save className="w-6 h-6" /> {isEditing ? 'Update Paket' : 'Simpan Paket'}
+                                    {saving ? (
+                                        <>
+                                            <RefreshCw className="w-6 h-6 animate-spin" />
+                                            Menyimpan...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save className="w-6 h-6" /> {isEditing ? 'Update Paket' : 'Simpan Paket'}
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </form>
