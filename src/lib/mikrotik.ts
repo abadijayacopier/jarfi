@@ -178,6 +178,17 @@ export class MikrotikService {
         }
     }
 
+    public async ping(address: string, count: number = 1) {
+        const client = new RouterOSClient(this.config);
+        const api = await client.connect();
+        try {
+            const result = await api.menu('/ping').exec({ address, count: count.toString() });
+            return result;
+        } finally {
+            client.close();
+        }
+    }
+
     public async removeSecret(name: string) {
         const client = new RouterOSClient(this.config);
         const api = await client.connect();

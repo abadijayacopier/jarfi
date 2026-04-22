@@ -30,6 +30,13 @@ export async function GET(req: Request) {
 
         const traffic = await mk.getInterfaceTraffic(interfaceName);
         const resources = await mk.getResources();
+        let latency = 0;
+        try {
+            const pingRes = await mk.ping('8.8.8.8', 1);
+            if (pingRes && pingRes.length > 0) {
+                latency = parseInt(pingRes[0].avgRtt || pingRes[0].time || '0');
+            }
+        } catch (e) {}
 
         if (traffic && traffic.length > 0 && resources && resources.length > 0) {
             const data = traffic[0];
@@ -50,7 +57,8 @@ export async function GET(req: Request) {
                 board: resData.boardName,
                 version: resData.version,
                 architecture: resData.architectureName,
-                cpuModel: resData.cpu
+                cpuModel: resData.cpu,
+                latency: latency
             }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
         }
 
