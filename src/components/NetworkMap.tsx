@@ -29,7 +29,16 @@ const CUSTOMER_ICON = L.divIcon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-export default function NetworkMap({ odps, customers }: { odps: any[], customers: any[] }) {
+function MapEvents({ onClick }: { onClick?: (lat: number, lng: number) => void }) {
+    useMapEvents({
+        click(e) {
+            if (onClick) onClick(e.latlng.lat, e.latlng.lng);
+        },
+    });
+    return null;
+}
+
+export default function NetworkMap({ odps, customers, onMapClick }: { odps: any[], customers: any[], onMapClick?: (lat: number, lng: number) => void }) {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -53,6 +62,8 @@ export default function NetworkMap({ odps, customers }: { odps: any[], customers
                     url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 } as any}
             />
+            
+            <MapEvents onClick={onMapClick} />
             
             {/* Render ODPs */}
             {odps.map((odp) => (

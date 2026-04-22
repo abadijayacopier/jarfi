@@ -37,7 +37,11 @@ export default function MapPage() {
         fetchData();
     }, []);
 
-    const handleAddODP = async () => {
+    const handleMapClick = (lat: number, lng: number) => {
+        handleAddODP(lat.toString(), lng.toString());
+    };
+
+    const handleAddODP = async (initLat = '', initLng = '') => {
         const { value: formValues } = await Swal.fire({
             title: 'Tambah Titik ODP Baru',
             html: `
@@ -49,11 +53,11 @@ export default function MapPage() {
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-xs font-black text-slate-500 uppercase block mb-1">Latitude</label>
-                            <input id="swal-lat" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-white focus:outline-none" placeholder="-6.2088">
+                            <input id="swal-lat" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-white focus:outline-none" placeholder="-6.2088" value="${initLat}">
                         </div>
                         <div>
                             <label class="text-xs font-black text-slate-500 uppercase block mb-1">Longitude</label>
-                            <input id="swal-lng" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-white focus:outline-none" placeholder="106.8456">
+                            <input id="swal-lng" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-white focus:outline-none" placeholder="106.8456" value="${initLng}">
                         </div>
                     </div>
                     <div>
@@ -171,7 +175,10 @@ export default function MapPage() {
 
                 {/* Map View */}
                 <div className="xl:col-span-3">
-                    <NetworkMap odps={odps} customers={customers} />
+                    <NetworkMap odps={odps} customers={customers} onMapClick={handleMapClick} />
+                    <div className="mt-3 text-center">
+                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">💡 Tips: Klik area manapun di peta untuk menambah titik ODP baru secara instan</p>
+                    </div>
                 </div>
             </div>
         </div>
