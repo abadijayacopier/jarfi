@@ -53,7 +53,13 @@ export default function InvoicesPage() {
             const res = await fetch('/api/invoices/generate', { method: 'POST' });
             const data = await res.json();
             if (res.ok) {
-                Swal.fire({ icon: 'success', title: 'Berhasil', text: `${data.count} tagihan baru telah dibuat!`, background: '#1e293b', color: '#fff' });
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: 'Berhasil', 
+                    text: data.message || `${data.count} tagihan baru telah dibuat!`, 
+                    background: '#1e293b', 
+                    color: '#fff' 
+                });
                 fetchInvoices();
             } else {
                 Swal.fire({ icon: 'error', title: 'Gagal', text: data.error, background: '#1e293b', color: '#fff' });

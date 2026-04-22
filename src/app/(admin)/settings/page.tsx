@@ -4,8 +4,17 @@ import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { Settings, Building2, Smartphone, FileCheck, Save, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 
+interface SettingsState {
+    company_name: string;
+    company_address: string;
+    company_email: string;
+    company_whatsapp: string;
+    tax_enabled: string;
+    auto_isolate: string;
+}
+
 export default function SettingsPage() {
-    const [settings, setSettings] = useState({
+    const [settings, setSettings] = useState<SettingsState>({
         company_name: '',
         company_address: '',
         company_email: '',
@@ -62,8 +71,9 @@ export default function SettingsPage() {
     };
 
     const toggleSetting = (key: string) => {
-        const newVal = settings[key] === '1' ? '0' : '1';
-        const newSettings = { ...settings, [key]: newVal };
+        const k = key as keyof SettingsState;
+        const newVal = settings[k] === '1' ? '0' : '1';
+        const newSettings = { ...settings, [k]: newVal };
         setSettings(newSettings);
         
         // Auto save for toggles
