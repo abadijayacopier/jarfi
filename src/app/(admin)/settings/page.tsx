@@ -37,8 +37,22 @@ export default function SettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [activeTab, setActiveTab] = useState('identity');
+    const [logs, setLogs] = useState<any[]>([]);
 
-    useEffect(() => { fetchSettings(); }, []);
+    useEffect(() => { 
+        fetchSettings(); 
+        fetchLogs();
+        const interval = setInterval(fetchLogs, 5000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const fetchLogs = async () => {
+        try {
+            const res = await fetch('/api/activity-logs');
+            const data = await res.json();
+            if (res.ok) setLogs(data.logs);
+        } catch (e) {}
+    };
 
     const fetchSettings = async () => {
         try {
@@ -60,6 +74,17 @@ export default function SettingsPage() {
             });
             if (res.ok) {
                 Swal.fire({ icon: 'success', title: 'Tersimpan!', text: 'Pengaturan berhasil diperbarui.', background: '#1e293b', color: '#fff', timer: 1500, showConfirmButton: false });
+                // Log the activity
+                await fetch('/api/activity-logs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'Pengaturan Diperbarui',
+                        description: `User memperbarui pengaturan ${activeTab}`,
+                        color: 'text-indigo-400'
+                    })
+                });
+                fetchLogs();
             } else {
                 Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Gagal menyimpan pengaturan.', background: '#1e293b', color: '#fff' });
             }
@@ -360,20 +385,22 @@ export default function SettingsPage() {
                             </div>
                         </div>
                         <div className="space-y-3">
-                            {[
-                                { time: 'Baru saja', text: 'Pengaturan identitas diperbarui', color: 'text-emerald-400' },
-                                { time: '2 jam lalu', text: 'PPN diaktifkan (11%)', color: 'text-indigo-400' },
-                                { time: '1 hari lalu', text: 'Auto-isolir diaktifkan', color: 'text-teal-400' },
-                                { time: '3 hari lalu', text: 'Admin login dari 192.168.1.10', color: 'text-slate-400' },
-                            ].map((log, i) => (
-                                <div key={i} className="flex items-center gap-4 p-4 bg-slate-950/30 rounded-2xl border border-white/5">
-                                    <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${log.color.replace('text-', 'bg-')}`}></div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-bold text-white text-sm truncate">{log.text}</p>
+                            {logs.length === 0 ? (
+                                <div className="text-center py-10 text-slate-600 italic text-xs uppercase tracking-widest animate-pulse">Belum ada aktivitas tercatat...</div>
+                            ) : (
+                                logs.map((log: any) => (
+                                    <div key={log.id} className="flex items-center gap-4 p-4 bg-slate-950/30 rounded-2xl border border-white/5 group hover:border-white/10 transition-all">
+                                        <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${log.color.replace('text-', 'bg-')} shadow-[0_0_10px_currentColor]`}></div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-bold text-white text-sm truncate">{log.action}</p>
+                                            <p className="text-[10px] text-slate-500 font-medium truncate">{log.description}</p>
+                                        </div>
+                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-tight whitespace-nowrap bg-white/5 px-2 py-1 rounded-lg border border-white/5">
+                                            {new Date(log.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                        </span>
                                     </div>
-                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-tight whitespace-nowrap">{log.time}</span>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
