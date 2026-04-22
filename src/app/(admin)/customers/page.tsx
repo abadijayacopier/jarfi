@@ -275,7 +275,7 @@ export default function CustomersPage() {
                                 </thead>
                                 <tbody className="divide-y divide-white/5 text-sm">
                                     {mikrotikSecrets.length === 0 ? (
-                                        <tr><td colSpan={4} className="p-12 text-center text-slate-500 font-medium">Pilih router di atas agar sistem bisa mendeteksi isi mikrotiknya sekarang juga.</td></tr>
+                                        <tr key="empty-secrets"><td colSpan={4} className="p-12 text-center text-slate-500 font-medium">Pilih router di atas agar sistem bisa mendeteksi isi mikrotiknya sekarang juga.</td></tr>
                                     ) : (
                                         mikrotikSecrets.map((s: any) => (
                                             <tr key={s.id} className="hover:bg-white/5 transition-colors">
@@ -375,7 +375,7 @@ export default function CustomersPage() {
                             {loading ? (
                                 <tr><td colSpan={5} className="p-8 text-center text-slate-400">Loading customers...</td></tr>
                             ) : customers.length === 0 ? (
-                                <tr><td colSpan={5} className="p-8 text-center text-slate-400">No customers found.</td></tr>
+                                <tr key="empty-customers"><td colSpan={5} className="p-8 text-center text-slate-400">No customers found.</td></tr>
                             ) : (
                                 customers.map((c: any) => (
                                     <tr key={c.id} className="hover:bg-white/5 transition-colors">

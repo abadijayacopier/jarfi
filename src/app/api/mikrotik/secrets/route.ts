@@ -46,11 +46,14 @@ export async function POST(req: Request) {
         let successCount = 0;
 
         for (const secret of secrets) {
+            // Pastikan nama ada dan berupa string
+            const safeName = String(secret.name || 'user_unknown');
+            
             // Buat data user bayangan / sinkron
-            const dummyEmail = `${secret.name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}${Math.floor(Math.random() * 1000)}@jarfi.local`;
+            const dummyEmail = `${safeName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}${Math.floor(Math.random() * 1000)}@jarfi.local`;
             const [userRes]: any = await pool.query(
                 'INSERT INTO Users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)',
-                [secret.name, dummyEmail, 'jarfipassword123', '-', 'CUSTOMER']
+                [safeName, dummyEmail, 'jarfipassword123', '-', 'CUSTOMER']
             );
             const userId = userRes.insertId;
 
@@ -60,7 +63,7 @@ export async function POST(req: Request) {
 
             await pool.query(
                 'INSERT INTO Customers (user_id, router_id, package_id, pppoe_username, pppoe_password, due_date, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [userId, router_id, package_id, secret.name, secret.password || '', 1, 'ACTIVE']
+                [userId, router_id, package_id, safeName, secret.password || '', 1, 'ACTIVE']
             );
             successCount++;
         }
