@@ -93,7 +93,32 @@ export class MikrotikService {
         const api = await client.connect();
         try {
             const result = await api.menu('/ip/hotspot/user/profile').get();
-            return result; // array of profiles e.g. { name: 'default', 'shared-users': 1 ... }
+            return result;
+        } finally {
+            client.close();
+        }
+    }
+
+    public async addHotspotProfile(name: string, rateLimit?: string, sessionTimeout?: string, sharedUsers: number = 1) {
+        const client = new RouterOSClient(this.config);
+        const api = await client.connect();
+        try {
+            const params: any = { name, 'shared-users': sharedUsers.toString() };
+            if (rateLimit) params['rate-limit'] = rateLimit;
+            if (sessionTimeout) params['session-timeout'] = sessionTimeout;
+            
+            const result = await api.menu('/ip/hotspot/user/profile').add(params);
+            return result;
+        } finally {
+            client.close();
+        }
+    }
+
+    public async removeHotspotProfile(id: string) {
+        const client = new RouterOSClient(this.config);
+        const api = await client.connect();
+        try {
+            await api.menu('/ip/hotspot/user/profile').remove(id);
         } finally {
             client.close();
         }

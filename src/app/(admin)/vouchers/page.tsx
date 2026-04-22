@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { Wifi, PlusCircle, Printer, Trash2, Eye } from 'lucide-react';
+import { Wifi, PlusCircle, Printer, Trash2, Eye, Settings } from 'lucide-react';
 import Link from 'next/link';
 
 export default function VouchersPage() {
@@ -137,6 +137,30 @@ export default function VouchersPage() {
         } catch (err) { console.error(err); }
     };
 
+    const handleDelete = async (id: number) => {
+        const result = await Swal.fire({
+            title: 'Hapus Voucher?',
+            text: "Voucher ini akan dihapus dari database lokal.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f43f5e',
+            cancelButtonColor: '#334155',
+            confirmButtonText: 'Ya, Hapus!',
+            background: '#1e293b',
+            color: '#fff'
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            const res = await fetch(`/api/vouchers?id=${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                fetchVouchers();
+                Swal.fire({ icon: 'success', title: 'Terhapus!', text: 'Voucher telah dihapus.', background: '#1e293b', color: '#fff', timer: 1500, showConfirmButton: false });
+            }
+        } catch (err) { console.error(err); }
+    };
+
     return (
         <div className="animate-in fade-in duration-500 pb-10">
             <div className="flex justify-between items-center mb-8">
@@ -226,9 +250,14 @@ export default function VouchersPage() {
                     <h4 className="text-xl font-black text-white flex items-center gap-3">
                          Database Voucher
                     </h4>
-                    <Link href="/vouchers/print" className="bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-xl text-sm text-white font-black transition flex items-center gap-2 shadow-lg shadow-indigo-600/20">
-                        <Printer className="w-5 h-5" /> Preview & Cetak Vouchers
-                    </Link>
+                    <div className="flex gap-3">
+                        <Link href="/vouchers/profiles" className="bg-slate-800 hover:bg-slate-700 px-6 py-3 rounded-xl text-sm text-slate-300 font-bold transition flex items-center gap-2 border border-white/5">
+                            <Settings className="w-5 h-5" /> Atur Paket (Profil)
+                        </Link>
+                        <Link href="/vouchers/print" className="bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-xl text-sm text-white font-black transition flex items-center gap-2 shadow-lg shadow-indigo-600/20">
+                            <Printer className="w-5 h-5" /> Preview & Cetak Vouchers
+                        </Link>
+                    </div>
                 </div>
                 <div className="overflow-x-auto min-h-[300px]">
                     <table className="w-full text-left border-collapse">
@@ -240,17 +269,18 @@ export default function VouchersPage() {
                                 <th className="p-5">Profil</th>
                                 <th className="p-5">Harga</th>
                                 <th className="p-5 text-center">Status</th>
-                                <th className="p-5 text-right">Tanggal</th>
+                                <th className="p-5">Tanggal</th>
+                                <th className="p-5 text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5 text-sm">
                             {loading ? (
-                                <tr><td colSpan={7} className="p-20 text-center text-slate-500">
+                                <tr><td colSpan={8} className="p-20 text-center text-slate-500">
                                     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-500 mx-auto mb-4"></div>
                                     Menghubungkan ke database...
                                 </td></tr>
                             ) : vouchers.length === 0 ? (
-                                <tr><td colSpan={7} className="p-20 text-center text-slate-500">
+                                <tr><td colSpan={8} className="p-20 text-center text-slate-500">
                                     <Wifi className="w-16 h-16 mx-auto mb-4 opacity-20" />
                                     Belum ada voucher yang terdaftar di database lokal.
                                 </td></tr>
@@ -269,8 +299,19 @@ export default function VouchersPage() {
                                                 {v.status === 'AVAILABLE' ? 'Ready' : 'Used'}
                                             </span>
                                         </td>
-                                        <td className="p-5 text-right text-[11px] text-slate-500 font-bold uppercase tracking-tight">
+                                        <td className="p-5 text-[11px] text-slate-500 font-bold uppercase tracking-tight">
                                             {new Date(v.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                        </td>
+                                        <td className="p-5">
+                                            <div className="flex justify-center">
+                                                <button 
+                                                    onClick={() => handleDelete(v.id)}
+                                                    className="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 transition-all hover:scale-110"
+                                                    title="Hapus Voucher"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
