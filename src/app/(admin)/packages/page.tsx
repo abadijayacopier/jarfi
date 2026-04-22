@@ -77,7 +77,7 @@ export default function PackagesPage() {
             });
             const data = await res.json();
             if (res.ok) {
-                Swal.fire({ icon: 'success', title: 'Berhasil', text: `${data.count} paket baru ditambahkan!`, background: '#1e293b', color: '#fff' });
+                Swal.fire({ icon: 'success', title: 'Sinkronisasi Berhasil', text: data.message, background: '#1e293b', color: '#fff' });
                 fetchPackages();
             } else {
                 Swal.fire({ icon: 'error', title: 'Gagal', text: data.error, background: '#1e293b', color: '#fff' });

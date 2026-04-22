@@ -49,8 +49,14 @@ export async function POST(req: Request) {
             // Pastikan nama ada dan berupa string
             const safeName = String(secret.name || 'user_unknown');
             
+            // CEK APAKAH USERNAME INI SUDAH ADA DI DATABASE?
+            const [existing]: any = await pool.query('SELECT id FROM Customers WHERE pppoe_username = ?', [safeName]);
+            if (existing.length > 0) continue; // Skip if already exists to avoid duplicate entry error
+
             // Buat data user bayangan / sinkron
-            const dummyEmail = `${safeName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}${Math.floor(Math.random() * 1000)}@jarfi.local`;
+            const safeEmailName = safeName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+            const dummyEmail = `${safeEmailName}${Math.floor(Math.random() * 10000)}@jarfi.local`;
+            
             const [userRes]: any = await pool.query(
                 'INSERT INTO Users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)',
                 [safeName, dummyEmail, 'jarfipassword123', '-', 'CUSTOMER']

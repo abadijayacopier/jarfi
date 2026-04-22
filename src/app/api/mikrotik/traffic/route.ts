@@ -42,12 +42,14 @@ export async function GET(req: Request) {
             // Create a lookup for interface rx/tx bytes
             const ifaceStats: Record<string, any> = {};
             interfaces.forEach((iface: any) => {
-                if (iface.type === 'pppoe-in' && iface.name) {
-                    // interface name usually format: "<pppoe-user>"
-                    const cleanName = iface.name.replace(/[<>]/g, '');
+                if (iface.name) {
+                    // Stripping brackets <> and prefix "pppoe-" to match with user.name
+                    const cleanName = iface.name.replace(/[<>]/g, '').replace(/^pppoe-/, '');
+                    const rx = iface.rxByte || iface['rx-byte'] || '0';
+                    const tx = iface.txByte || iface['tx-byte'] || '0';
                     ifaceStats[cleanName] = {
-                        rxBytes: parseInt(iface['rx-byte'] || '0'),
-                        txBytes: parseInt(iface['tx-byte'] || '0')
+                        rxBytes: parseInt(rx),
+                        txBytes: parseInt(tx)
                     };
                 }
             });

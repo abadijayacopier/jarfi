@@ -17,23 +17,59 @@ export async function POST(req: Request) {
 
         const profiles = await mk.getPPPProfiles();
         let addedCount = 0;
+        let updatedCount = 0;
 
         for (const profile of profiles) {
-            if (profile.name === 'default' || profile.name === 'default-encryption') continue;
+            // Skip default profiles
+            if (['default', 'default-encryption'].includes(profile.name)) continue;
+
+            const name = profile.name;
+            const speedLimit = profile['rate-limit'] || '10M/10M';
+            
+            // Intelligent Price Detection from name (e.g., "150K LT" -> 150000)
+            let detectedPrice = 0;
+            const priceMatch = name.match(/(\d+)/);
+            if (priceMatch) {
+                let num = parseInt(priceMatch[1]);
+                // If num is small (like 75, 100, 150), assume it's in thousands
+                detectedPrice = num < 1000 ? num * 1000 : num;
+            }
 
             // Check if package already exists
-            const [existing]: any = await pool.query('SELECT id FROM Packages WHERE name = ?', [profile.name]);
+            const [existing]: any = await pool.query('SELECT id, price FROM Packages WHERE name = ?', [name]);
             
             if (existing.length === 0) {
+                // Insert new package
                 await pool.query(
                     'INSERT INTO Packages (name, speed_limit, price) VALUES (?, ?, ?)',
-                    [profile.name, profile['rate-limit'] || '10M/10M', 0] // Default price 0, user can edit later
+                    [name, speedLimit, detectedPrice]
                 );
                 addedCount++;
+            } else {
+                // Update existing package speed limit
+                // Only update price if it's currently 0
+                const currentPrice = parseFloat(existing[0].price || '0');
+                if (currentPrice === 0 && detectedPrice > 0) {
+                    await pool.query(
+                        'UPDATE Packages SET speed_limit = ?, price = ? WHERE id = ?',
+                        [speedLimit, detectedPrice, existing[0].id]
+                    );
+                } else {
+                    await pool.query(
+                        'UPDATE Packages SET speed_limit = ? WHERE id = ?',
+                        [speedLimit, existing[0].id]
+                    );
+                }
+                updatedCount++;
             }
         }
 
-        return NextResponse.json({ success: true, count: addedCount });
+        return NextResponse.json({ 
+            success: true, 
+            message: `Sinkronisasi selesai: ${addedCount} baru, ${updatedCount} diperbarui.`,
+            count: addedCount,
+            updatedCount
+        });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
