@@ -163,7 +163,7 @@ export default function SystemMonitorPage() {
             </div>
 
             {/* Large Bandwidth Chart */}
-            <div className="glass p-8 rounded-[2rem] border border-white/10 shadow-3xl relative overflow-hidden">
+            <div className="glass p-8 rounded-4xl border border-white/10 shadow-3xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-8 opacity-5">
                     <Wifi className="w-64 h-64 text-indigo-500" />
                 </div>
@@ -190,7 +190,7 @@ export default function SystemMonitorPage() {
 
             {/* Bottom Grid Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="glass p-8 rounded-[2rem] border border-white/10 shadow-2xl">
+                <div className="glass p-8 rounded-4xl border border-white/10 shadow-2xl">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
                             <Zap className="w-4 h-4 text-amber-400" /> Latency Consistency
@@ -202,7 +202,7 @@ export default function SystemMonitorPage() {
                     </div>
                 </div>
 
-                <div className="glass p-8 rounded-[2rem] border border-white/10 shadow-2xl">
+                <div className="glass p-8 rounded-4xl border border-white/10 shadow-2xl">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
                             <BarChart3 className="w-4 h-4 text-purple-400" /> Router OS Health
