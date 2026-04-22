@@ -8,7 +8,7 @@ import {
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
-const RealtimeChart = dynamic(() => import('@/components/RealtimeChart'), { ssr: false });
+const AdvancedMonitorChart = dynamic(() => import('@/components/AdvancedMonitorChart'), { ssr: false });
 
 export default function Dashboard() {
     const [stats, setStats] = useState({ 
@@ -66,7 +66,7 @@ export default function Dashboard() {
                         tx: data.totalTx,
                         rx: data.totalRx
                     }];
-                    if (newData.length > 20) return newData.slice(1);
+                    if (newData.length > 40) return newData.slice(1);
                     return newData;
                 });
             }
@@ -176,7 +176,7 @@ export default function Dashboard() {
                                 Mengumpulkan Data Pertama...
                             </div>
                         ) : (
-                            <RealtimeChart data={chartData} />
+                            <AdvancedMonitorChart data={chartData} />
                         )}
                     </div>
                 </div>
