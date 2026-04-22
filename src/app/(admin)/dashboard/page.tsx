@@ -6,6 +6,9 @@ import {
     RefreshCw, Server, Activity, Terminal, ShieldAlert 
 } from 'lucide-react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+
+const RealtimeChart = dynamic(() => import('@/components/RealtimeChart'), { ssr: false });
 
 export default function Dashboard() {
     const [stats, setStats] = useState({ 
@@ -20,6 +23,7 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [logs, setLogs] = useState<any[]>([]);
     const [selectedLogRouter, setSelectedLogRouter] = useState<string>('');
+    const [chartData, setChartData] = useState<any[]>([]);
 
     useEffect(() => {
         fetchStats();
@@ -48,17 +52,31 @@ export default function Dashboard() {
     }, [selectedLogRouter]);
 
     const fetchStats = async () => {
-        setLoading(true);
         try {
             const res = await fetch('/api/dashboard/stats');
             const data = await res.json();
-            if (res.ok) setStats(data);
+            if (res.ok) {
+                setStats(data);
+                // Update chart data
+                const now = new Date();
+                const timeStr = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+                setChartData(prev => {
+                    const newData = [...prev, { time: timeStr, value: data.activePppoe }];
+                    if (newData.length > 20) return newData.slice(1);
+                    return newData;
+                });
+            }
         } catch (e) {
             console.error(e);
         } finally {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        const interval = setInterval(fetchStats, 5000);
+        return () => clearInterval(interval);
+    }, []);
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 pb-10">
@@ -126,6 +144,37 @@ export default function Dashboard() {
                     </div>
                     <p className="text-orange-300 text-xs font-black uppercase tracking-widest mb-1">Belum Dibayar</p>
                     <p className="text-3xl font-black text-orange-400">Rp {loading ? '...' : parseInt(stats.unpaidTotal as any).toLocaleString('id-ID')}</p>
+                </div>
+            </div>
+
+            {/* Real-time Traffic Chart Section */}
+            <div className="pt-4">
+                <div className="glass p-6 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute -right-20 -top-20 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl group-hover:bg-indigo-600/20 transition-all duration-1000"></div>
+                    <div className="flex justify-between items-center mb-6 relative z-10">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+                                <Activity className="w-6 h-6 animate-pulse" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-black text-white">Traffic Sesi Aktif</h3>
+                                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Real-Time User Performance Monitoring</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <span className="text-[10px] font-black bg-indigo-500/20 text-indigo-400 px-3 py-1 rounded-full border border-indigo-500/30">Auto Refresh: 5s</span>
+                        </div>
+                    </div>
+                    
+                    <div className="relative z-10">
+                        {chartData.length < 2 ? (
+                            <div className="h-[300px] flex items-center justify-center text-slate-500 italic uppercase text-[10px] font-black tracking-widest animate-pulse">
+                                Mengumpulkan Data Pertama...
+                            </div>
+                        ) : (
+                            <RealtimeChart data={chartData} />
+                        )}
+                    </div>
                 </div>
             </div>
 
