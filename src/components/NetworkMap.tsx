@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import L, { LeafletMouseEvent } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 // Fix for default icon issues in Leaflet with Next.js
@@ -31,7 +31,7 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 function MapEvents({ onClick }: { onClick?: (lat: number, lng: number) => void }) {
     useMapEvents({
-        click(e) {
+        click(e: LeafletMouseEvent) {
             if (onClick) onClick(e.latlng.lat, e.latlng.lng);
         },
     });

@@ -113,7 +113,7 @@ export default function MapPage() {
                 </div>
                 <div className="flex gap-3">
                     <button
-                        onClick={handleAddODP}
+                        onClick={() => handleAddODP()}
                         className="bg-indigo-500 hover:bg-indigo-400 text-white font-bold py-3 px-6 rounded-2xl transition-all shadow-lg flex items-center gap-2"
                     >
                         <Plus className="w-5 h-5" /> Tambah ODP

@@ -446,7 +446,7 @@ export default function CustomersPage() {
                                     </select>
                                 </div>
                                 <div className="lg:col-span-3 space-y-2">
-                                    <label className="block text-xs font-black uppercase tracking-widest text-indigo-400 ml-1 flex items-center gap-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-indigo-400 ml-1 flex items-center gap-2">
                                         <MapPin className="w-4 h-4" /> Pilih Titik Lokasi di Peta
                                     </label>
                                     <LocationPicker 
