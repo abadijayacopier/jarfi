@@ -128,7 +128,7 @@ export default function ToolsPage() {
                         onClick={handleBackup}
                         className="w-full py-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center gap-3"
                     >
-                        <Download className="w-6 h-6" /> Unduh Cadangan (.json)
+                        <Download className="w-6 h-6" /> Unduh Cadangan (.sql)
                     </button>
                 </div>
 
@@ -153,8 +153,8 @@ export default function ToolsPage() {
 
                     <label className="w-full py-4 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-black uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-3 border border-white/10">
                         <Upload className="w-6 h-6" />
-                        Pilih File Backup
-                        <input type="file" accept=".json" onChange={handleRestore} className="hidden" />
+                        Pilih File Backup (.sql)
+                        <input type="file" accept=".sql" onChange={handleRestore} className="hidden" />
                     </label>
                 </div>
 

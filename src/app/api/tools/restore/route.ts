@@ -4,36 +4,25 @@ import { pool } from '@/lib/db';
 export async function POST(req: Request) {
     const connection = await pool.getConnection();
     try {
-        const backupData = await req.json();
-        const tables = ['Routers', 'Packages', 'Customers', 'Invoices', 'Settings'];
+        const sqlContent = await req.text();
+        const queries = sqlContent
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0 && !line.startsWith('--'));
 
         await connection.beginTransaction();
 
-        // Disable foreign key checks for clean restore
-        await connection.query('SET FOREIGN_KEY_CHECKS = 0');
-
-        for (const table of tables) {
-            if (backupData[table]) {
-                // Clear existing data
-                await connection.query(`TRUNCATE TABLE ${table}`);
-                
-                const rows = backupData[table];
-                if (rows.length > 0) {
-                    const keys = Object.keys(rows[0]);
-                    const values = rows.map((row: any) => keys.map(k => row[k]));
-                    
-                    const placeholders = keys.map(() => '?').join(',');
-                    const sql = `INSERT INTO ${table} (${keys.map(k => `\`${k}\``).join(',')}) VALUES ?`;
-                    
-                    await connection.query(sql, [values]);
-                }
+        // Join lines and split by semicolon to handle multi-line if needed
+        // but for our simple generator, line-by-line is safer
+        for (const query of queries) {
+            if (query.endsWith(';')) {
+                await connection.query(query);
             }
         }
 
-        await connection.query('SET FOREIGN_KEY_CHECKS = 1');
         await connection.commit();
 
-        return NextResponse.json({ success: true, message: 'Database restored successfully' });
+        return NextResponse.json({ success: true, message: 'SQL Database restored successfully' });
     } catch (error: any) {
         await connection.rollback();
         return NextResponse.json({ error: error.message }, { status: 500 });
