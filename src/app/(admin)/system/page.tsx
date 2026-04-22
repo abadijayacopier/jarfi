@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { 
     Activity, Cpu, Server, Clock, HardDrive, Wifi, 
-    ArrowDown, ArrowUp, RefreshCw, BarChart3, Zap, Pulse
+    ArrowDown, ArrowUp, RefreshCw, BarChart3, Zap
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 

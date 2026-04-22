@@ -88,8 +88,8 @@ export async function GET() {
             unpaidCount,
             customersWithoutPackage,
             activePppoe,
-            totalTx: totalTx / 1000000, // Convert to Mbps
-            totalRx: totalRx / 1000000, // Convert to Mbps
+            totalTx: totalTx, // Keep as bits
+            totalRx: totalRx, // Keep as bits
             routerStats
         });
     } catch (error: any) {

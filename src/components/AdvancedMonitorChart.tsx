@@ -2,7 +2,7 @@
 
 import { 
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, 
-    ResponsiveContainer, LineChart, Line, Legend
+    ResponsiveContainer
 } from 'recharts';
 
 export default function AdvancedMonitorChart({ 
@@ -17,6 +17,20 @@ export default function AdvancedMonitorChart({
     const isBandwidth = type === 'bandwidth';
     const isLatency = type === 'latency';
 
+    // Formatting helper
+    const formatValue = (val: any) => {
+        const num = parseFloat(val);
+        if (isNaN(num)) return '0';
+        
+        if (isBandwidth) {
+            if (num > 1000000) return `${(num / 1000000).toFixed(1)}M`;
+            if (num > 1000) return `${(num / 1000).toFixed(1)}K`;
+            return `${num.toFixed(1)}b`;
+        }
+        if (isLatency) return `${num.toFixed(0)}ms`;
+        return `${num.toFixed(0)}%`;
+    };
+
     return (
         <div className="w-full h-full min-h-[250px] relative">
             {title && (
@@ -27,11 +41,11 @@ export default function AdvancedMonitorChart({
             <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={data} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
                     <defs>
-                        <linearGradient id="color1" x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient id={`color1_${type}`} x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor={isBandwidth ? "#6366f1" : isLatency ? "#f59e0b" : "#a855f7"} stopOpacity={0.2}/>
                             <stop offset="95%" stopColor={isBandwidth ? "#6366f1" : isLatency ? "#f59e0b" : "#a855f7"} stopOpacity={0}/>
                         </linearGradient>
-                        <linearGradient id="color2" x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient id={`color2_${type}`} x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#ec4899" stopOpacity={0.2}/>
                             <stop offset="95%" stopColor="#ec4899" stopOpacity={0}/>
                         </linearGradient>
@@ -45,7 +59,8 @@ export default function AdvancedMonitorChart({
                         tick={{ fill: '#475569', fontSize: 10, fontWeight: 'bold' }}
                         axisLine={false}
                         tickLine={false}
-                        tickFormatter={(val) => isBandwidth ? `${(val/1000000).toFixed(1)}M` : isLatency ? `${val}ms` : `${val}%`}
+                        tickFormatter={formatValue}
+                        domain={[0, 'auto']}
                     />
                     <Tooltip 
                         contentStyle={{ 
@@ -59,6 +74,7 @@ export default function AdvancedMonitorChart({
                         itemStyle={{ fontWeight: 'bold', padding: '2px 0' }}
                         labelStyle={{ display: 'none' }}
                         cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }}
+                        formatter={(val: any) => [formatValue(val)]}
                     />
                     {isBandwidth ? (
                         <>
@@ -69,9 +85,9 @@ export default function AdvancedMonitorChart({
                                 stroke="#6366f1" 
                                 strokeWidth={2}
                                 fillOpacity={1} 
-                                fill="url(#color1)" 
-                                animationDuration={500}
-                                isAnimationActive={false}
+                                fill={`url(#color1_${type})`} 
+                                isAnimationActive={true}
+                                animationDuration={1000}
                             />
                             <Area 
                                 name="Upload (TX)"
@@ -80,9 +96,9 @@ export default function AdvancedMonitorChart({
                                 stroke="#ec4899" 
                                 strokeWidth={2}
                                 fillOpacity={1} 
-                                fill="url(#color2)" 
-                                animationDuration={500}
-                                isAnimationActive={false}
+                                fill={`url(#color2_${type})`} 
+                                isAnimationActive={true}
+                                animationDuration={1000}
                             />
                         </>
                     ) : (
@@ -93,9 +109,9 @@ export default function AdvancedMonitorChart({
                             stroke={isLatency ? "#f59e0b" : "#a855f7"} 
                             strokeWidth={2}
                             fillOpacity={1} 
-                            fill="url(#color1)" 
-                            animationDuration={500}
-                            isAnimationActive={false}
+                            fill={`url(#color1_${type})`} 
+                            isAnimationActive={true}
+                            animationDuration={1000}
                         />
                     )}
                 </AreaChart>
