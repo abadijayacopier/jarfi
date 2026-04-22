@@ -8,7 +8,11 @@ export default function RealtimeChart({ data }: { data: any[] }) {
             <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={data}>
                     <defs>
-                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient id="colorTx" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#ec4899" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#ec4899" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="colorRx" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
                             <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                         </linearGradient>
@@ -20,7 +24,7 @@ export default function RealtimeChart({ data }: { data: any[] }) {
                     />
                     <YAxis 
                         hide 
-                        domain={['auto', 'auto']}
+                        domain={[0, 'auto']}
                     />
                     <Tooltip 
                         contentStyle={{ 
@@ -29,15 +33,27 @@ export default function RealtimeChart({ data }: { data: any[] }) {
                             borderRadius: '12px',
                             color: '#fff'
                         }}
-                        itemStyle={{ color: '#818cf8', fontWeight: 'bold' }}
+                        itemStyle={{ fontWeight: 'bold', fontSize: '12px' }}
+                        formatter={(value: any) => [`${parseFloat(value).toFixed(2)} Mbps`]}
                     />
                     <Area 
+                        name="Upload (TX)"
                         type="monotone" 
-                        dataKey="value" 
+                        dataKey="tx" 
+                        stroke="#ec4899" 
+                        strokeWidth={3}
+                        fillOpacity={1} 
+                        fill="url(#colorTx)" 
+                        animationDuration={1000}
+                    />
+                    <Area 
+                        name="Download (RX)"
+                        type="monotone" 
+                        dataKey="rx" 
                         stroke="#6366f1" 
                         strokeWidth={3}
                         fillOpacity={1} 
-                        fill="url(#colorValue)" 
+                        fill="url(#colorRx)" 
                         animationDuration={1000}
                     />
                 </AreaChart>

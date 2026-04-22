@@ -31,6 +31,8 @@ export async function GET() {
         const customersWithoutPackage = noPackageRow[0].count;
 
         let activePppoe = 0;
+        let totalTx = 0;
+        let totalRx = 0;
 
         // Gather real mikrotik stats for all routers
         const routerStats = [];
@@ -49,6 +51,19 @@ export async function GET() {
                     const pppMenu = conn.menu('/ppp/active');
                     const active = await pppMenu.get();
                     activePppoe += active.length;
+
+                    // Get Traffic stats for primary interface
+                    const intMenu = conn.menu('/interface');
+                    const interfaces = await intMenu.get();
+                    const primaryInt = interfaces.find((i: any) => i.name.toLowerCase().includes('ether1') || i.name.toLowerCase().includes('wan') || i.name.toLowerCase().includes('bridge')) || interfaces[0];
+
+                    if (primaryInt) {
+                        const traffic = await intMenu.exec('monitor-traffic', { interface: primaryInt.name, once: '' });
+                        if (traffic && traffic.length > 0) {
+                            totalTx += parseInt(traffic[0]['tx-bits-per-second'] || 0);
+                            totalRx += parseInt(traffic[0]['rx-bits-per-second'] || 0);
+                        }
+                    }
 
                     routerStats.push({
                         id: router.id,
@@ -73,6 +88,8 @@ export async function GET() {
             unpaidCount,
             customersWithoutPackage,
             activePppoe,
+            totalTx: totalTx / 1000000, // Convert to Mbps
+            totalRx: totalRx / 1000000, // Convert to Mbps
             routerStats
         });
     } catch (error: any) {

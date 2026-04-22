@@ -61,7 +61,11 @@ export default function Dashboard() {
                 const now = new Date();
                 const timeStr = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
                 setChartData(prev => {
-                    const newData = [...prev, { time: timeStr, value: data.activePppoe }];
+                    const newData = [...prev, { 
+                        time: timeStr, 
+                        tx: data.totalTx,
+                        rx: data.totalRx
+                    }];
                     if (newData.length > 20) return newData.slice(1);
                     return newData;
                 });
