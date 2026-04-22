@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Router as RouterIcon, Users, Activity, Ticket, Receipt, Settings, LogOut, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
@@ -8,6 +8,7 @@ import { LayoutDashboard, Router as RouterIcon, Users, Activity, Ticket, Receipt
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const pathname = usePathname();
+    const [currentTime, setCurrentTime] = useState(new Date());
 
     const navItems = [
         { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -17,6 +18,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { href: '/vouchers', label: 'Vouchers', icon: Ticket },
         { href: '/invoices', label: 'Invoices', icon: Receipt },
     ];
+
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const formatDate = (date: Date) => {
+        return date.toLocaleDateString('id-ID', { 
+            weekday: 'long', 
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric' 
+        });
+    };
+
+    const formatTime = (date: Date) => {
+        return date.toLocaleTimeString('id-ID', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    };
 
     return (
         <div className="flex h-screen bg-slate-900 text-slate-100 overflow-hidden font-sans relative">
@@ -91,11 +114,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
                 <header className="glass h-20 rounded-2xl flex items-center px-6 sm:px-8 justify-between mb-4 sm:mb-6 shadow-lg border border-white/5 shrink-0">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-6">
                         <h2 className="text-xl font-bold text-slate-200 flex items-center">
                             <span className="md:hidden font-extrabold bg-linear-to-r from-teal-400 to-blue-500 bg-clip-text text-transparent mr-2">JARFI</span>
                             <span className="hidden md:inline">Workspace</span>
                         </h2>
+                        
+                        {/* Digital Clock & Date */}
+                        <div className="hidden lg:flex items-center gap-4 pl-6 border-l border-white/10">
+                            <div className="flex flex-col">
+                                <span className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">{formatDate(currentTime)}</span>
+                                <span className="text-lg font-mono font-black text-teal-400 tabular-nums tracking-wider">{formatTime(currentTime)}</span>
+                            </div>
+                        </div>
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="text-right hidden sm:block">

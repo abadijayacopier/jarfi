@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { Wifi, PlusCircle, Printer, Trash2, Eye, Settings } from 'lucide-react';
+import { Wifi, PlusCircle, Printer, Trash2, Eye, Settings, Search } from 'lucide-react';
 import Link from 'next/link';
 
 export default function VouchersPage() {
     const [vouchers, setVouchers] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const [routers, setRouters] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -246,10 +247,20 @@ export default function VouchersPage() {
 
             {/* Screen Area - Tabel Admin */}
             <div className="glass rounded-4xl border border-white/10 overflow-hidden shadow-2xl">
-                <div className="flex justify-between items-center p-6 border-b border-white/10 bg-white/5">
+                <div className="p-6 border-b border-white/10 bg-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <h4 className="text-xl font-black text-white flex items-center gap-3">
                          Database Voucher
                     </h4>
+                    <div className="relative w-full md:w-96">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                        <input 
+                            type="text" 
+                            placeholder="Cari kode voucher, profil, atau router..." 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-teal-500 transition-all shadow-inner"
+                        />
+                    </div>
                     <div className="flex gap-3">
                         <Link href="/vouchers/profiles" className="bg-slate-800 hover:bg-slate-700 px-6 py-3 rounded-xl text-sm text-slate-300 font-bold transition flex items-center gap-2 border border-white/5">
                             <Settings className="w-5 h-5" /> Atur Paket (Profil)
@@ -285,7 +296,13 @@ export default function VouchersPage() {
                                     Belum ada voucher yang terdaftar di database lokal.
                                 </td></tr>
                             ) : (
-                                vouchers.map((v: any) => (
+                                vouchers
+                                    .filter((v: any) => 
+                                        v.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        v.profile.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        v.router_name.toLowerCase().includes(searchTerm.toLowerCase())
+                                    )
+                                    .map((v: any) => (
                                     <tr key={v.id} className="hover:bg-white/5 transition-all group">
                                         <td className="p-5 font-mono font-black text-teal-400 text-lg tracking-widest group-hover:scale-110 transition-transform origin-left">{v.code}</td>
                                         <td className="p-5 font-mono text-slate-300 font-bold">{v.password}</td>

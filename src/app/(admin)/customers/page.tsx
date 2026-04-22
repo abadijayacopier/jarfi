@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { RefreshCw, X, DownloadCloud, Edit, Trash2, ShieldAlert } from 'lucide-react';
+import { RefreshCw, X, DownloadCloud, Edit, Trash2, ShieldAlert, Search } from 'lucide-react';
 
 export default function CustomersPage() {
     const [customers, setCustomers] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const [routers, setRouters] = useState([]);
     const [packages, setPackages] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -360,6 +361,19 @@ export default function CustomersPage() {
             )}
 
             <div className="glass rounded-2xl border border-white/10 overflow-hidden shadow-xl">
+                <div className="p-6 border-b border-white/10 bg-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <h4 className="text-xl font-bold text-white">Database Pelanggan</h4>
+                    <div className="relative w-full md:w-96">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                        <input 
+                            type="text" 
+                            placeholder="Cari nama, username, atau nomor WA..." 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner"
+                        />
+                    </div>
+                </div>
                 <div className="overflow-x-auto min-h-[300px]">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
@@ -377,7 +391,13 @@ export default function CustomersPage() {
                             ) : customers.length === 0 ? (
                                 <tr key="empty-customers"><td colSpan={5} className="p-8 text-center text-slate-400">No customers found.</td></tr>
                             ) : (
-                                customers.map((c: any) => (
+                                customers
+                                    .filter((c: any) => 
+                                        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        c.pppoe_username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        (c.phone && c.phone.includes(searchTerm))
+                                    )
+                                    .map((c: any) => (
                                     <tr key={c.id} className="hover:bg-white/5 transition-colors">
                                         <td className="p-4">
                                             <p className="font-bold text-white text-base">{c.name}</p>

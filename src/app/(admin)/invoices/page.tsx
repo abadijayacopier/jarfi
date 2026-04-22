@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { Printer, Edit, Trash2, CheckCircle, X, Save } from 'lucide-react';
+import { Printer, Edit, Trash2, CheckCircle, X, Save, Search } from 'lucide-react';
 import Link from 'next/link';
 
 export default function InvoicesPage() {
     const [invoices, setInvoices] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
 
     const [showEditForm, setShowEditForm] = useState(false);
@@ -154,6 +155,19 @@ export default function InvoicesPage() {
             </div>
 
             <div className="glass rounded-4xl border border-white/10 overflow-hidden shadow-2xl">
+                <div className="p-6 border-b border-white/10 bg-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <h4 className="text-xl font-bold text-white">Data Tagihan</h4>
+                    <div className="relative w-full md:w-96">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                        <input 
+                            type="text" 
+                            placeholder="Cari nama, username, atau bulan..." 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner"
+                        />
+                    </div>
+                </div>
                 <div className="overflow-x-auto min-h-[400px]">
                     <table className="w-full text-left border-collapse">
                         <thead>
@@ -177,7 +191,13 @@ export default function InvoicesPage() {
                             ) : invoices.length === 0 ? (
                                 <tr><td colSpan={6} className="p-12 text-center text-slate-400">Belum ada tagihan.</td></tr>
                             ) : (
-                                invoices.map((inv: any) => (
+                                invoices
+                                    .filter((inv: any) => 
+                                        inv.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        inv.pppoe_username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        inv.billing_month.includes(searchTerm)
+                                    )
+                                    .map((inv: any) => (
                                     <tr key={inv.id} className="hover:bg-white/5 transition-all group">
                                         <td className="p-5 font-bold text-white group-hover:text-indigo-400 transition-colors">{inv.billing_month}</td>
                                         <td className="p-5">
