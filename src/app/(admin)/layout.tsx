@@ -3,23 +3,26 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Router as RouterIcon, Users, Activity, Ticket, Receipt, Settings, LogOut, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
+import { LayoutDashboard, Router as RouterIcon, Users, Activity, Ticket, Receipt, Settings, LogOut, ChevronLeft, ChevronRight, Menu, Package } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const pathname = usePathname();
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [mounted, setMounted] = useState(false);
 
     const navItems = [
         { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/routers', label: 'Routers', icon: RouterIcon },
         { href: '/customers', label: 'Customers', icon: Users },
-        { href: '/system', label: 'System', icon: Activity },
-        { href: '/vouchers', label: 'Vouchers', icon: Ticket },
-        { href: '/invoices', label: 'Invoices', icon: Receipt },
+        { href: '/packages', label: 'Paket Internet', icon: Package },
+        { href: '/system', label: 'System Monitor', icon: Activity },
+        { href: '/vouchers', label: 'Hotspot Vouchers', icon: Ticket },
+        { href: '/invoices', label: 'Invoices (Tagihan)', icon: Receipt },
     ];
 
     useEffect(() => {
+        setMounted(true);
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
     }, []);
@@ -121,12 +124,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         </h2>
                         
                         {/* Digital Clock & Date */}
-                        <div className="hidden lg:flex items-center gap-4 pl-6 border-l border-white/10">
-                            <div className="flex flex-col">
-                                <span className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">{formatDate(currentTime)}</span>
-                                <span className="text-lg font-mono font-black text-teal-400 tabular-nums tracking-wider">{formatTime(currentTime)}</span>
+                        {mounted && (
+                            <div className="hidden lg:flex items-center gap-4 pl-6 border-l border-white/10">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">{formatDate(currentTime)}</span>
+                                    <span className="text-lg font-mono font-black text-teal-400 tabular-nums tracking-wider">{formatTime(currentTime)}</span>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="text-right hidden sm:block">

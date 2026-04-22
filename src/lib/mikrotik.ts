@@ -30,6 +30,17 @@ export class MikrotikService {
         }
     }
 
+    public async getPPPProfiles() {
+        const client = new RouterOSClient(this.config);
+        const api = await client.connect();
+        try {
+            const result = await api.menu('/ppp/profile').get();
+            return result;
+        } finally {
+            client.close();
+        }
+    }
+
     public async getSecrets() {
         const client = new RouterOSClient(this.config);
         const api = await client.connect();
