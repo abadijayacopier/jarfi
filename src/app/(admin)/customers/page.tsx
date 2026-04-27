@@ -463,21 +463,31 @@ export default function CustomersPage() {
                                     <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Longitude</label>
                                     <input type="text" value={formData.longitude} onChange={(e) => setFormData({ ...formData, longitude: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner" placeholder="106.8456" />
                                 </div>
-                                <div className="space-y-1.5">
+                                 <div className="space-y-1.5">
                                     <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Profil Mikrotik (Live)</label>
                                     <select 
                                         required 
                                         value={packages.find((p: any) => p.id.toString() === formData.package_id)?.name || ''} 
                                         onChange={(e) => {
                                             const selectedProfileName = e.target.value;
-                                            const matchingPackage = packages.find((p: any) => p.name === selectedProfileName);
+                                            // Auto-match with local billing package by name (case-insensitive)
+                                            const matchingPackage = packages.find((p: any) => 
+                                                p.name.trim().toLowerCase() === selectedProfileName.trim().toLowerCase()
+                                            );
+                                            
                                             if (matchingPackage) {
                                                 setFormData({ ...formData, package_id: (matchingPackage as any).id.toString() });
                                             } else {
-                                                Swal.fire({ icon: 'warning', title: 'Paket Tidak Ditemukan', text: `Profil "${selectedProfileName}" belum terdaftar sebagai Paket di JARFI.`, background: '#1e293b', color: '#fff' });
+                                                Swal.fire({ 
+                                                    icon: 'info', 
+                                                    title: 'Paket Tidak Terhubung', 
+                                                    text: `Profil "${selectedProfileName}" tidak ditemukan di database penagihan. Silakan pilih paket manual di kolom sebelah.`,
+                                                    background: '#1e293b', 
+                                                    color: '#fff' 
+                                                });
                                             }
                                         }} 
-                                        className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-indigo-400 focus:outline-none focus:border-indigo-500 transition-all shadow-inner font-bold"
+                                        className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-indigo-400 focus:outline-none focus:border-indigo-500 transition-all shadow-inner font-bold appearance-none cursor-pointer"
                                     >
                                         <option value="">-- Deteksi Profile Router --</option>
                                         {pppProfiles.map((p: any) => (
@@ -566,13 +576,36 @@ export default function CustomersPage() {
                                                 </td>
                                                 <td className="p-5">
                                                     {c.package_name ? (
-                                                        <span className="px-3 py-1.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[11px] font-black uppercase tracking-wider">
-                                                            {c.package_name}
-                                                        </span>
+                                                        <div className="flex flex-col gap-1">
+                                                            <span className="px-3 py-1.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[11px] font-black uppercase tracking-wider w-fit">
+                                                                {c.package_name}
+                                                            </span>
+                                                            {(() => {
+                                                                const traffic = getTrafficInfo(c.pppoe_username);
+                                                                if (traffic && traffic.profile && traffic.profile !== c.package_name) {
+                                                                    return <span className="text-[9px] text-slate-500 ml-1 font-bold italic">Live: {traffic.profile}</span>;
+                                                                }
+                                                                return null;
+                                                            })()}
+                                                        </div>
                                                     ) : (
-                                                        <span className="px-3 py-1.5 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 w-fit">
-                                                            <ShieldAlert className="w-3.5 h-3.5" /> Tanpa Paket
-                                                        </span>
+                                                        <div className="flex flex-col gap-1">
+                                                            {(() => {
+                                                                const traffic = getTrafficInfo(c.pppoe_username);
+                                                                if (traffic && traffic.profile) {
+                                                                    return (
+                                                                        <span className="px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 w-fit">
+                                                                            <Zap className="w-3.5 h-3.5" /> {traffic.profile}
+                                                                        </span>
+                                                                    );
+                                                                }
+                                                                return (
+                                                                    <span className="px-3 py-1.5 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 w-fit">
+                                                                        <ShieldAlert className="w-3.5 h-3.5" /> Tanpa Paket
+                                                                    </span>
+                                                                );
+                                                            })()}
+                                                        </div>
                                                     )}
                                                 </td>
                                                 <td className="p-5">
@@ -686,7 +719,12 @@ export default function CustomersPage() {
                                         </div>
                                         <div className="bg-slate-900/50 p-3 rounded-2xl">
                                             <p className="text-[9px] uppercase font-black text-slate-500 mb-1">Paket</p>
-                                            <p className="font-black text-xs text-indigo-400 truncate uppercase">{c.package_name || 'N/A'}</p>
+                                            <p className="font-black text-xs text-indigo-400 truncate uppercase">
+                                                {c.package_name || (() => {
+                                                    const traffic = getTrafficInfo(c.pppoe_username);
+                                                    return traffic?.profile || 'N/A';
+                                                })()}
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="bg-indigo-500/5 p-3 rounded-2xl flex items-center justify-between border border-white/5">
@@ -745,15 +783,37 @@ export default function CustomersPage() {
                                 Prev
                             </button>
                             <div className="hidden sm:flex gap-1">
-                                {[...Array(Math.ceil(customers.filter((c: any) => (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length / itemsPerPage))].map((_, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => setCurrentPage(i + 1)}
-                                        className={`w-10 h-10 rounded-xl font-black text-xs transition-all ${currentPage === i + 1 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 border border-indigo-400/50' : 'glass border border-white/10 text-slate-500 hover:text-white'}`}
-                                    >
-                                        {i + 1}
-                                    </button>
-                                ))}
+                                {(() => {
+                                    const totalPages = Math.ceil(customers.filter((c: any) => (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length / itemsPerPage);
+                                    const pages = [];
+                                    const showRange = 2; // Pages to show on either side of current
+
+                                    for (let i = 1; i <= totalPages; i++) {
+                                        if (
+                                            i === 1 || 
+                                            i === totalPages || 
+                                            (i >= currentPage - showRange && i <= currentPage + showRange)
+                                        ) {
+                                            pages.push(i);
+                                        } else if (i === currentPage - showRange - 1 || i === currentPage + showRange + 1) {
+                                            pages.push('...');
+                                        }
+                                    }
+
+                                    return pages.filter((v, i, a) => a.indexOf(v) === i).map((p, i) => (
+                                        typeof p === 'number' ? (
+                                            <button
+                                                key={i}
+                                                onClick={() => setCurrentPage(p)}
+                                                className={`w-10 h-10 rounded-xl font-black text-xs transition-all ${currentPage === p ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 border border-indigo-400/50' : 'glass border border-white/10 text-slate-500 hover:text-white'}`}
+                                            >
+                                                {p}
+                                            </button>
+                                        ) : (
+                                            <span key={i} className="w-10 h-10 flex items-center justify-center text-slate-600 font-bold">...</span>
+                                        )
+                                    ));
+                                })()}
                             </div>
                             <button 
                                 onClick={() => setCurrentPage(p => Math.min(Math.ceil(customers.filter((c: any) => (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length / itemsPerPage), p + 1))}

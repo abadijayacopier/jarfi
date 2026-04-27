@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline, useMap } from 'react-leaflet';
 import L, { LeafletMouseEvent } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -52,7 +52,24 @@ function MapEvents({ onClick }: { onClick?: (lat: number, lng: number) => void }
     return null;
 }
 
-export default function NetworkMap({ odps, customers, onMapClick }: { odps: any[], customers: any[], onMapClick?: (lat: number, lng: number) => void }) {
+// Component to handle map view changes
+function ChangeView({ center, zoom }: { center: [number, number], zoom: number }) {
+    const map = useMap();
+    useEffect(() => {
+        map.setView(center, zoom);
+    }, [center, zoom, map]);
+    return null;
+}
+
+interface NetworkMapProps {
+    odps: any[];
+    customers: any[];
+    onMapClick?: (lat: number, lng: number) => void;
+    center?: [number, number];
+    zoom?: number;
+}
+
+export default function NetworkMap({ odps, customers, onMapClick, center = [-6.2088, 106.8456], zoom = 13 }: NetworkMapProps) {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -64,12 +81,13 @@ export default function NetworkMap({ odps, customers, onMapClick }: { odps: any[
     return (
         <MapContainer 
             {...{
-                center: [-6.2088, 106.8456] as [number, number],
-                zoom: 13,
+                center: center,
+                zoom: zoom,
                 style: { height: '600px', width: '100%', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.1)' },
                 className: "z-10 shadow-2xl"
             } as any}
         >
+            <ChangeView center={center} zoom={zoom} />
             <TileLayer
                 {...{
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -123,17 +141,49 @@ export default function NetworkMap({ odps, customers, onMapClick }: { odps: any[
                     key={`cust-${customer.id}`} 
                     {...{
                         position: [parseFloat(customer.latitude), parseFloat(customer.longitude)] as [number, number],
-                        icon: CUSTOMER_ICON
+                        icon: L.divIcon({
+                            html: `
+                                <div class="relative flex flex-col items-center">
+                                    <div class="w-8 h-8 bg-indigo-500 rounded-full border-2 border-white flex items-center justify-center text-white shadow-lg">
+                                        <span class="text-sm">🏠</span>
+                                    </div>
+                                    <div class="bg-indigo-600 text-white text-[7px] font-black px-1.5 rounded mt-0.5 border border-white/20 whitespace-nowrap uppercase shadow-sm">${customer.package_name || 'N/A'}</div>
+                                </div>
+                            `,
+                            className: 'custom-div-icon',
+                            iconSize: [40, 50],
+                            iconAnchor: [20, 20]
+                        })
                     } as any}
                 >
                     <Popup>
-                        <div className="p-2 min-w-[150px]">
-                            <h3 className="font-black text-blue-600 text-base uppercase mb-1">{customer.name}</h3>
-                            <p className="text-[10px] text-slate-500 font-bold mb-2 tracking-widest">{customer.pppoe_username}</p>
-                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                                <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase ${customer.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                        <div className="p-3 min-w-[180px] bg-white rounded-lg">
+                            <div className="flex justify-between items-start mb-2">
+                                <h3 className="font-black text-indigo-600 text-base uppercase leading-tight mr-2">{customer.name}</h3>
+                                <span className={`text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase shadow-sm ${customer.status === 'ACTIVE' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
                                     {customer.status}
                                 </span>
+                            </div>
+                            
+                            <div className="space-y-1.5 mb-3">
+                                <p className="text-[10px] text-slate-500 flex justify-between">
+                                    <span className="font-medium">Username:</span>
+                                    <span className="font-bold text-slate-900">{customer.pppoe_username}</span>
+                                </p>
+                                <p className="text-[10px] text-slate-500 flex justify-between">
+                                    <span className="font-medium">Paket:</span>
+                                    <span className="font-black text-indigo-600 uppercase italic">{customer.package_name || 'Tanpa Paket'}</span>
+                                </p>
+                                <p className="text-[10px] text-slate-500 flex justify-between">
+                                    <span className="font-medium">Phone:</span>
+                                    <span className="font-bold text-slate-900">{customer.phone || '-'}</span>
+                                </p>
+                            </div>
+                            
+                            <div className="pt-2 border-t border-slate-100 flex items-center justify-center">
+                                <button className="text-[9px] font-black uppercase text-indigo-500 hover:text-indigo-700 transition-colors">
+                                    Buka Detail Pelanggan
+                                </button>
                             </div>
                         </div>
                     </Popup>

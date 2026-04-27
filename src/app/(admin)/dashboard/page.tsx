@@ -170,9 +170,9 @@ export default function Dashboard() {
                         </div>
                     </div>
                     
-                    <div className="relative z-10">
+                    <div className="relative z-10 h-[300px]">
                         {chartData.length < 2 ? (
-                            <div className="h-[300px] flex items-center justify-center text-slate-500 italic uppercase text-[10px] font-black tracking-widest animate-pulse">
+                            <div className="h-full flex items-center justify-center text-slate-500 italic uppercase text-[10px] font-black tracking-widest animate-pulse">
                                 Mengumpulkan Data Pertama...
                             </div>
                         ) : (

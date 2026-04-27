@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { Map as MapIcon, Plus, Info, Layers, Crosshair, Box } from 'lucide-react';
+import { Map as MapIcon, Plus, Info, Layers, Crosshair, Box, Search, Loader2, Navigation } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 // Dynamic import for Leaflet map component to avoid SSR errors
@@ -15,6 +15,15 @@ export default function MapPage() {
     const [odps, setOdps] = useState([]);
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [mapCenter, setMapCenter] = useState<[number, number]>([-6.2088, 106.8456]);
+    const [mapZoom, setMapZoom] = useState(13);
+    
+    // Search states
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [showResults, setShowResults] = useState(false);
+    const searchRef = useRef<HTMLDivElement>(null);
 
     const fetchData = async () => {
         try {
@@ -35,7 +44,44 @@ export default function MapPage() {
 
     useEffect(() => {
         fetchData();
+        
+        // Click outside to close search results
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+                setShowResults(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    const handleSearch = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        if (!searchQuery.trim()) return;
+
+        setIsSearching(true);
+        setShowResults(true);
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=id`, {
+                headers: {
+                    'User-Agent': 'Jarfi-ISP-Management-App'
+                }
+            });
+            const data = await response.json();
+            setSearchResults(data);
+        } catch (error) {
+            console.error('Search error:', error);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    const handleSelectLocation = (lat: string, lon: string, displayName: string) => {
+        setMapCenter([parseFloat(lat), parseFloat(lon)]);
+        setMapZoom(16);
+        setSearchQuery(displayName);
+        setShowResults(false);
+    };
 
     const handleMapClick = (lat: number, lng: number) => {
         handleAddODP(lat.toString(), lng.toString());
@@ -174,8 +220,60 @@ export default function MapPage() {
                 </div>
 
                 {/* Map View */}
-                <div className="xl:col-span-3">
-                    <NetworkMap odps={odps} customers={customers} onMapClick={handleMapClick} />
+                <div className="xl:col-span-3 relative">
+                    {/* Search Bar Overlay */}
+                    <div className="absolute top-4 left-4 right-4 z-1000 max-w-md" ref={searchRef}>
+                        <form onSubmit={handleSearch} className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                {isSearching ? (
+                                    <Loader2 className="h-5 w-5 text-indigo-400 animate-spin" />
+                                ) : (
+                                    <Search className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-400 transition-colors" />
+                                )}
+                            </div>
+                            <input
+                                type="text"
+                                className="block w-full pl-11 pr-4 py-3.5 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-2xl"
+                                placeholder="Cari alamat atau lokasi..."
+                                value={searchQuery}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    if (e.target.value.length > 2) handleSearch();
+                                }}
+                                onFocus={() => searchQuery.length > 2 && setShowResults(true)}
+                            />
+                        </form>
+
+                        {/* Search Results Dropdown */}
+                        {showResults && searchResults.length > 0 && (
+                            <div className="absolute mt-2 w-full bg-slate-900/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-top-2 duration-200">
+                                <div className="max-h-[300px] overflow-y-auto">
+                                    {searchResults.map((result, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => handleSelectLocation(result.lat, result.lon, result.display_name)}
+                                            className="w-full text-left px-4 py-3 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors flex items-start gap-3"
+                                        >
+                                            <Navigation className="w-4 h-4 text-indigo-400 mt-1 shrink-0" />
+                                            <div>
+                                                <p className="text-xs font-bold text-white line-clamp-1">{result.display_name.split(',')[0]}</p>
+                                                <p className="text-[10px] text-slate-400 line-clamp-2 mt-0.5">{result.display_name}</p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <NetworkMap 
+                        odps={odps} 
+                        customers={customers} 
+                        onMapClick={handleMapClick} 
+                        center={mapCenter} 
+                        zoom={mapZoom} 
+                    />
+                    
                     <div className="mt-3 text-center">
                         <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">💡 Tips: Klik area manapun di peta untuk menambah titik ODP baru secara instan</p>
                     </div>

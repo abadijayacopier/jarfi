@@ -190,6 +190,30 @@ export default function AutomationPage() {
 
                 {/* Sidebar Settings */}
                 <div className="space-y-8">
+                    <div className="glass p-6 rounded-3xl border border-white/10 group overflow-hidden relative">
+                        <div className="absolute -right-10 -bottom-10 p-10 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                            <MessageSquare className="w-32 h-32 text-emerald-400" />
+                        </div>
+                        <div className="flex items-center gap-3 mb-6 relative z-10">
+                            <Smartphone className="w-6 h-6 text-emerald-400" />
+                            <h4 className="text-lg font-bold text-white">Device Pairing</h4>
+                        </div>
+                        <div className="space-y-4 relative z-10">
+                            <p className="text-[11px] text-slate-400 leading-relaxed">
+                                Pastikan WhatsApp Anda terhubung agar sistem dapat mengirim notifikasi tagihan secara otomatis.
+                            </p>
+                            <a 
+                                href="https://web.whatsapp.com" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
+                            >
+                                <Smartphone className="w-4 h-4" />
+                                Scan WhatsApp Web
+                            </a>
+                        </div>
+                    </div>
+
                     <div className="glass p-6 rounded-3xl border border-white/10">
                         <div className="flex items-center gap-3 mb-6">
                             <Smartphone className="w-6 h-6 text-indigo-400" />

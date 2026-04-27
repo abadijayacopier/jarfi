@@ -17,20 +17,65 @@ export async function POST() {
             isTaxEnabled = settings.tax_enabled === '1';
         } catch { /* Settings table may not exist yet */ }
 
-        // 2. Get active customers with their package price AND name
+        // 2. Get active customers
         const [customers]: any = await pool.query(`
-            SELECT c.id, c.pppoe_username, p.price, p.name as package_name
+            SELECT c.id, c.pppoe_username, c.router_id, p.price, p.name as package_name,
+                   r.ip_address, r.username as r_user, r.password as r_pass, r.api_port
             FROM Customers c
             LEFT JOIN Packages p ON c.package_id = p.id
+            JOIN Routers r ON c.router_id = r.id
             WHERE c.status = 'ACTIVE'
         `);
+
+        // Fetch all packages for fallback matching
+        const [allPackages]: any = await pool.query('SELECT * FROM Packages');
+
+        // Cache for mikrotik secrets per router to avoid redundant API calls
+        const routerSecretsCache: Record<string, any[]> = {};
+
+        const getMikrotikProfile = async (pppoeUser: string, router: any) => {
+            if (!routerSecretsCache[router.id]) {
+                try {
+                    const { MikrotikService } = require('@/lib/mikrotik');
+                    const mk = new MikrotikService({
+                        host: router.ip_address, user: router.r_user, password: router.r_pass, port: router.api_port
+                    });
+                    routerSecretsCache[router.id] = await mk.getSecrets();
+                } catch (e) {
+                    routerSecretsCache[router.id] = [];
+                }
+            }
+            const secret = routerSecretsCache[router.id].find(s => s.name === pppoeUser);
+            return secret?.profile || null;
+        };
 
         let created = 0;
         let updated = 0;
         let skipped = 0;
 
         for (const customer of customers) {
-            const basePrice = parseFloat(customer.price || '0');
+            let basePrice = parseFloat(customer.price || '0');
+            
+            // SMART SYNC: If price is 0 or package is missing, try to find match via Live Mikrotik Profile
+            if (basePrice === 0) {
+                const liveProfile = await getMikrotikProfile(customer.pppoe_username, {
+                    id: customer.router_id,
+                    ip_address: customer.ip_address,
+                    r_user: customer.r_user,
+                    r_pass: customer.r_pass,
+                    api_port: customer.api_port
+                });
+
+                if (liveProfile && typeof liveProfile === 'string') {
+                    const matchedPkg = allPackages.find((pkg: any) => 
+                        pkg.name && pkg.name.trim().toLowerCase() === liveProfile.trim().toLowerCase()
+                    );
+                    if (matchedPkg) {
+                        basePrice = parseFloat(matchedPkg.price || '0');
+                    }
+                }
+            }
+
             const taxAmount = isTaxEnabled ? Math.round(basePrice * 0.11) : 0;
             const finalAmount = basePrice + taxAmount;
 
@@ -41,7 +86,7 @@ export async function POST() {
             );
 
             if (existing.length === 0) {
-                // Create new invoice (even if 0, but user will be warned in dashboard)
+                // Create new invoice (even if 0, but hopefully basePrice is fixed now)
                 await pool.query(
                     'INSERT INTO Invoices (customer_id, amount, status, billing_month) VALUES (?, ?, ?, ?)',
                     [customer.id, finalAmount, 'UNPAID', currentMonth]
@@ -49,7 +94,6 @@ export async function POST() {
                 created++;
             } else if (existing[0].status === 'UNPAID') {
                 // Always re-sync UNPAID invoices with the latest package price
-                // Use parseFloat to avoid string vs number comparison issues
                 const currentAmount = parseFloat(existing[0].amount || '0');
                 if (Math.abs(currentAmount - finalAmount) > 0.01) {
                     await pool.query(

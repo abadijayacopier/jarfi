@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { 
     Settings, Building2, Save, RefreshCw, CheckCircle2, AlertCircle, FileCheck,
-    CreditCard, Printer, History, Send, MessageCircle, Landmark, Smartphone
+    CreditCard, Printer, History, Send, MessageCircle, Landmark, Smartphone, Info
 } from 'lucide-react';
 
 interface SettingsState {
@@ -274,47 +274,109 @@ export default function SettingsPage() {
                             ))}
                         </div>
                     </div>
-                    {/* Bank Account */}
-                    <div className="glass p-8 rounded-3xl border border-white/10 shadow-2xl">
-                        <div className="flex items-center gap-4 mb-8">
+                    {/* Bank Account / Payment Details */}
+                    <div className="glass p-8 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden group">
+                        <div className="absolute -right-16 -top-16 p-16 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                            <Landmark className="w-48 h-48 text-amber-400" />
+                        </div>
+                        <div className="flex items-center gap-4 mb-8 relative z-10">
                             <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-400 border border-amber-500/20"><Landmark className="w-6 h-6" /></div>
                             <div>
-                                <h4 className="text-xl font-black text-white">Rekening Bank</h4>
-                                <p className="text-xs text-slate-400 font-bold">Informasi transfer untuk pelanggan</p>
+                                <h4 className="text-xl font-black text-white">
+                                    {settings.payment_method === 'ewallet' ? 'Detail E-Wallet' : settings.payment_method === 'cod' ? 'Detail COD' : 'Rekening Bank'}
+                                </h4>
+                                <p className="text-xs text-slate-400 font-bold">Informasi pembayaran untuk pelanggan</p>
                             </div>
                         </div>
-                        <div className="space-y-5">
-                            <Field label="Nama Bank" field="bank_name" placeholder="BCA / BRI / Mandiri" />
-                            <Field label="Nomor Rekening" field="bank_account" placeholder="1234567890" />
-                            <Field label="Atas Nama" field="bank_holder" placeholder="PT. ISP Anda" />
+                        
+                        <div className="space-y-5 relative z-10">
+                            {settings.payment_method === 'cod' ? (
+                                <div className="p-8 bg-slate-900/40 border border-dashed border-white/10 rounded-3xl text-center">
+                                    <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-400">
+                                        <History className="w-8 h-8" />
+                                    </div>
+                                    <p className="text-sm font-bold text-white mb-1">Metode COD Terpilih</p>
+                                    <p className="text-[11px] text-slate-500">Pelanggan akan diarahkan untuk membayar langsung ke kantor atau teknisi.</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <Field 
+                                        label={settings.payment_method === 'ewallet' ? 'Nama E-Wallet' : 'Nama Bank'} 
+                                        field="bank_name" 
+                                        placeholder={settings.payment_method === 'ewallet' ? 'DANA / OVO / GoPay / QRIS' : 'BCA / BRI / Mandiri'} 
+                                    />
+                                    <Field 
+                                        label={settings.payment_method === 'ewallet' ? 'Nomor HP / ID E-Wallet' : 'Nomor Rekening'} 
+                                        field="bank_account" 
+                                        placeholder={settings.payment_method === 'ewallet' ? '081234567890' : '1234567890'} 
+                                    />
+                                    <Field 
+                                        label="Atas Nama (Owner)" 
+                                        field="bank_holder" 
+                                        placeholder="Contoh: PT. JARFI NETWORKS" 
+                                    />
+                                </>
+                            )}
                         </div>
                     </div>
                     {/* Printer */}
-                    <div className="glass p-8 rounded-3xl border border-white/10 shadow-2xl lg:col-span-2">
-                        <div className="flex items-center gap-4 mb-8">
+                    <div className="glass p-8 rounded-3xl border border-white/10 shadow-2xl lg:col-span-2 relative overflow-hidden group">
+                        <div className="absolute -right-16 -top-16 p-16 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                            <Printer className="w-48 h-48 text-sky-400" />
+                        </div>
+                        <div className="flex items-center gap-4 mb-8 relative z-10">
                             <div className="w-12 h-12 rounded-2xl bg-sky-500/10 flex items-center justify-center text-sky-400 border border-sky-500/20"><Printer className="w-6 h-6" /></div>
                             <div>
                                 <h4 className="text-xl font-black text-white">Pengaturan Printer</h4>
-                                <p className="text-xs text-slate-400 font-bold">Konfigurasi jenis dan ukuran kertas</p>
+                                <p className="text-xs text-slate-400 font-bold">Konfigurasi jenis dan ukuran kertas struk/invoice</p>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
                             <div>
                                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 ml-1">Tipe Printer</label>
-                                <select value={settings.printer_type} onChange={(e) => updateField('printer_type', e.target.value)} className="w-full bg-slate-900/40 border border-white/10 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-sky-500/50 shadow-inner transition-all font-bold">
-                                    <option value="thermal">Thermal (Struk)</option>
+                                <select 
+                                    value={settings.printer_type} 
+                                    onChange={(e) => {
+                                        const type = e.target.value;
+                                        updateField('printer_type', type);
+                                        // Auto-adjust width based on type
+                                        if (type === 'thermal') updateField('printer_width', '58');
+                                        else updateField('printer_width', '210');
+                                    }} 
+                                    className="w-full bg-slate-900/40 border border-white/10 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-sky-500/50 shadow-inner transition-all font-bold appearance-none cursor-pointer"
+                                >
+                                    <option value="thermal">Thermal (Struk / POS)</option>
                                     <option value="inkjet">Inkjet / Laser (A4)</option>
-                                    <option value="dotmatrix">Dot Matrix</option>
+                                    <option value="dotmatrix">Dot Matrix (LX-310/etc)</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 ml-1">Lebar Kertas (mm)</label>
-                                <select value={settings.printer_width} onChange={(e) => updateField('printer_width', e.target.value)} className="w-full bg-slate-900/40 border border-white/10 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-sky-500/50 shadow-inner transition-all font-bold">
-                                    <option value="58">58mm</option>
-                                    <option value="80">80mm</option>
-                                    <option value="210">A4 (210mm)</option>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 ml-1">Lebar Kertas</label>
+                                <select 
+                                    value={settings.printer_width} 
+                                    onChange={(e) => updateField('printer_width', e.target.value)} 
+                                    className="w-full bg-slate-900/40 border border-white/10 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-sky-500/50 shadow-inner transition-all font-bold appearance-none cursor-pointer"
+                                >
+                                    {settings.printer_type === 'thermal' ? (
+                                        <>
+                                            <option value="58">58mm (Kecil)</option>
+                                            <option value="80">80mm (Besar)</option>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <option value="210">A4 (210mm x 297mm)</option>
+                                            <option value="148">A5 (Setengah A4)</option>
+                                        </>
+                                    )}
                                 </select>
                             </div>
+                        </div>
+                        
+                        <div className="mt-8 p-4 bg-sky-500/5 border border-sky-500/10 rounded-2xl flex items-start gap-3">
+                            <Info className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+                            <p className="text-[10px] text-sky-300/80 leading-relaxed italic">
+                                *Pengaturan ini akan mempengaruhi tata letak (layout) saat Anda mencetak Invoice atau Voucher dari sistem.
+                            </p>
                         </div>
                     </div>
                     <div className="lg:col-span-2">
@@ -347,8 +409,11 @@ export default function SettingsPage() {
                         </div>
                     </div>
                     {/* WhatsApp API */}
-                    <div className="glass p-8 rounded-3xl border border-white/10 shadow-2xl">
-                        <div className="flex items-center justify-between mb-8">
+                    <div className="glass p-8 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden group">
+                        <div className="absolute -right-16 -top-16 p-16 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+                            <MessageCircle className="w-48 h-48 text-emerald-400" />
+                        </div>
+                        <div className="flex items-center justify-between mb-8 relative z-10">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20"><MessageCircle className="w-6 h-6" /></div>
                                 <div>
@@ -357,10 +422,31 @@ export default function SettingsPage() {
                                 </div>
                             </div>
                         </div>
-                        <div className="space-y-5">
-                            <Toggle label="Aktifkan WA API" desc="Fonnte / WaBlas / WAPI" field="wa_api_enabled" color="teal" />
-                            <Field label="API Gateway URL" field="wa_api_url" placeholder="https://api.fonnte.com/send" />
-                            <Field label="API Token / Key" field="wa_api_token" placeholder="Token autentikasi dari provider" type="password" />
+                        <div className="space-y-6 relative z-10">
+                            <div className="bg-emerald-500/5 border border-emerald-500/10 p-5 rounded-2xl mb-2">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <Smartphone className="w-5 h-5 text-emerald-400" />
+                                    <h5 className="font-bold text-white text-sm">Status Koneksi Device</h5>
+                                </div>
+                                <p className="text-[11px] text-emerald-300/80 leading-relaxed mb-4">
+                                    Gunakan WhatsApp Web untuk memantau pesan yang terkirim atau hubungkan device baru melalui gateway.
+                                </p>
+                                <a 
+                                    href="https://web.whatsapp.com" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-lg shadow-emerald-600/20 active:scale-[0.98]"
+                                >
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    Tautkan / Scan WA Web
+                                </a>
+                            </div>
+
+                            <div className="space-y-5 pt-2">
+                                <Toggle label="Aktifkan WA API" desc="Fonnte / WaBlas / WAPI" field="wa_api_enabled" color="teal" />
+                                <Field label="API Gateway URL" field="wa_api_url" placeholder="https://api.fonnte.com/send" />
+                                <Field label="API Token / Key" field="wa_api_token" placeholder="Token autentikasi dari provider" type="password" />
+                            </div>
                         </div>
                     </div>
                     <div className="lg:col-span-2">

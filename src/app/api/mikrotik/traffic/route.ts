@@ -34,10 +34,17 @@ export async function GET(req: Request) {
         
         let trafficData = [];
         try {
-            const [activeUsers, interfaces] = await Promise.all([
+            const [activeUsers, interfaces, pppSecrets] = await Promise.all([
                 conn.menu('/ppp/active').get(),
-                conn.menu('/interface').get()
+                conn.menu('/interface').get(),
+                conn.menu('/ppp/secret').get()
             ]);
+
+            // Create a lookup for secret profiles
+            const secretProfiles: Record<string, string> = {};
+            pppSecrets.forEach((s: any) => {
+                if (s.name) secretProfiles[s.name] = s.profile || 'default';
+            });
 
             // Create a lookup for interface rx/tx bytes
             const ifaceStats: Record<string, any> = {};
@@ -63,7 +70,8 @@ export async function GET(req: Request) {
                     encoding: user.encoding || '-',
                     service: user.service || 'pppoe',
                     rxBytes: stats.rxBytes,
-                    txBytes: stats.txBytes
+                    txBytes: stats.txBytes,
+                    profile: secretProfiles[user.name] || '?'
                 };
             });
         } finally {
