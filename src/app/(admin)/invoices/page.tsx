@@ -153,56 +153,62 @@ export default function InvoicesPage() {
     };
 
     return (
-        <div className="animate-in fade-in duration-500">
-            <div className="flex justify-between items-center mb-8">
-                <h3 className="text-3xl font-bold text-white">Tagihan (Invoices)</h3>
+        <div className="animate-in fade-in duration-500 pb-20 space-y-10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12">
+                <div>
+                    <h3 className="text-4xl font-black text-primary flex items-center gap-4">
+                        <Printer className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
+                        Billing & Invoices
+                    </h3>
+                    <p className="text-muted font-medium mt-2 text-sm">Kelola penagihan bulanan dan status pembayaran seluruh pelanggan ISP.</p>
+                </div>
                 <button
                     onClick={handleGenerateInvoices}
-                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-2xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.4)] hover:shadow-[0_0_25px_rgba(37,99,235,0.6)] flex items-center gap-2"
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4.5 px-10 rounded-2xl transition-all shadow-2xl shadow-indigo-600/30 hover:scale-105 active:scale-95 flex items-center gap-3 uppercase tracking-[0.2em] text-[10px]"
                 >
-                    <Save className="w-5 h-5" /> Generate Tagihan Bulan Ini
+                    <Save className="w-5 h-5" /> Generate Tagihan Baru
                 </button>
             </div>
 
             {/* Content View: Table (Desktop) & Cards (Mobile) */}
-            <div className="space-y-4">
+            <div className="space-y-8">
                 {/* Desktop Table View */}
-                <div className="hidden md:block glass rounded-4xl border border-white/10 overflow-hidden shadow-2xl">
-                    <div className="p-6 border-b border-white/10 bg-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <h4 className="text-xl font-bold text-white">Data Tagihan</h4>
-                        <div className="relative w-full md:w-96">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <div className="hidden md:block glass rounded-[3rem] overflow-hidden shadow-2xl border border-(--glass-border)">
+                    <div className="p-10 border-b border-(--glass-border) flex flex-col md:flex-row justify-between items-start md:items-center gap-8 bg-white/5">
+                        <h4 className="text-2xl font-black text-primary">Data Ledger Tagihan</h4>
+                        <div className="relative w-full md:w-[450px]">
+                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                             <input 
                                 type="text" 
                                 placeholder="Cari nama, username, atau bulan..." 
                                 value={searchTerm}
                                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                                className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner"
+                                className="w-full bg-slate-100 dark:bg-slate-900/50 border-2 border-(--glass-border) rounded-3xl py-4.5 pl-14 pr-6 text-sm font-bold text-primary focus:outline-none focus:border-indigo-500 transition-all shadow-inner"
                             />
                         </div>
                     </div>
-                    <div className="overflow-x-auto min-h-[400px]">
+                    <div className="overflow-x-auto min-h-[450px]">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="border-b border-white/10 bg-white/5 uppercase text-[10px] tracking-widest font-black text-slate-400">
-                                    <th className="p-5">Bulan</th>
-                                    <th className="p-5">Pelanggan</th>
-                                    <th className="p-5">Total</th>
-                                    <th className="p-5">Status</th>
-                                    <th className="p-5">Tgl Lunas</th>
-                                    <th className="p-5 text-center">Aksi</th>
+                                <tr className="bg-slate-50 dark:bg-white/2 uppercase text-[10px] tracking-[0.3em] font-black text-slate-500 border-b border-(--glass-border)">
+                                    <th className="p-8">Bulan Billing</th>
+                                    <th className="p-8">Profil Pelanggan</th>
+                                    <th className="p-8">Total Amount</th>
+                                    <th className="p-8">Status</th>
+                                    <th className="p-8">Log Pembayaran</th>
+                                    <th className="p-8 text-center">Aksi Manajemen</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5 text-sm">
+                            <tbody className="divide-y divide-(--glass-border) text-sm">
                                 {loading ? (
-                                    <tr><td colSpan={6} className="p-20 text-center text-slate-400">
-                                        <div className="flex flex-col items-center gap-2">
-                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500"></div>
-                                            Menarik data tagihan...
+                                    <tr><td colSpan={6} className="p-32 text-center text-slate-500">
+                                        <div className="flex flex-col items-center gap-6 animate-pulse">
+                                            <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600"></div>
+                                            <span className="font-black uppercase tracking-[0.3em] text-[10px]">Menyinkronkan data ledger...</span>
                                         </div>
                                     </td></tr>
                                 ) : invoices.length === 0 ? (
-                                    <tr><td colSpan={6} className="p-20 text-center text-slate-400">Belum ada tagihan.</td></tr>
+                                    <tr><td colSpan={6} className="p-32 text-center text-slate-500 font-black uppercase tracking-widest opacity-60">Database tagihan masih kosong.</td></tr>
                                 ) : (
                                     invoices
                                         .filter((inv: any) => 
@@ -212,48 +218,69 @@ export default function InvoicesPage() {
                                         )
                                         .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                                         .map((inv: any) => (
-                                        <tr key={inv.id} className="hover:bg-white/5 transition-all group">
-                                            <td className="p-5 font-bold text-white group-hover:text-indigo-400 transition-colors">{inv.billing_month}</td>
-                                            <td className="p-5">
-                                                <div className="font-bold text-white text-base leading-tight">{inv.customer_name}</div>
-                                                <div className="text-xs font-mono text-slate-500 mt-0.5">{inv.pppoe_username}</div>
+                                        <tr key={inv.id} className="hover:bg-slate-50 dark:hover:bg-white/2 transition-all group">
+                                            <td className="p-8 font-black text-primary group-hover:text-indigo-600 transition-colors uppercase tracking-[0.2em] text-[11px]">{inv.billing_month}</td>
+                                            <td className="p-8">
+                                                <div className="font-black text-primary text-lg tracking-tight leading-tight">{inv.customer_name}</div>
+                                                <div className="text-[10px] font-black font-mono text-muted mt-2 uppercase tracking-widest bg-slate-100 dark:bg-white/5 inline-block px-2 py-1 rounded-md">{inv.pppoe_username}</div>
                                             </td>
-                                             <td className="p-5 font-black text-indigo-400 text-lg">
-                                                 <div className="flex items-center gap-2">
+                                             <td className="p-8 font-black text-indigo-600 dark:text-indigo-400 text-2xl tracking-tight">
+                                                 <div className="flex items-center gap-4">
                                                      Rp {parseInt(inv.amount).toLocaleString('id-ID')}
                                                      {parseInt(inv.amount) === 0 && (
                                                          <div className="group/warn relative">
-                                                             <AlertTriangle className="w-4 h-4 text-amber-500 animate-pulse" />
-                                                             <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded whitespace-nowrap opacity-0 group-hover/warn:opacity-100 transition-opacity pointer-events-none z-50">
-                                                                 Paket belum diatur
+                                                             <AlertTriangle className="w-6 h-6 text-amber-500 animate-pulse" />
+                                                             <div className="absolute left-full ml-4 px-4 py-3 bg-slate-950 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl whitespace-nowrap opacity-0 group-hover/warn:opacity-100 transition-all pointer-events-none z-50 shadow-2xl border border-white/10 border-l-4 border-l-amber-500">
+                                                                 Konfigurasi paket belum diatur
                                                              </div>
                                                          </div>
                                                      )}
                                                  </div>
                                              </td>
-                                            <td className="p-5">
-                                                <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black tracking-widest uppercase border ${inv.status === 'PAID' ? 'bg-teal-500/10 text-teal-400 border-teal-500/30' : 'bg-red-500/10 text-red-400 border-red-500/30'}`}>
+                                            <td className="p-8">
+                                                <span className={`px-5 py-2.5 rounded-2xl text-[10px] font-black tracking-[0.25em] uppercase border shadow-sm ${inv.status === 'PAID' ? 'bg-teal-500/10 text-teal-600 border-teal-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}>
                                                     {inv.status}
                                                 </span>
                                             </td>
-                                            <td className="p-5 text-slate-400 font-medium">
-                                                {inv.paid_at ? new Date(inv.paid_at).toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : <span className="opacity-30">Belum Bayar</span>}
+                                            <td className="p-8 text-muted font-black text-[10px] uppercase tracking-[0.2em] opacity-80">
+                                                {inv.paid_at ? (
+                                                    <div className="flex items-center gap-2">
+                                                        <CheckCircle className="w-3.5 h-3.5 text-teal-500" />
+                                                        {new Date(inv.paid_at).toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                    </div>
+                                                ) : <span className="opacity-30">Pending Transaction</span>}
                                             </td>
-                                            <td className="p-5">
-                                                <div className="flex items-center justify-center gap-2">
+                                            <td className="p-8">
+                                                <div className="flex items-center justify-center gap-4">
                                                     {inv.status === 'UNPAID' && (
-                                                        <button onClick={() => handleConfirmPayment(inv.id)} title="Set Lunas" className="p-2.5 rounded-xl bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 border border-teal-500/20 hover:scale-110 transition-all">
-                                                            <CheckCircle className="w-4 h-4" />
+                                                        <button 
+                                                            onClick={() => handleConfirmPayment(inv.id)} 
+                                                            title="Konfirmasi Pelunasan" 
+                                                            className="p-4 rounded-2xl bg-teal-500/10 text-teal-600 dark:text-teal-400 hover:bg-teal-600 hover:text-white border-2 border-teal-500/10 hover:scale-110 active:scale-90 transition-all shadow-md"
+                                                        >
+                                                            <CheckCircle className="w-5 h-5" />
                                                         </button>
                                                     )}
-                                                    <Link href={`/invoices/print/${inv.id}`} title="Cetak Invoice" className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 hover:scale-110 transition-all">
-                                                        <Printer className="w-4 h-4" />
+                                                    <Link 
+                                                        href={`/invoices/print/${inv.id}`} 
+                                                        title="Cetak Invoice Fisik" 
+                                                        className="p-4 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white border-2 border-indigo-500/10 hover:scale-110 active:scale-90 transition-all shadow-md"
+                                                    >
+                                                        <Printer className="w-5 h-5" />
                                                     </Link>
-                                                    <button onClick={() => openEditModal(inv)} title="Edit" className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 hover:scale-110 transition-all">
-                                                        <Edit className="w-4 h-4" />
+                                                    <button 
+                                                        onClick={() => openEditModal(inv)} 
+                                                        title="Koreksi Data Tagihan" 
+                                                        className="p-4 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white border-2 border-blue-500/10 hover:scale-110 active:scale-90 transition-all shadow-md"
+                                                    >
+                                                        <Edit className="w-5 h-5" />
                                                     </button>
-                                                    <button onClick={() => handleDelete(inv.id)} title="Hapus" className="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 hover:scale-110 transition-all">
-                                                        <Trash2 className="w-4 h-4" />
+                                                    <button 
+                                                        onClick={() => handleDelete(inv.id)} 
+                                                        title="Hapus Permanent" 
+                                                        className="p-4 rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white border-2 border-red-500/10 hover:scale-110 active:scale-90 transition-all shadow-md"
+                                                    >
+                                                        <Trash2 className="w-5 h-5" />
                                                     </button>
                                                 </div>
                                             </td>
@@ -266,23 +293,23 @@ export default function InvoicesPage() {
                 </div>
 
                 {/* Mobile Card View */}
-                <div className="md:hidden space-y-4">
-                    <div className="glass p-4 rounded-2xl border border-white/10 mb-4">
+                <div className="md:hidden space-y-6">
+                    <div className="glass p-6 rounded-4xl border border-(--glass-border) shadow-xl">
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                             <input 
                                 type="text" 
                                 placeholder="Cari tagihan..." 
                                 value={searchTerm}
                                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                                className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500 shadow-inner"
+                                className="w-full bg-slate-100 dark:bg-slate-900/50 border-2 border-(--glass-border) rounded-[1.25rem] py-4.5 pl-14 pr-6 text-sm font-bold text-primary focus:outline-none focus:border-indigo-500 shadow-inner"
                             />
                         </div>
                     </div>
                     {loading ? (
-                        <div className="p-10 text-center text-slate-500 animate-pulse">Memuat...</div>
+                        <div className="p-20 text-center text-slate-500 animate-pulse font-black uppercase tracking-[0.3em] text-[10px]">Sinkronisasi...</div>
                     ) : invoices.length === 0 ? (
-                        <div className="p-10 text-center text-slate-500">Kosong</div>
+                        <div className="p-20 text-center text-slate-500 font-black uppercase text-[10px] tracking-widest opacity-60">Tidak ada data</div>
                     ) : (
                         invoices
                             .filter((inv: any) => 
@@ -292,33 +319,33 @@ export default function InvoicesPage() {
                             )
                             .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                             .map((inv: any) => (
-                                <div key={inv.id} className="glass p-5 rounded-3xl border border-white/10 space-y-4 shadow-xl">
-                                    <div className="flex justify-between items-start">
+                                <div key={inv.id} className="glass p-8 rounded-[2.5rem] space-y-6 shadow-2xl border border-(--glass-border) relative overflow-hidden group">
+                                    <div className="flex justify-between items-start relative z-10">
                                         <div>
-                                            <h4 className="font-black text-white text-lg leading-tight">{inv.customer_name}</h4>
-                                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mt-1">{inv.billing_month}</p>
+                                            <h4 className="font-black text-primary text-2xl leading-tight tracking-tight">{inv.customer_name}</h4>
+                                            <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em] mt-3 bg-indigo-500/5 px-3 py-1.5 rounded-xl border border-indigo-500/10 inline-block">{inv.billing_month}</p>
                                         </div>
-                                        <span className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter ${inv.status === 'PAID' ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+                                        <span className={`px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-[0.25em] border shadow-sm ${inv.status === 'PAID' ? 'bg-teal-500/10 text-teal-600 border-teal-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}>
                                             {inv.status}
                                         </span>
                                     </div>
-                                    <div className="bg-slate-900/50 p-4 rounded-2xl border border-white/5">
-                                        <p className="text-[9px] uppercase font-black text-slate-500 mb-1">Total Tagihan</p>
-                                        <p className="text-xl font-black text-white">Rp {parseInt(inv.amount).toLocaleString('id-ID')}</p>
+                                    <div className="bg-slate-100 dark:bg-slate-900/50 p-6 rounded-4xl border-2 border-(--glass-border) shadow-inner relative z-10">
+                                        <p className="text-[9px] uppercase font-black text-slate-500 mb-2 tracking-[0.2em]">Current Billing Amount</p>
+                                        <p className="text-3xl font-black text-primary tracking-tight">Rp {parseInt(inv.amount).toLocaleString('id-ID')}</p>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-col sm:flex-row gap-4 relative z-10">
                                         {inv.status === 'UNPAID' && (
-                                            <button onClick={() => handleConfirmPayment(inv.id)} className="flex-1 py-3 rounded-xl bg-teal-500/10 text-teal-400 border border-teal-500/20 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all">
-                                                <CheckCircle className="w-3 h-3" /> Lunas
+                                            <button onClick={() => handleConfirmPayment(inv.id)} className="flex-1 py-4.5 rounded-2xl bg-teal-500/10 text-teal-600 border-2 border-teal-500/10 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-all shadow-lg hover:bg-teal-600 hover:text-white">
+                                                <CheckCircle className="w-4 h-4" /> Tandai Lunas
                                             </button>
                                         )}
-                                        <Link href={`/invoices/print/${inv.id}`} className="flex-1 py-3 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all">
-                                            <Printer className="w-3 h-3" /> Cetak
+                                        <Link href={`/invoices/print/${inv.id}`} className="flex-1 py-4.5 rounded-2xl bg-indigo-500/10 text-indigo-600 border-2 border-indigo-500/10 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-all shadow-lg hover:bg-indigo-600 hover:text-white">
+                                            <Printer className="w-4 h-4" /> Cetak Invoice
                                         </Link>
                                     </div>
-                                    <div className="flex gap-2 pt-2">
-                                        <button onClick={() => openEditModal(inv)} className="flex-1 py-2.5 rounded-xl bg-blue-500/5 text-blue-400 border border-white/5 text-[9px] font-bold uppercase tracking-widest">Edit</button>
-                                        <button onClick={() => handleDelete(inv.id)} className="flex-1 py-2.5 rounded-xl bg-red-500/5 text-red-500 border border-white/5 text-[9px] font-bold uppercase tracking-widest">Hapus</button>
+                                    <div className="flex gap-4 pt-2 relative z-10">
+                                        <button onClick={() => openEditModal(inv)} className="flex-1 py-4 rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border-2 border-(--glass-border) text-[9px] font-black uppercase tracking-[0.2em] hover:text-primary transition-all">Edit Data</button>
+                                        <button onClick={() => handleDelete(inv.id)} className="flex-1 py-4 rounded-2xl bg-red-500/5 text-red-600 border-2 border-red-500/10 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all">Hapus Tagihan</button>
                                     </div>
                                 </div>
                             ))
@@ -327,24 +354,24 @@ export default function InvoicesPage() {
 
                 {/* Pagination Controls */}
                 {!loading && invoices.length > itemsPerPage && (
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-8 px-2">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
-                            Total <span className="text-white">{invoices.filter((inv: any) => (inv.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (inv.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length}</span> Tagihan Ditemukan
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-8 pt-12 px-4">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">
+                            Found <span className="text-primary font-black">{invoices.filter((inv: any) => (inv.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (inv.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length}</span> Billing Records
                         </p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-4">
                             <button 
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="px-5 py-2.5 rounded-xl glass border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white disabled:opacity-30 transition-all"
+                                className="px-8 py-4 rounded-2xl glass border-2 border-(--glass-border) text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary disabled:opacity-30 transition-all shadow-xl shadow-black/5 active:scale-95"
                             >
-                                Prev
+                                Previous
                             </button>
                             <button 
                                 onClick={() => setCurrentPage(p => p + 1)}
                                 disabled={currentPage >= Math.ceil(invoices.filter((inv: any) => (inv.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (inv.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length / itemsPerPage)}
-                                className="px-5 py-2.5 rounded-xl glass border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white disabled:opacity-30 transition-all"
+                                className="px-8 py-4 rounded-2xl glass border-2 border-(--glass-border) text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary disabled:opacity-30 transition-all shadow-xl shadow-black/5 active:scale-95"
                             >
-                                Next
+                                Next Page
                             </button>
                         </div>
                     </div>
@@ -353,54 +380,82 @@ export default function InvoicesPage() {
 
             {/* Edit Modal */}
             {showEditForm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-md animate-in fade-in duration-200">
-                    <div className="bg-slate-800 w-full max-w-lg p-8 rounded-4xl border border-white/10 shadow-2xl animate-in zoom-in-95 duration-200">
-                        <div className="flex justify-between items-center mb-8">
-                            <h4 className="text-2xl font-black text-white flex items-center gap-3">
-                                <Edit className="text-teal-400 w-6 h-6" /> Edit Tagihan
-                            </h4>
-                            <button onClick={() => setShowEditForm(false)} className="text-slate-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-full">
+                <div className="fixed inset-0 z-60 flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-500">
+                    <div className="glass w-full max-w-lg p-10 lg:p-12 rounded-[3rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] border border-(--glass-border) animate-in zoom-in-95 duration-500 relative overflow-hidden">
+                        <div className="absolute -top-32 -right-32 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        
+                        <div className="flex justify-between items-center mb-10 border-b border-(--glass-border) pb-8 relative z-10">
+                            <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400 border-2 border-teal-500/20 shadow-inner">
+                                    <Edit className="w-7 h-7" />
+                                </div>
+                                <div>
+                                    <h4 className="text-2xl font-black text-primary">Koreksi Tagihan</h4>
+                                    <p className="text-[10px] text-muted font-black tracking-[0.2em] uppercase mt-1">Manual adjustment utility</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setShowEditForm(false)} 
+                                className="text-slate-400 hover:text-primary transition-all bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800 p-3 rounded-2xl active:scale-90 shadow-sm"
+                            >
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
 
-                        <div className="space-y-6">
+                        <div className="space-y-10 relative z-10">
                             <div>
-                                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Bulan Tagihan</label>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 ml-1">Periode Tagihan</label>
                                 <input 
                                     type="text" 
                                     value={editData.billing_month} 
                                     onChange={(e) => setEditData({...editData, billing_month: e.target.value})} 
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 text-white focus:outline-none focus:border-indigo-500 transition-all font-mono" 
+                                    className="w-full clean-input font-mono font-black text-xl py-5 px-6" 
                                     placeholder="YYYY-MM"
                                 />
+                                <p className="text-[10px] text-slate-500 mt-4 ml-1 font-bold italic opacity-70 uppercase tracking-widest">Gunakan format standarisasi: 2024-05</p>
                             </div>
                             <div>
-                                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Total Tagihan (Rp)</label>
-                                <input 
-                                    type="number" 
-                                    value={editData.amount} 
-                                    onChange={(e) => setEditData({...editData, amount: parseInt(e.target.value)})} 
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 text-white focus:outline-none focus:border-indigo-500 transition-all font-mono" 
-                                />
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 ml-1">Koreksi Nominal</label>
+                                <div className="relative">
+                                    <input 
+                                        type="number" 
+                                        value={editData.amount} 
+                                        onChange={(e) => setEditData({...editData, amount: parseInt(e.target.value)})} 
+                                        className="w-full clean-input pl-16 font-mono font-black text-2xl py-5" 
+                                    />
+                                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 font-black text-lg">Rp</span>
+                                </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Status Pembayaran</label>
-                                <select 
-                                    value={editData.status} 
-                                    onChange={(e) => setEditData({...editData, status: e.target.value})} 
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 text-white focus:outline-none focus:border-indigo-500 transition-all appearance-none"
-                                >
-                                    <option value="UNPAID">BELUM DIBAYAR (UNPAID)</option>
-                                    <option value="PAID">LUNAS (PAID)</option>
-                                </select>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 ml-1">Status Final Tagihan</label>
+                                <div className="relative">
+                                    <select 
+                                        value={editData.status} 
+                                        onChange={(e) => setEditData({...editData, status: e.target.value})} 
+                                        className="w-full clean-input appearance-none font-black text-xs uppercase tracking-[0.2em] py-5 px-6 cursor-pointer"
+                                    >
+                                        <option value="UNPAID">BELUM DIBAYAR (UNPAID)</option>
+                                        <option value="PAID">LUNAS (PAID)</option>
+                                    </select>
+                                    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+                                        <CheckCircle className="w-5 h-5 text-indigo-500" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="mt-10 flex gap-4">
-                            <button onClick={() => setShowEditForm(false)} className="flex-1 py-4 rounded-2xl hover:bg-white/5 transition-colors text-slate-300 font-bold">Batal</button>
-                            <button onClick={handleUpdate} className="flex-1 py-4 rounded-2xl bg-teal-500 hover:bg-teal-400 text-slate-900 font-black shadow-lg shadow-teal-500/20 transition-all flex items-center justify-center gap-2">
-                                <Save className="w-5 h-5" /> Simpan Perubahan
+                        <div className="mt-16 flex flex-col sm:flex-row gap-5 pt-10 border-t border-(--glass-border) relative z-10">
+                            <button 
+                                onClick={() => setShowEditForm(false)} 
+                                className="flex-1 px-10 py-5 rounded-2xl text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest text-[10px] hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+                            >
+                                Batalkan
+                            </button>
+                            <button 
+                                onClick={handleUpdate}
+                                className="flex-1 px-12 py-5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black shadow-2xl shadow-indigo-600/30 transition-all flex items-center justify-center gap-4 hover:scale-105 active:scale-95 uppercase tracking-[0.2em] text-[10px]"
+                            >
+                                <Save className="w-5 h-5" /> Simpan Update
                             </button>
                         </div>
                     </div>

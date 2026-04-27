@@ -97,84 +97,101 @@ export default function ToolsPage() {
     };
 
     return (
-        <div className="animate-in fade-in duration-500 pb-10">
-            <div className="mb-8">
-                <h3 className="text-3xl font-bold text-white">Maintenance & Tools</h3>
-                <p className="text-slate-400 mt-1">Kelola cadangan data, ekspor laporan, dan pembersihan sistem</p>
+        <div className="animate-in fade-in duration-500 pb-20 space-y-12">
+            <div className="mb-12">
+                <h3 className="text-4xl font-black text-primary tracking-tight flex items-center gap-4">
+                    <Database className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
+                    System Maintenance
+                </h3>
+                <p className="text-muted mt-2 font-medium text-sm">Arsip Database, Pemulihan Data, dan Ekspor Laporan Komprehensif.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 {/* Backup Card */}
-                <div className="glass p-8 rounded-3xl border border-emerald-500/20 bg-emerald-500/5 hover:border-emerald-500/40 transition-all group">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 border border-emerald-500/30">
-                            <Database className="w-8 h-8" />
+                <div className="glass p-10 rounded-[3rem] border-2 border-(--glass-border) bg-white/5 hover:border-emerald-500/30 transition-all group shadow-2xl relative overflow-hidden">
+                    <div className="absolute -right-24 -top-24 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-emerald-500/20 transition-all duration-500"></div>
+                    
+                    <div className="flex items-center gap-6 mb-10 relative z-10">
+                        <div className="w-20 h-20 rounded-3xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 border-2 border-emerald-500/20 shadow-inner group-hover:scale-110 group-hover:-rotate-3 transition-all duration-500">
+                            <Database className="w-10 h-10" />
                         </div>
                         <div>
-                            <h4 className="text-2xl font-black text-white uppercase tracking-tight">Backup Database</h4>
-                            <p className="text-slate-400 text-sm">Amankan seluruh data sistem ke file eksternal.</p>
+                            <h4 className="text-3xl font-black text-primary uppercase tracking-tighter">Snapshots</h4>
+                            <p className="text-muted text-sm font-medium">Backup seluruh ekosistem JARFI.</p>
                         </div>
                     </div>
                     
-                    <div className="bg-slate-900/50 p-6 rounded-2xl border border-white/5 mb-8">
-                        <ul className="space-y-3 text-sm text-slate-300">
-                            <li className="flex items-center gap-3"><ShieldCheck className="w-4 h-4 text-emerald-400" /> Seluruh Data Pelanggan & Paket</li>
-                            <li className="flex items-center gap-3"><ShieldCheck className="w-4 h-4 text-emerald-400" /> Data Invoice & Riwayat Bayar</li>
-                            <li className="flex items-center gap-3"><ShieldCheck className="w-4 h-4 text-emerald-400" /> Pengaturan Router & API</li>
+                    <div className="bg-slate-100/50 dark:bg-slate-900/50 p-8 rounded-4xl border-2 border-(--glass-border) mb-10 shadow-inner relative z-10">
+                        <ul className="space-y-4">
+                            <li className="flex items-center gap-4 text-xs font-black text-slate-500 uppercase tracking-widest">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Data Pelanggan & Paket
+                            </li>
+                            <li className="flex items-center gap-4 text-xs font-black text-slate-500 uppercase tracking-widest">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Invoicing & Ledger
+                            </li>
+                            <li className="flex items-center gap-4 text-xs font-black text-slate-500 uppercase tracking-widest">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Network Hub Config
+                            </li>
                         </ul>
                     </div>
 
                     <button
                         onClick={handleBackup}
-                        className="w-full py-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center gap-3"
+                        className="w-full py-6 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-[0.3em] text-[10px] transition-all shadow-2xl shadow-emerald-600/30 flex items-center justify-center gap-4 active:scale-95 relative z-10"
                     >
-                        <Download className="w-6 h-6" /> Unduh Cadangan (.sql)
+                        <Download className="w-6 h-6" /> Create Cold Backup (.sql)
                     </button>
                 </div>
 
                 {/* Restore Card */}
-                <div className="glass p-8 rounded-3xl border border-orange-500/20 bg-orange-500/5 hover:border-orange-500/40 transition-all">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-16 h-16 rounded-2xl bg-orange-500/20 flex items-center justify-center text-orange-400 border border-orange-500/30">
-                            <History className="w-8 h-8" />
+                <div className="glass p-10 rounded-[3rem] border-2 border-(--glass-border) bg-white/5 hover:border-orange-500/30 transition-all group shadow-2xl relative overflow-hidden">
+                    <div className="absolute -right-24 -top-24 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-orange-500/20 transition-all duration-500"></div>
+                    
+                    <div className="flex items-center gap-6 mb-10 relative z-10">
+                        <div className="w-20 h-20 rounded-3xl bg-orange-500/10 flex items-center justify-center text-orange-600 dark:text-orange-400 border-2 border-orange-500/20 shadow-inner group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                            <History className="w-10 h-10" />
                         </div>
                         <div>
-                            <h4 className="text-2xl font-black text-white uppercase tracking-tight">Restore Data</h4>
-                            <p className="text-slate-400 text-sm">Kembalikan data dari file cadangan sebelumnya.</p>
+                            <h4 className="text-3xl font-black text-primary uppercase tracking-tighter">Rollback</h4>
+                            <p className="text-muted text-sm font-medium">Restorasi data dari arsip eksternal.</p>
                         </div>
                     </div>
                     
-                    <div className="bg-slate-900/50 p-6 rounded-2xl border border-white/5 mb-8">
-                        <div className="flex items-start gap-3 text-orange-300/80 text-xs">
-                            <AlertTriangle className="w-5 h-5 shrink-0" />
-                            <p>Proses ini akan <b>MENGHAPUS</b> data yang ada saat ini secara permanen. Pastikan file backup Anda benar.</p>
+                    <div className="bg-amber-500/5 dark:bg-amber-500/10 p-8 rounded-4xl border-2 border-amber-500/20 mb-10 shadow-sm relative z-10">
+                        <div className="flex items-start gap-4">
+                            <AlertTriangle className="w-8 h-8 text-amber-500 shrink-0 mt-0.5" />
+                            <p className="text-[11px] leading-relaxed text-amber-700 dark:text-amber-400 font-black uppercase tracking-widest italic">
+                                Critical Warning: Seluruh data live akan ditimpa dan <span className="text-red-600">DIHAPUS</span> permanen. Pastikan integritas file backup terverifikasi.
+                            </p>
                         </div>
                     </div>
 
-                    <label className="w-full py-4 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-black uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-3 border border-white/10">
+                    <label className="w-full py-6 rounded-2xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 font-black uppercase tracking-[0.3em] text-[10px] transition-all cursor-pointer flex items-center justify-center gap-4 border-2 border-(--glass-border) active:scale-95 relative z-10 shadow-lg">
                         <Upload className="w-6 h-6" />
-                        Pilih File Backup (.sql)
+                        Deploy Backup Artifact
                         <input type="file" accept=".sql" onChange={handleRestore} className="hidden" />
                     </label>
                 </div>
 
                 {/* Export Card */}
-                <div className="glass p-8 rounded-3xl border border-blue-500/20 bg-blue-500/5 md:col-span-2">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                        <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-400 border border-blue-500/30">
-                                <FileSpreadsheet className="w-7 h-7" />
+                <div className="glass p-12 rounded-[3.5rem] border-2 border-(--glass-border) bg-white/5 hover:border-blue-500/30 transition-all md:col-span-2 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute -left-40 -bottom-40 w-80 h-80 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-blue-500/10 transition-all duration-700"></div>
+                    
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-10 relative z-10">
+                        <div className="flex items-center gap-8">
+                            <div className="w-20 h-20 rounded-3xl bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 border-2 border-blue-500/20 shadow-inner group-hover:scale-110 transition-all">
+                                <FileSpreadsheet className="w-10 h-10" />
                             </div>
                             <div>
-                                <h4 className="text-xl font-bold text-white">Ekspor Data Pelanggan</h4>
-                                <p className="text-slate-400 text-sm">Unduh daftar pelanggan lengkap untuk kebutuhan pelaporan atau Excel.</p>
+                                <h4 className="text-2xl font-black text-primary tracking-tight">Intelligence Export</h4>
+                                <p className="text-muted text-sm font-medium mt-1">Unduh master data pelanggan dalam format CSV / Excel.</p>
                             </div>
                         </div>
                         <button
                             onClick={handleExportExcel}
-                            className="px-8 py-4 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)] flex items-center gap-3"
+                            className="w-full md:w-auto px-12 py-5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-[0.2em] text-[10px] transition-all shadow-2xl shadow-blue-600/30 flex items-center justify-center gap-4 active:scale-95"
                         >
-                            <FileSpreadsheet className="w-5 h-5" /> Export ke CSV/Excel
+                            <FileSpreadsheet className="w-6 h-6" /> Export Master Ledger
                         </button>
                     </div>
                 </div>

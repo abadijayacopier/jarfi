@@ -80,162 +80,179 @@ export default function SystemMonitorPage() {
     );
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-700 pb-20">
+        <div className="animate-in fade-in duration-700 pb-20 space-y-10">
             {/* Top Bar / Header */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10">
+            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8 mb-12">
                 <div>
-                    <h2 className="text-3xl font-black text-white flex items-center gap-3">
-                        <Activity className="w-8 h-8 text-indigo-500" />
-                        Network Core Monitoring
+                    <h2 className="text-4xl font-black text-primary flex items-center gap-4">
+                        <Activity className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
+                        Infrastructure Monitoring
                     </h2>
-                    <p className="text-slate-400 font-medium mt-1">Real-time Advanced Performance Analytics (APM) for ISP Infrastructure</p>
+                    <p className="text-muted font-medium mt-2">Real-time Advanced Performance Analytics (APM) for ISP Core Infrastructure</p>
                 </div>
                 
-                <div className="flex flex-wrap gap-3 glass p-2 rounded-2xl border border-white/5 shadow-2xl">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-900/50 rounded-xl border border-white/5">
+                <div className="flex flex-wrap gap-4 glass p-3 rounded-4xl border border-(--glass-border) shadow-2xl items-center">
+                    <div className="flex items-center gap-3 px-5 py-3 bg-slate-100 dark:bg-slate-900/50 rounded-2xl border border-(--glass-border) shadow-inner">
                         <Server className="w-4 h-4 text-slate-500" />
-                        <select value={selectedRouter} onChange={e => setSelectedRouter(e.target.value)} className="bg-transparent text-white text-xs font-black uppercase tracking-tight focus:outline-none">
-                            {routers.map((r: any) => <option key={r.id} value={r.id} className="bg-slate-900">{r.name}</option>)}
+                        <select 
+                            value={selectedRouter} 
+                            onChange={e => setSelectedRouter(e.target.value)} 
+                            className="bg-transparent text-primary text-[10px] font-black uppercase tracking-widest focus:outline-none cursor-pointer"
+                        >
+                            {routers.map((r: any) => <option key={r.id} value={r.id} className="bg-white dark:bg-slate-900">{r.name}</option>)}
                         </select>
                     </div>
-                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-900/50 rounded-xl border border-white/5">
+                    <div className="flex items-center gap-3 px-5 py-3 bg-slate-100 dark:bg-slate-900/50 rounded-2xl border border-(--glass-border) shadow-inner">
                         <Wifi className="w-4 h-4 text-slate-500" />
-                        <select value={selectedInterface} onChange={e => setSelectedInterface(e.target.value)} className="bg-transparent text-white text-xs font-black uppercase tracking-tight focus:outline-none">
-                            {interfaces.length === 0 ? <option>Loading...</option> : interfaces.map(i => <option key={i} value={i} className="bg-slate-900">{i}</option>)}
+                        <select 
+                            value={selectedInterface} 
+                            onChange={e => setSelectedInterface(e.target.value)} 
+                            className="bg-transparent text-primary text-[10px] font-black uppercase tracking-widest focus:outline-none cursor-pointer"
+                        >
+                            {interfaces.length === 0 ? <option>Loading...</option> : interfaces.map(i => <option key={i} value={i} className="bg-white dark:bg-slate-900">{i}</option>)}
                         </select>
                     </div>
-                    <div className="px-4 py-2 bg-indigo-500/10 rounded-xl border border-indigo-500/20 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-                        <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Live: 2s</span>
+                    <div className="px-5 py-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 flex items-center gap-3 shadow-sm">
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse"></div>
+                        <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Streaming: 2s</span>
                     </div>
                 </div>
             </div>
 
             {/* Main Metric Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="glass p-6 rounded-3xl border border-white/10 relative overflow-hidden group">
-                    <div className="absolute -right-6 -top-6 w-20 h-20 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-all"></div>
-                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">Throughput RX (Down)</p>
-                    <div className="flex items-baseline gap-2">
-                        <h4 className="text-3xl font-black text-white">{formatMbps(currentStats.rx)}</h4>
-                        <span className="text-emerald-400 text-xs font-bold">Mbps</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div className="glass p-8 rounded-[2.5rem] border border-(--glass-border) relative overflow-hidden group hover:scale-[1.02] transition-all duration-500 shadow-xl">
+                    <div className="absolute -right-8 -top-8 w-24 h-24 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-500/10 transition-all duration-700"></div>
+                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-4">Throughput RX (Down)</p>
+                    <div className="flex items-baseline gap-3">
+                        <h4 className="text-4xl font-black text-primary tracking-tight">{formatMbps(currentStats.rx)}</h4>
+                        <span className="text-emerald-500 dark:text-emerald-400 text-xs font-black uppercase tracking-widest">Mbps</span>
                     </div>
-                    <div className="mt-4 flex items-center gap-2 text-[10px] text-slate-400 font-bold">
-                        <ArrowDown className="w-3 h-3 text-emerald-400 animate-bounce" /> Real-time Inbound
+                    <div className="mt-6 flex items-center gap-2 text-[10px] text-slate-500 font-black uppercase tracking-widest">
+                        <ArrowDown className="w-4 h-4 text-emerald-500 animate-bounce" /> Real-time Inbound
                     </div>
                 </div>
                 
-                <div className="glass p-6 rounded-3xl border border-white/10 relative overflow-hidden group">
-                    <div className="absolute -right-6 -top-6 w-20 h-20 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-all"></div>
-                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">Throughput TX (Up)</p>
-                    <div className="flex items-baseline gap-2">
-                        <h4 className="text-3xl font-black text-white">{formatMbps(currentStats.tx)}</h4>
-                        <span className="text-indigo-400 text-xs font-bold">Mbps</span>
+                <div className="glass p-8 rounded-[2.5rem] border border-(--glass-border) relative overflow-hidden group hover:scale-[1.02] transition-all duration-500 shadow-xl">
+                    <div className="absolute -right-8 -top-8 w-24 h-24 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/10 transition-all duration-700"></div>
+                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-4">Throughput TX (Up)</p>
+                    <div className="flex items-baseline gap-3">
+                        <h4 className="text-4xl font-black text-primary tracking-tight">{formatMbps(currentStats.tx)}</h4>
+                        <span className="text-indigo-600 dark:text-indigo-400 text-xs font-black uppercase tracking-widest">Mbps</span>
                     </div>
-                    <div className="mt-4 flex items-center gap-2 text-[10px] text-slate-400 font-bold">
-                        <ArrowUp className="w-3 h-3 text-indigo-400 animate-bounce" /> Real-time Outbound
-                    </div>
-                </div>
-
-                <div className="glass p-6 rounded-3xl border border-white/10 relative overflow-hidden group">
-                    <div className="absolute -right-6 -top-6 w-20 h-20 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/10 transition-all"></div>
-                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">Network Latency (8.8.8.8)</p>
-                    <div className="flex items-baseline gap-2">
-                        <h4 className="text-3xl font-black text-white">{currentStats.latency}</h4>
-                        <span className="text-amber-400 text-xs font-bold">ms</span>
-                    </div>
-                    <div className="mt-4 flex items-center gap-2 text-[10px] text-slate-400 font-bold">
-                        <RefreshCw className="w-3 h-3 text-amber-400 animate-spin-slow" /> ICMP Echo Request
+                    <div className="mt-6 flex items-center gap-2 text-[10px] text-slate-500 font-black uppercase tracking-widest">
+                        <ArrowUp className="w-4 h-4 text-indigo-600 dark:text-indigo-400 animate-bounce" /> Real-time Outbound
                     </div>
                 </div>
 
-                <div className="glass p-6 rounded-3xl border border-white/10 relative overflow-hidden group">
-                    <div className="absolute -right-6 -top-6 w-20 h-20 bg-purple-500/5 rounded-full blur-2xl group-hover:bg-purple-500/10 transition-all"></div>
-                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">Resource Allocation (CPU)</p>
-                    <div className="flex items-baseline gap-2">
-                        <h4 className="text-3xl font-black text-white">{currentStats.cpu}</h4>
-                        <span className="text-purple-400 text-xs font-bold">%</span>
+                <div className="glass p-8 rounded-[2.5rem] border border-(--glass-border) relative overflow-hidden group hover:scale-[1.02] transition-all duration-500 shadow-xl">
+                    <div className="absolute -right-8 -top-8 w-24 h-24 bg-amber-500/5 rounded-full blur-3xl group-hover:bg-amber-500/10 transition-all duration-700"></div>
+                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-4">Ping Latency (8.8.8.8)</p>
+                    <div className="flex items-baseline gap-3">
+                        <h4 className="text-4xl font-black text-primary tracking-tight">{currentStats.latency}</h4>
+                        <span className="text-amber-500 dark:text-amber-400 text-xs font-black uppercase tracking-widest">ms</span>
                     </div>
-                    <div className="mt-4 w-full bg-slate-900 rounded-full h-1 relative overflow-hidden">
-                        <div className="absolute h-full bg-purple-500 transition-all duration-1000" style={{ width: `${currentStats.cpu}%` }}></div>
+                    <div className="mt-6 flex items-center gap-2 text-[10px] text-slate-500 font-black uppercase tracking-widest">
+                        <RefreshCw className="w-4 h-4 text-amber-500 animate-spin-slow" /> ICMP Echo Dynamic
+                    </div>
+                </div>
+
+                <div className="glass p-8 rounded-[2.5rem] border border-(--glass-border) relative overflow-hidden group hover:scale-[1.02] transition-all duration-500 shadow-xl">
+                    <div className="absolute -right-8 -top-8 w-24 h-24 bg-purple-500/5 rounded-full blur-3xl group-hover:bg-purple-500/10 transition-all duration-700"></div>
+                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-4">CPU Thread Load</p>
+                    <div className="flex items-baseline gap-3">
+                        <h4 className="text-4xl font-black text-primary tracking-tight">{currentStats.cpu}</h4>
+                        <span className="text-purple-600 dark:text-purple-400 text-xs font-black uppercase tracking-widest">%</span>
+                    </div>
+                    <div className="mt-6 w-full bg-slate-100 dark:bg-slate-900 rounded-full h-1.5 relative overflow-hidden shadow-inner">
+                        <div 
+                            className="absolute h-full bg-linear-to-r from-purple-500 to-indigo-500 transition-all duration-1000 rounded-full" 
+                            style={{ width: `${currentStats.cpu}%` }}
+                        ></div>
                     </div>
                 </div>
             </div>
 
             {/* Large Bandwidth Chart */}
-            <div className="glass p-8 rounded-4xl border border-white/10 shadow-3xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-5">
-                    <Wifi className="w-64 h-64 text-indigo-500" />
+            <div className="glass p-10 lg:p-12 rounded-[3.5rem] border border-(--glass-border) shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-12 opacity-[0.03] dark:opacity-[0.05] pointer-events-none">
+                    <Wifi className="w-96 h-96 text-indigo-600 dark:text-indigo-400" />
                 </div>
-                <div className="flex justify-between items-center mb-8 relative z-10">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 relative z-10">
                     <div>
-                        <h3 className="text-xl font-black text-white uppercase tracking-tight">Main Bandwidth Analytics</h3>
-                        <p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-widest">Interface: {selectedInterface || 'Detecting...'}</p>
+                        <h3 className="text-2xl font-black text-primary tracking-tight">Advanced Bandwidth Analytics</h3>
+                        <p className="text-[10px] text-muted font-black mt-2 uppercase tracking-[0.2em]">Active Monitor: Interface {selectedInterface || 'Searching...'}</p>
                     </div>
-                    <div className="flex gap-4">
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Download (RX)</span>
+                    <div className="flex flex-wrap gap-6 bg-slate-100/50 dark:bg-slate-900/50 px-6 py-3 rounded-2xl border border-(--glass-border) shadow-inner">
+                        <div className="flex items-center gap-3">
+                            <div className="w-4 h-4 rounded-full bg-indigo-600 shadow-[0_0_10px_rgba(79,70,229,0.4)]"></div>
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Down (RX)</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-pink-500"></div>
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Upload (TX)</span>
+                        <div className="flex items-center gap-3">
+                            <div className="w-4 h-4 rounded-full bg-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.4)]"></div>
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Up (TX)</span>
                         </div>
                     </div>
                 </div>
-                <div className="h-[400px] relative z-10">
+                <div className="h-[450px] relative z-10 w-full">
                     <AdvancedMonitorChart data={bwHistory} type="bandwidth" />
                 </div>
             </div>
 
             {/* Bottom Grid Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="glass p-8 rounded-4xl border border-white/10 shadow-2xl">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
-                            <Zap className="w-4 h-4 text-amber-400" /> Latency Consistency
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                <div className="glass p-10 rounded-[3rem] border border-(--glass-border) shadow-2xl">
+                    <div className="flex justify-between items-center mb-10">
+                        <h3 className="text-sm font-black text-primary uppercase tracking-[0.2em] flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-amber-500/10">
+                                <Zap className="w-5 h-5 text-amber-500" />
+                            </div>
+                            Latency Jitter Analysis
                         </h3>
-                        <span className="text-[10px] font-black text-slate-500">ms / 2s interval</span>
+                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-full">ms / real-time</span>
                     </div>
-                    <div className="h-[250px]">
-                        <AdvancedMonitorChart data={latencyHistory} type="latency" title="Ping Jitter Analytics" />
+                    <div className="h-[300px]">
+                        <AdvancedMonitorChart data={latencyHistory} type="latency" title="ICMP Performance Data" />
                     </div>
                 </div>
 
-                <div className="glass p-8 rounded-4xl border border-white/10 shadow-2xl">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
-                            <BarChart3 className="w-4 h-4 text-purple-400" /> Router OS Health
+                <div className="glass p-10 rounded-[3rem] border border-(--glass-border) shadow-2xl">
+                    <div className="flex justify-between items-center mb-10">
+                        <h3 className="text-sm font-black text-primary uppercase tracking-[0.2em] flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-purple-500/10">
+                                <BarChart3 className="w-5 h-5 text-purple-500" />
+                            </div>
+                            Resource Health Check
                         </h3>
-                        <span className="text-[10px] font-black text-slate-500">CPU & RAM Percentage</span>
+                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-full">CPU & RAM Metrics</span>
                     </div>
-                    <div className="h-[250px]">
+                    <div className="h-[300px]">
                         <AdvancedMonitorChart 
                             data={resourceHistory.map(h => ({ ...h, value: h.cpu }))} 
                             type="resources" 
-                            title="CPU Thread Load Monitoring" 
+                            title="System Load Distribution" 
                         />
                     </div>
                 </div>
             </div>
 
             {/* System Info Footer */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-slate-900/50 border border-white/5 p-4 rounded-2xl">
-                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Board Name</p>
-                    <p className="text-xs font-black text-white truncate">{currentStats.board || '-'}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-slate-100 dark:bg-slate-900/40 border border-(--glass-border) p-6 rounded-4xl shadow-inner group hover:bg-white dark:hover:bg-slate-900/60 transition-all">
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 group-hover:text-indigo-500 transition-colors">Board Specification</p>
+                    <p className="text-sm font-black text-primary truncate tracking-tight">{currentStats.board || 'GENERIC MIKROTIK'}</p>
                 </div>
-                <div className="bg-slate-900/50 border border-white/5 p-4 rounded-2xl">
-                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">RouterOS Version</p>
-                    <p className="text-xs font-black text-white">v{currentStats.version}</p>
+                <div className="bg-slate-100 dark:bg-slate-900/40 border border-(--glass-border) p-6 rounded-4xl shadow-inner group hover:bg-white dark:hover:bg-slate-900/60 transition-all">
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 group-hover:text-indigo-500 transition-colors">Firmware Kernel</p>
+                    <p className="text-sm font-black text-primary tracking-tight">RouterOS v{currentStats.version || '6.xx+'}</p>
                 </div>
-                <div className="bg-slate-900/50 border border-white/5 p-4 rounded-2xl">
-                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Architecture</p>
-                    <p className="text-xs font-black text-white truncate uppercase">{currentStats.architecture}</p>
+                <div className="bg-slate-100 dark:bg-slate-900/40 border border-(--glass-border) p-6 rounded-4xl shadow-inner group hover:bg-white dark:hover:bg-slate-900/60 transition-all">
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 group-hover:text-indigo-500 transition-colors">Processor Architecture</p>
+                    <p className="text-sm font-black text-primary truncate uppercase tracking-tight">{currentStats.architecture || 'X86 / TILE'}</p>
                 </div>
-                <div className="bg-slate-900/50 border border-white/5 p-4 rounded-2xl">
-                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">System Uptime</p>
-                    <p className="text-xs font-black text-emerald-400">{currentStats.uptime}</p>
+                <div className="bg-slate-100 dark:bg-slate-900/40 border border-(--glass-border) p-6 rounded-4xl shadow-inner group hover:bg-white dark:hover:bg-slate-900/60 transition-all">
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 group-hover:text-indigo-500 transition-colors">Operational Uptime</p>
+                    <p className="text-sm font-black text-emerald-600 dark:text-emerald-400 tracking-tight">{currentStats.uptime || '00:00:00'}</p>
                 </div>
             </div>
         </div>

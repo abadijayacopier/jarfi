@@ -409,30 +409,30 @@ export default function CustomersPage() {
                             <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <div className="space-y-1.5">
                                     <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Nama Lengkap</label>
-                                    <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner placeholder:text-slate-700" placeholder="Contoh: Budi Santoso" />
+                                    <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full clean-input" placeholder="Contoh: Budi Santoso" />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Nomor WhatsApp</label>
-                                    <input type="text" required value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner placeholder:text-slate-700" placeholder="08123456789" />
+                                    <input type="text" required value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full clean-input" placeholder="08123456789" />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Pilih Router Mikrotik {isEditing && <span className="text-orange-400 text-[10px] ml-2">(Locked)</span>}</label>
-                                    <select required value={formData.router_id} disabled={isEditing} onChange={(e) => setFormData({ ...formData, router_id: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner disabled:opacity-50">
+                                    <select required value={formData.router_id} disabled={isEditing} onChange={(e) => setFormData({ ...formData, router_id: e.target.value })} className="w-full clean-input disabled:opacity-50 appearance-none">
                                         <option value="">-- Pilih Router --</option>
                                         {routers.map((r: any) => <option key={r.id} value={r.id}>{r.name} ({r.ip_address})</option>)}
                                     </select>
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">PPPoE Username {isEditing && <span className="text-orange-400 text-[10px] ml-2">(Locked)</span>}</label>
-                                    <input type="text" required value={formData.pppoe_username} disabled={isEditing} onChange={(e) => setFormData({ ...formData, pppoe_username: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner disabled:opacity-50 font-mono font-bold" placeholder="username_ppp" />
+                                    <input type="text" required value={formData.pppoe_username} disabled={isEditing} onChange={(e) => setFormData({ ...formData, pppoe_username: e.target.value })} className="w-full clean-input disabled:opacity-50 font-mono font-bold" placeholder="username_ppp" />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">{isEditing ? 'Ubah Sandi PPPoE' : 'PPPoE Password'}</label>
-                                    <input type="text" required={!isEditing} value={formData.pppoe_password} onChange={(e) => setFormData({ ...formData, pppoe_password: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner font-mono" placeholder={isEditing ? 'Biarkan kosong jika tetap' : 'password123'} />
+                                    <input type="text" required={!isEditing} value={formData.pppoe_password} onChange={(e) => setFormData({ ...formData, pppoe_password: e.target.value })} className="w-full clean-input font-mono" placeholder={isEditing ? 'Biarkan kosong jika tetap' : 'password123'} />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Jatuh Tempo (Tanggal)</label>
-                                    <select required value={formData.due_date} onChange={(e) => setFormData({ ...formData, due_date: parseInt(e.target.value) })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner">
+                                    <select required value={formData.due_date} onChange={(e) => setFormData({ ...formData, due_date: parseInt(e.target.value) })} className="w-full clean-input appearance-none">
                                         {[...Array(31)].map((_, i) => (
                                             <option key={i + 1} value={i + 1}>Tanggal {i + 1}</option>
                                         ))}
@@ -440,13 +440,13 @@ export default function CustomersPage() {
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Titik ODP Jaringan</label>
-                                    <select value={formData.odp_id} onChange={(e) => setFormData({ ...formData, odp_id: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner">
+                                    <select value={formData.odp_id} onChange={(e) => setFormData({ ...formData, odp_id: e.target.value })} className="w-full clean-input appearance-none">
                                         <option value="">-- Tanpa ODP --</option>
                                         {odps.map((o: any) => <option key={o.id} value={o.id}>{o.name} ({o.used_ports}/{o.capacity})</option>)}
                                     </select>
                                 </div>
                                 <div className="lg:col-span-3 space-y-2">
-                                    <label className="text-xs font-black uppercase tracking-widest text-indigo-400 ml-1 flex items-center gap-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-indigo-500 dark:text-indigo-400 ml-1 flex items-center gap-2">
                                         <MapPin className="w-4 h-4" /> Pilih Titik Lokasi di Peta
                                     </label>
                                     <LocationPicker 
@@ -457,11 +457,11 @@ export default function CustomersPage() {
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Latitude</label>
-                                    <input type="text" value={formData.latitude} onChange={(e) => setFormData({ ...formData, latitude: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner" placeholder="-6.2088" />
+                                    <input type="text" value={formData.latitude} onChange={(e) => setFormData({ ...formData, latitude: e.target.value })} className="w-full clean-input" placeholder="-6.2088" />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Longitude</label>
-                                    <input type="text" value={formData.longitude} onChange={(e) => setFormData({ ...formData, longitude: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner" placeholder="106.8456" />
+                                    <input type="text" value={formData.longitude} onChange={(e) => setFormData({ ...formData, longitude: e.target.value })} className="w-full clean-input" placeholder="106.8456" />
                                 </div>
                                  <div className="space-y-1.5">
                                     <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Profil Mikrotik (Live)</label>
@@ -482,12 +482,12 @@ export default function CustomersPage() {
                                                     icon: 'info', 
                                                     title: 'Paket Tidak Terhubung', 
                                                     text: `Profil "${selectedProfileName}" tidak ditemukan di database penagihan. Silakan pilih paket manual di kolom sebelah.`,
-                                                    background: '#1e293b', 
-                                                    color: '#fff' 
+                                                    background: 'var(--card-bg)', 
+                                                    color: 'var(--foreground)' 
                                                 });
                                             }
                                         }} 
-                                        className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-indigo-400 focus:outline-none focus:border-indigo-500 transition-all shadow-inner font-bold appearance-none cursor-pointer"
+                                        className="w-full clean-input text-indigo-600 dark:text-indigo-400 font-bold appearance-none cursor-pointer"
                                     >
                                         <option value="">-- Deteksi Profile Router --</option>
                                         {pppProfiles.map((p: any) => (
@@ -497,15 +497,15 @@ export default function CustomersPage() {
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Sistem Penagihan</label>
-                                    <select required value={formData.package_id} onChange={(e) => setFormData({ ...formData, package_id: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner font-bold">
+                                    <select required value={formData.package_id} onChange={(e) => setFormData({ ...formData, package_id: e.target.value })} className="w-full clean-input font-bold appearance-none">
                                         <option value="">-- Pilih Paket --</option>
                                         {packages.map((p: any) => <option key={p.id} value={p.id}>{p.name} - Rp {parseInt(p.price).toLocaleString()}</option>)}
                                     </select>
                                 </div>
 
-                                <div className="lg:col-span-3 pt-6 flex justify-end gap-4 border-t border-white/5 mt-4">
-                                    <button type="button" onClick={closeForm} className="px-8 py-3.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold transition-all">Batal</button>
-                                    <button type="submit" className="px-10 py-3.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:shadow-[0_0_30px_rgba(99,102,241,0.6)]">
+                                <div className="lg:col-span-3 pt-6 flex justify-end gap-4 border-t border-(--glass-border) mt-4">
+                                    <button type="button" onClick={closeForm} className="px-8 py-3.5 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-bold transition-all">Batal</button>
+                                    <button type="submit" className="px-10 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-widest transition-all shadow-lg hover:shadow-indigo-500/30">
                                         {isEditing ? 'Simpan Perubahan' : 'Daftarkan Pelanggan'}
                                     </button>
                                 </div>
@@ -518,9 +518,9 @@ export default function CustomersPage() {
             {/* Content View: Table (Desktop) & Cards (Mobile) */}
             <div className="space-y-4">
                 {/* Desktop Table View */}
-                <div className="hidden md:block glass rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
-                    <div className="p-6 border-b border-white/10 bg-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <h4 className="text-xl font-bold text-white">Database Pelanggan</h4>
+                <div className="hidden md:block glass rounded-3xl overflow-hidden shadow-xl">
+                    <div className="p-6 border-b border-(--glass-border) flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <h4 className="text-xl font-bold text-primary">Database Pelanggan</h4>
                         <div className="relative w-full md:w-96">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                             <input 
@@ -528,7 +528,7 @@ export default function CustomersPage() {
                                 placeholder="Cari nama, username, atau nomor WA..." 
                                 value={searchTerm}
                                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                                className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner"
+                                className="w-full bg-slate-100 dark:bg-slate-900/50 border border-(--glass-border) rounded-xl py-2.5 pl-11 pr-4 text-sm text-primary focus:outline-none focus:border-indigo-500 transition-all"
                             />
                         </div>
                     </div>
@@ -566,7 +566,7 @@ export default function CustomersPage() {
                                                             <Users className="w-5 h-5" />
                                                         </div>
                                                         <div>
-                                                            <p className="font-bold text-white text-base leading-tight">{c.name}</p>
+                                                            <p className="font-bold text-primary text-base leading-tight">{c.name}</p>
                                                             <p className="text-[11px] text-slate-500 font-medium">ID: #{c.id} | {c.phone || '-'}</p>
                                                         </div>
                                                     </div>

@@ -200,61 +200,101 @@ export default function RoutersPage() {
     };
 
     return (
-        <div className="animate-in fade-in duration-500">
-            <div className="flex justify-between items-center mb-8">
-                <h3 className="text-3xl font-bold text-white">Mikrotik Routers</h3>
+        <div className="animate-in fade-in duration-500 pb-20 space-y-12">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12">
+                <div>
+                    <h3 className="text-4xl font-black text-primary flex items-center gap-4">
+                        <Wifi className="w-10 h-10 text-teal-600 dark:text-teal-400" />
+                        Network Gateways
+                    </h3>
+                    <p className="text-muted font-medium mt-2 text-sm">Kelola koneksi API Mikrotik untuk sinkronisasi data pelanggan secara realtime.</p>
+                </div>
                 <button
                     onClick={() => setShowForm(true)}
-                    className="bg-teal-500 hover:bg-teal-400 text-slate-900 font-semibold py-2.5 px-6 rounded-xl transition-all shadow-[0_0_15px_rgba(20,184,166,0.3)] hover:shadow-[0_0_25px_rgba(20,184,166,0.5)] flex items-center gap-2"
+                    className="bg-teal-600 hover:bg-teal-500 text-white font-black py-4.5 px-10 rounded-2xl transition-all shadow-2xl shadow-teal-600/30 hover:scale-105 active:scale-95 flex items-center gap-3 uppercase tracking-[0.2em] text-[10px]"
                 >
-                    <PlusCircle className="w-5 h-5" />
-                    Add New Router
+                    <PlusCircle className="w-5 h-5" /> Tambah Router Baru
                 </button>
             </div>
 
             {/* Content View: Table (Desktop) & Cards (Mobile) */}
-            <div className="space-y-4">
+            <div className="space-y-8">
                 {/* Desktop Table View */}
-                <div className="hidden md:block glass rounded-2xl border border-white/10 overflow-hidden shadow-xl">
-                    <div className="overflow-x-auto min-h-[300px]">
+                <div className="hidden md:block glass rounded-[3rem] overflow-hidden shadow-2xl border border-(--glass-border)">
+                    <div className="p-10 border-b border-(--glass-border) flex flex-col md:flex-row justify-between items-start md:items-center gap-8 bg-white/5">
+                        <h4 className="text-2xl font-black text-primary">Connected Mikrotik Nodes</h4>
+                        <div className="bg-slate-100 dark:bg-white/5 px-6 py-3 rounded-2xl border border-(--glass-border)">
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                <CheckCircle className="w-4 h-4 text-teal-500" /> System Online & Synced
+                            </p>
+                        </div>
+                    </div>
+                    <div className="overflow-x-auto min-h-[350px]">
                         <table className="w-full text-left border-collapse whitespace-nowrap">
                             <thead>
-                                <tr className="border-b border-white/10 bg-white/5 uppercase text-xs tracking-wider font-semibold text-slate-300">
-                                    <th className="p-4">Name</th>
-                                    <th className="p-4">IP Address</th>
-                                    <th className="p-4">Username</th>
-                                    <th className="p-4">Status</th>
-                                    <th className="p-4 text-center">Actions</th>
+                                <tr className="bg-slate-50 dark:bg-white/2 uppercase text-[10px] tracking-[0.3em] font-black text-slate-500 border-b border-(--glass-border)">
+                                    <th className="p-8">Router Profile</th>
+                                    <th className="p-8">Connection Info</th>
+                                    <th className="p-8">API Credentials</th>
+                                    <th className="p-8">Connectivity</th>
+                                    <th className="p-8 text-center">Maintenance</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5 text-sm">
+                            <tbody className="divide-y divide-(--glass-border) text-sm">
                                 {loading ? (
-                                    <tr><td colSpan={5} className="p-8 text-center text-slate-400">Loading routers...</td></tr>
+                                    <tr><td colSpan={5} className="p-32 text-center text-slate-500">
+                                        <div className="flex flex-col items-center gap-6 animate-pulse">
+                                            <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-teal-600"></div>
+                                            <span className="font-black uppercase tracking-[0.3em] text-[10px]">Scanning hardware ports...</span>
+                                        </div>
+                                    </td></tr>
                                 ) : routers.length === 0 ? (
-                                    <tr><td colSpan={5} className="p-8 text-center text-slate-400">No routers added yet.</td></tr>
+                                    <tr><td colSpan={5} className="p-32 text-center text-slate-500 font-black uppercase tracking-widest opacity-60">Belum ada router yang terdaftar di database.</td></tr>
                                 ) : (
                                     routers
                                         .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                                         .map((router: any) => (
-                                            <tr key={router.id} className="hover:bg-white/5 transition-colors">
-                                                <td className="p-4 font-medium text-white">{router.name}</td>
-                                                <td className="p-4 text-slate-300 font-mono text-sm">{router.ip_address}:{router.api_port}</td>
-                                                <td className="p-4 text-slate-300">{router.username}</td>
-                                                <td className="p-4">
-                                                    <span className={`px-2.5 py-1 rounded-full text-[10px] tracking-widest uppercase font-bold ${router.status === 'ONLINE' ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+                                            <tr key={router.id} className="hover:bg-slate-50 dark:hover:bg-white/2 transition-all group">
+                                                <td className="p-8">
+                                                    <div className="font-black text-primary text-xl tracking-tight leading-tight group-hover:text-teal-600 transition-colors">{router.name}</div>
+                                                    <div className="text-[10px] font-black text-muted mt-2 uppercase tracking-[0.2em] bg-slate-100 dark:bg-white/5 inline-block px-3 py-1 rounded-lg">Hardware Node</div>
+                                                </td>
+                                                <td className="p-8">
+                                                    <div className="font-mono font-black">{router.ip_address}</div>
+                                                    <div className="text-[10px] font-black text-slate-500 mt-1 uppercase tracking-widest">API Port: {router.api_port}</div>
+                                                </td>
+                                                <td className="p-8">
+                                                    <div className="text-primary font-black text-sm uppercase tracking-widest">{router.username}</div>
+                                                    <div className="text-[10px] font-black text-muted mt-1 uppercase tracking-widest opacity-60">Authenticated Session</div>
+                                                </td>
+                                                <td className="p-8">
+                                                    <span className={`px-5 py-2.5 rounded-[1.25rem] text-[10px] font-black tracking-[0.25em] uppercase border shadow-sm flex items-center w-fit gap-2 ${router.status === 'ONLINE' ? 'bg-teal-500/10 text-teal-600 border-teal-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}>
+                                                        <div className={`w-2 h-2 rounded-full animate-pulse ${router.status === 'ONLINE' ? 'bg-teal-500' : 'bg-red-500'}`}></div>
                                                         {router.status}
                                                     </span>
                                                 </td>
-                                                <td className="p-4 text-right">
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        <button onClick={() => testConnectionExisting(router)} title="Test Ping API" className="p-2.5 rounded-lg bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 transition-all border border-teal-500/30 hover:scale-110 shadow-sm">
-                                                            <Wifi className="w-4 h-4" />
+                                                <td className="p-8">
+                                                    <div className="flex items-center justify-center gap-4">
+                                                        <button 
+                                                            onClick={() => testConnectionExisting(router)} 
+                                                            title="Run Connection Diagnostic" 
+                                                            className="p-4 rounded-2xl bg-teal-500/10 text-teal-600 dark:text-teal-400 hover:bg-teal-600 hover:text-white border-2 border-teal-500/10 hover:scale-110 active:scale-90 transition-all shadow-md"
+                                                        >
+                                                            <Wifi className="w-5 h-5" />
                                                         </button>
-                                                        <button onClick={() => openEditModal(router)} title="Edit Router" className="p-2.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all border border-blue-500/30 hover:scale-110 shadow-sm">
-                                                            <Edit className="w-4 h-4" />
+                                                        <button 
+                                                            onClick={() => openEditModal(router)} 
+                                                            title="Edit Configurations" 
+                                                            className="p-4 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white border-2 border-blue-500/10 hover:scale-110 active:scale-90 transition-all shadow-md"
+                                                        >
+                                                            <Edit className="w-5 h-5" />
                                                         </button>
-                                                        <button onClick={() => handleDelete(router.id)} title="Delete Router" className="p-2.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all border border-red-500/30 hover:scale-110 shadow-sm">
-                                                            <Trash2 className="w-4 h-4" />
+                                                        <button 
+                                                            onClick={() => handleDelete(router.id)} 
+                                                            title="Delete Gateway Node" 
+                                                            className="p-4 rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white border-2 border-red-500/10 hover:scale-110 active:scale-90 transition-all shadow-md"
+                                                        >
+                                                            <Trash2 className="w-5 h-5" />
                                                         </button>
                                                     </div>
                                                 </td>
@@ -267,42 +307,45 @@ export default function RoutersPage() {
                 </div>
 
                 {/* Mobile Card View */}
-                <div className="md:hidden space-y-4">
+                <div className="md:hidden space-y-6">
                     {loading ? (
-                        <div className="p-10 text-center text-slate-500 animate-pulse">Memuat...</div>
+                        <div className="p-24 text-center text-slate-500 animate-pulse uppercase text-[10px] font-black tracking-[0.3em]">Synching Nodes...</div>
                     ) : routers.length === 0 ? (
-                        <div className="p-10 text-center text-slate-500">Kosong</div>
+                        <div className="p-24 text-center text-slate-500 font-black uppercase text-[10px] tracking-widest opacity-60">Kosong</div>
                     ) : (
                         routers
                             .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                             .map((router: any) => (
-                                <div key={router.id} className="glass p-5 rounded-3xl border border-white/10 space-y-4 shadow-xl">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal-400 border border-teal-500/20">
-                                                <Wifi className="w-5 h-5" />
+                                <div key={router.id} className="glass p-8 rounded-[2.5rem] space-y-8 shadow-2xl border border-(--glass-border) relative overflow-hidden group">
+                                    <div className="flex justify-between items-start relative z-10">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-14 h-14 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400 border-2 border-teal-500/20 shadow-inner">
+                                                <Wifi className="w-7 h-7" />
                                             </div>
-                                            <h4 className="font-black text-white text-lg">{router.name}</h4>
+                                            <div>
+                                                <h4 className="font-black text-primary text-2xl tracking-tight leading-tight">{router.name}</h4>
+                                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mt-1">Gateway Node</p>
+                                            </div>
                                         </div>
-                                        <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-tighter border ${router.status === 'ONLINE' ? 'bg-teal-500/10 text-teal-400 border-teal-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'}`}>
+                                        <span className={`px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-[0.25em] border shadow-sm ${router.status === 'ONLINE' ? 'bg-teal-500/10 text-teal-600 border-teal-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}>
                                             {router.status}
                                         </span>
                                     </div>
-                                    <div className="bg-slate-900/50 p-3 rounded-2xl border border-white/5 space-y-2">
-                                        <div className="flex justify-between text-[10px]">
-                                            <span className="text-slate-500 uppercase font-black">Host</span>
-                                            <span className="text-white font-mono">{router.ip_address}</span>
+                                    <div className="bg-slate-100 dark:bg-slate-900/50 p-6 rounded-4xl border-2 border-(--glass-border) space-y-5 shadow-inner relative z-10">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-[10px] text-slate-500 uppercase font-black tracking-[0.2em]">Remote Host</span>
+                                            <span className="text-primary font-mono font-black text-sm">{router.ip_address}</span>
                                         </div>
-                                        <div className="flex justify-between text-[10px]">
-                                            <span className="text-slate-500 uppercase font-black">User</span>
-                                            <span className="text-white font-bold">{router.username}</span>
+                                        <div className="flex justify-between items-center pt-4 border-t border-(--glass-border)">
+                                            <span className="text-[10px] text-slate-500 uppercase font-black tracking-[0.2em]">Authorized User</span>
+                                            <span className="text-primary font-black text-sm uppercase tracking-widest">{router.username}</span>
                                         </div>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => testConnectionExisting(router)} className="flex-1 py-2.5 rounded-xl bg-teal-500/10 text-teal-400 border border-teal-500/20 text-[10px] font-black uppercase">Test</button>
-                                        <button onClick={() => openEditModal(router)} className="flex-1 py-2.5 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-black uppercase">Edit</button>
-                                        <button onClick={() => handleDelete(router.id)} className="flex-1 py-2.5 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 text-[10px] font-black uppercase">Hapus</button>
+                                    <div className="flex flex-col sm:flex-row gap-4 relative z-10">
+                                        <button onClick={() => testConnectionExisting(router)} className="flex-1 py-4.5 rounded-2xl bg-teal-500/10 text-teal-600 border-2 border-teal-500/10 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-all shadow-lg hover:bg-teal-600 hover:text-white">Diagnostic</button>
+                                        <button onClick={() => openEditModal(router)} className="flex-1 py-4.5 rounded-2xl bg-indigo-500/10 text-indigo-600 border-2 border-indigo-500/10 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-all shadow-lg hover:bg-indigo-600 hover:text-white">Edit Configuration</button>
                                     </div>
+                                    <button onClick={() => handleDelete(router.id)} className="w-full py-4 rounded-2xl bg-red-500/5 text-red-600 border-2 border-red-500/10 text-[9px] font-black uppercase tracking-[0.25em] hover:bg-red-600 hover:text-white transition-all relative z-10">Unregister Node</button>
                                 </div>
                             ))
                     )}
@@ -310,24 +353,24 @@ export default function RoutersPage() {
 
                 {/* Pagination Controls */}
                 {!loading && routers.length > itemsPerPage && (
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-8 px-2">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
-                            Total <span className="text-white">{routers.length}</span> Router
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-8 pt-12 px-4">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">
+                            Displaying <span className="text-primary font-black">{routers.length}</span> Gateway Hubs
                         </p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-4">
                             <button 
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="px-5 py-2.5 rounded-xl glass border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white disabled:opacity-30 transition-all shadow-sm"
+                                className="px-8 py-4 rounded-2xl glass border-2 border-(--glass-border) text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary disabled:opacity-30 transition-all shadow-xl shadow-black/5 active:scale-95"
                             >
-                                Prev
+                                Previous
                             </button>
                             <button 
                                 onClick={() => setCurrentPage(p => p + 1)}
                                 disabled={currentPage >= Math.ceil(routers.length / itemsPerPage)}
-                                className="px-5 py-2.5 rounded-xl glass border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white disabled:opacity-30 transition-all shadow-sm"
+                                className="px-8 py-4 rounded-2xl glass border-2 border-(--glass-border) text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary disabled:opacity-30 transition-all shadow-xl shadow-black/5 active:scale-95"
                             >
-                                Next
+                                Next Nodes
                             </button>
                         </div>
                     </div>
@@ -336,70 +379,80 @@ export default function RoutersPage() {
 
             {/* Pop Up Modal Form */}
             {showForm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-slate-800 w-full max-w-2xl p-6 rounded-3xl border border-white/10 shadow-2xl animate-in zoom-in-95 duration-200">
-                        <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
-                            <h4 className="text-xl font-bold text-white flex items-center gap-2">
-                                {isEditing ? <Edit className="text-teal-400" /> : <Wifi className="text-teal-400" />}
-                                {isEditing ? 'Ubah Konfigurasi Router' : 'Tambah Router Mikrotik'}
-                            </h4>
-                            <button onClick={closeModal} className="text-slate-400 hover:text-white transition-colors bg-slate-700/50 hover:bg-slate-700 p-2 rounded-full">
-                                <X className="w-5 h-5" />
+                <div className="fixed inset-0 z-60 flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-500">
+                    <div className="glass w-full max-w-3xl p-10 lg:p-14 rounded-[3.5rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] border border-(--glass-border) animate-in zoom-in-95 duration-500 relative overflow-hidden">
+                        <div className="absolute -top-40 -right-40 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        
+                        <div className="flex justify-between items-center mb-12 border-b border-(--glass-border) pb-10 relative z-10">
+                            <div className="flex items-center gap-6">
+                                <div className="w-16 h-16 rounded-3xl bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400 border-2 border-teal-500/20 shadow-inner">
+                                    {isEditing ? <Edit className="w-8 h-8" /> : <Wifi className="w-8 h-8" />}
+                                </div>
+                                <div>
+                                    <h4 className="text-3xl font-black text-primary tracking-tight">
+                                        {isEditing ? 'Update Gateway' : 'Register New Hub'}
+                                    </h4>
+                                    <p className="text-[10px] text-muted font-black tracking-[0.3em] uppercase mt-1">Mikrotik API Configuration Suite</p>
+                                </div>
+                            </div>
+                            <button onClick={closeModal} className="text-slate-400 hover:text-primary transition-all bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800 p-3.5 rounded-2xl active:scale-90 shadow-sm">
+                                <X className="w-7 h-7" />
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
                             <div className="col-span-2">
-                                <label className="block text-sm text-slate-400 mb-1.5 font-medium">Nama Router</label>
-                                <input type="text" name="name" required value={formData.name} onChange={handleFormChange} className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-teal-400 transition-all shadow-inner" placeholder="Contoh: Mikrotik Pusat" />
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] mb-4 ml-1">Friendly Gateway Name</label>
+                                <input type="text" name="name" required value={formData.name} onChange={handleFormChange} className="w-full clean-input font-black text-xl py-5 px-8" placeholder="e.g. Core Mikrotik HQ" />
                             </div>
                             <div>
-                                <label className="block text-sm text-slate-400 mb-1.5 font-medium">IP Address / DNS Host</label>
-                                <input type="text" name="ip_address" required value={formData.ip_address} onChange={handleFormChange} className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-teal-400 transition-all shadow-inner font-mono" placeholder="192.168.88.1" />
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] mb-4 ml-1">Remote Host Address (IP)</label>
+                                <input type="text" name="ip_address" required value={formData.ip_address} onChange={handleFormChange} className="w-full clean-input font-mono font-black text-lg py-5 px-8" placeholder="10.10.20.1" />
                             </div>
                             <div>
-                                <label className="block text-sm text-slate-400 mb-1.5 font-medium">API Port</label>
-                                <input type="number" name="api_port" required value={formData.api_port} onChange={handleFormChange} className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-teal-400 transition-all shadow-inner font-mono" placeholder="8728" />
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] mb-4 ml-1">API Port Protocol</label>
+                                <input type="number" name="api_port" required value={formData.api_port} onChange={handleFormChange} className="w-full clean-input font-mono font-black text-lg py-5 px-8" placeholder="8728" />
                             </div>
                             <div>
-                                <label className="block text-sm text-slate-400 mb-1.5 font-medium">Winbox Username</label>
-                                <input type="text" name="username" required value={formData.username} onChange={handleFormChange} className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-teal-400 transition-all shadow-inner font-mono" placeholder="admin" />
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] mb-4 ml-1">Security Principal (User)</label>
+                                <input type="text" name="username" required value={formData.username} onChange={handleFormChange} className="w-full clean-input font-mono font-black text-lg py-5 px-8" placeholder="admin_api" />
                             </div>
                             <div>
-                                <label className="block text-sm text-slate-400 mb-1.5 font-medium">{isEditing ? 'Ubah Password Baru (Kosongkan bila sama)' : 'Winbox Password'}</label>
-                                <input type="password" name="password" value={formData.password} onChange={handleFormChange} className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-teal-400 transition-all shadow-inner font-mono" placeholder={isEditing ? '********' : 'Kosongkan jika tidak ada password'} />
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] mb-4 ml-1">{isEditing ? 'Change Access Key' : 'Encryption Key (Pass)'}</label>
+                                <input type="password" name="password" value={formData.password} onChange={handleFormChange} className="w-full clean-input font-mono font-black text-lg py-5 px-8" placeholder={isEditing ? 'Leave blank to keep current' : 'Enter password...'} />
                             </div>
                         </div>
 
-                        <div className="mt-8 flex justify-between items-center bg-slate-900/50 p-4 rounded-2xl border border-white/5">
+                        <div className="mt-14 flex flex-col sm:flex-row justify-between items-center bg-slate-100 dark:bg-slate-900/50 p-8 rounded-[2.5rem] border-2 border-(--glass-border) gap-8 relative z-10 shadow-inner">
                             <button
                                 type="button"
                                 onClick={handleTestBeforeSave}
-                                className="px-5 py-2.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all font-semibold flex items-center gap-2 disabled:opacity-50"
+                                className={`w-full sm:w-auto px-10 py-5 rounded-2xl transition-all font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-4 active:scale-95 shadow-xl ${testSuccess ? 'bg-teal-500/10 text-teal-600 border-2 border-teal-500/30 shadow-teal-500/5' : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-2 border-indigo-500/20 shadow-indigo-500/5 hover:bg-indigo-500 hover:text-white'}`}
                                 disabled={!formData.ip_address || !formData.username}
                             >
                                 {testSuccess ? <CheckCircle className="w-5 h-5" /> : <Wifi className="w-5 h-5" />}
-                                {testSuccess ? 'Koneksi Tervalidasi' : 'Test Koneksi'}
+                                {testSuccess ? 'Identity Verified' : 'Verify Connection'}
                             </button>
 
-                            <div className="flex gap-3">
-                                <button type="button" onClick={closeModal} className="px-5 py-2.5 rounded-xl hover:bg-white/10 transition-colors text-slate-300 font-medium">Batal</button>
+                            <div className="flex gap-4 w-full sm:w-auto">
+                                <button type="button" onClick={closeModal} className="flex-1 sm:flex-none px-10 py-5 rounded-2xl hover:bg-slate-200 dark:hover:bg-white/10 transition-colors text-slate-500 dark:text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Cancel</button>
                                 <button
                                     type="button"
                                     onClick={handleSave}
                                     disabled={!isEditing && !testSuccess}
-                                    className={`px-8 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 ${(testSuccess || isEditing) ? 'bg-teal-500 hover:bg-teal-400 text-slate-900 shadow-[0_0_15px_rgba(20,184,166,0.3)]' : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'}`}
+                                    className={`flex-1 sm:flex-none px-12 py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] transition-all flex items-center justify-center gap-3 shadow-2xl ${(testSuccess || isEditing) ? 'bg-teal-600 hover:bg-teal-500 text-white shadow-teal-600/30 active:scale-95' : 'bg-slate-300 dark:bg-slate-800 text-slate-500 cursor-not-allowed'}`}
                                 >
                                     <Save className="w-5 h-5" />
-                                    {isEditing ? 'Update Router' : 'Simpan Router'}
+                                    {isEditing ? 'Commit Changes' : 'Register Node'}
                                 </button>
                             </div>
                         </div>
 
                         {!testSuccess && !isEditing && (
-                            <p className="text-center text-xs text-slate-500 mt-4 italic">
-                                * Pendaftaran router baru mewajibkan Anda melakukan klik 'Test Koneksi' dan berhasil.
-                            </p>
+                            <div className="text-center text-[10px] text-slate-500 mt-8 font-black uppercase tracking-[0.3em] opacity-70 flex items-center justify-center gap-2">
+                                <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
+                                Mandatory: Perform handshake diagnostic before registration
+                            </div>
                         )}
                     </div>
                 </div>

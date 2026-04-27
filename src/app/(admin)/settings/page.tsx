@@ -119,7 +119,7 @@ export default function SettingsPage() {
                     value={settings[field] || ''}
                     onChange={(e) => updateField(field, e.target.value)}
                     placeholder={placeholder}
-                    className={`w-full bg-slate-900/40 border border-white/10 text-white rounded-2xl ${prefix ? 'pl-14' : 'px-5'} py-4 focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 shadow-inner transition-all font-bold placeholder:text-slate-700`}
+                    className={`w-full clean-input ${prefix ? 'pl-14' : ''} py-4`}
                 />
             </div>
         </div>
@@ -128,23 +128,23 @@ export default function SettingsPage() {
     const Toggle = ({ label, desc, field, color = 'indigo' }: any) => {
         const isOn = settings[field] === '1';
         const colorMap: any = {
-            indigo: { bg: 'bg-indigo-600', icon: 'bg-indigo-500/20 text-indigo-400', glow: 'shadow-[0_0_10px_rgba(99,102,241,0.5)]' },
-            teal: { bg: 'bg-teal-500', icon: 'bg-teal-500/20 text-teal-400', glow: 'shadow-[0_0_10px_rgba(20,184,166,0.5)]' },
-            blue: { bg: 'bg-blue-500', icon: 'bg-blue-500/20 text-blue-400', glow: 'shadow-[0_0_10px_rgba(59,130,246,0.5)]' },
+            indigo: { bg: 'bg-indigo-600', icon: 'bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400', glow: 'shadow-lg shadow-indigo-500/20' },
+            teal: { bg: 'bg-teal-500', icon: 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400', glow: 'shadow-lg shadow-teal-500/20' },
+            blue: { bg: 'bg-blue-500', icon: 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400', glow: 'shadow-lg shadow-blue-500/20' },
         };
         const c = colorMap[color] || colorMap.indigo;
         return (
-            <div onClick={() => toggleSetting(field)} className="flex items-center justify-between p-5 bg-slate-950/40 rounded-2xl border border-white/5 cursor-pointer hover:bg-slate-900/60 transition-all active:scale-[0.98]">
+            <div onClick={() => toggleSetting(field)} className="flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-(--glass-border) cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900/60 transition-all active:scale-[0.98]">
                 <div className="flex gap-4 items-center">
-                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-500 ${isOn ? c.icon : 'bg-slate-800 text-slate-600'}`}>
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-500 ${isOn ? c.icon : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600'}`}>
                         <CheckCircle2 className="w-5 h-5" />
                     </div>
                     <div>
-                        <p className="font-black text-white text-sm">{label}</p>
-                        <p className="text-[10px] text-slate-500 mt-0.5 font-bold">{desc}</p>
+                        <p className="font-black text-primary text-sm">{label}</p>
+                        <p className="text-[10px] text-muted mt-0.5 font-bold">{desc}</p>
                     </div>
                 </div>
-                <div className={`w-12 h-6 rounded-full relative transition-all duration-500 shrink-0 ml-4 ${isOn ? `${c.bg} ${c.glow}` : 'bg-slate-700'}`}>
+                <div className={`w-12 h-6 rounded-full relative transition-all duration-500 shrink-0 ml-4 ${isOn ? `${c.bg} ${c.glow}` : 'bg-slate-300 dark:bg-slate-700'}`}>
                     <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all duration-500 shadow-lg ${isOn ? 'right-0.5' : 'left-0.5'}`}></div>
                 </div>
             </div>
@@ -161,25 +161,25 @@ export default function SettingsPage() {
     );
 
     return (
-        <div className="animate-in fade-in duration-500 pb-10">
+        <div className="animate-in fade-in duration-500 pb-20 space-y-10">
             {/* Page Header */}
-            <div className="mb-8 border-b border-white/5 pb-4">
-                <h3 className="text-3xl font-bold text-white flex items-center gap-3">
-                    <Settings className="w-8 h-8 text-indigo-400" />
+            <div className="mb-12 border-b border-(--glass-border) pb-8">
+                <h3 className="text-4xl font-black text-primary flex items-center gap-4">
+                    <Settings className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
                     Pengaturan Sistem ISP
                 </h3>
-                <p className="text-slate-400 mt-1">Konfigurasi identitas, pembayaran, integrasi, dan pengaturan sistem.</p>
+                <p className="text-muted font-medium mt-2">Konfigurasi identitas, pembayaran, integrasi, dan pengaturan sistem.</p>
             </div>
 
             {/* Tabs Navigation */}
-            <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+            <div className="flex gap-3 mb-12 overflow-x-auto pb-4 scrollbar-hide">
                 {tabs.map(tab => {
                     const Icon = tab.icon;
                     return (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-black text-sm whitespace-nowrap transition-all ${activeTab === tab.id ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20' : 'glass border border-white/10 text-slate-400 hover:text-white hover:bg-white/5'}`}
+                            className={`flex items-center gap-3 px-8 py-4.5 rounded-3xl font-black text-sm whitespace-nowrap transition-all active:scale-95 ${activeTab === tab.id ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20' : 'glass border border-(--glass-border) text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-white/5'}`}
                         >
                             <Icon className="w-5 h-5" />
                             {tab.label}
@@ -190,57 +190,57 @@ export default function SettingsPage() {
 
             {/* TAB: Identity */}
             {activeTab === 'identity' && (
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start animate-in fade-in duration-300">
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-10 items-start animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className="xl:col-span-2">
-                        <div className="glass p-8 lg:p-10 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
-                            <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl"></div>
-                            <div className="flex items-center gap-4 mb-8">
-                                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20"><Building2 className="w-6 h-6" /></div>
+                        <div className="glass p-10 lg:p-12 rounded-[2.5rem] border border-(--glass-border) shadow-xl relative overflow-hidden">
+                            <div className="absolute -top-32 -right-32 w-80 h-80 bg-indigo-500/5 rounded-full blur-3xl"></div>
+                            <div className="flex items-center gap-5 mb-10">
+                                <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-inner"><Building2 className="w-7 h-7" /></div>
                                 <div>
-                                    <h4 className="text-xl font-black text-white">Profil Perusahaan</h4>
-                                    <p className="text-xs text-slate-400 font-bold">Muncul pada Invoice, Voucher, dan semua dokumen</p>
+                                    <h4 className="text-2xl font-black text-primary">Profil Perusahaan</h4>
+                                    <p className="text-xs text-muted font-bold uppercase tracking-widest mt-1">Muncul pada Invoice, Voucher, dan semua dokumen</p>
                                 </div>
                             </div>
-                            <form onSubmit={handleSave} className="space-y-6 relative z-10">
+                            <form onSubmit={handleSave} className="space-y-8 relative z-10">
                                 <Field label="Nama Brand / Perusahaan" field="company_name" placeholder="Contoh: JARFI Networks" />
                                 <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 ml-1">Alamat Kantor Pusat</label>
-                                    <textarea rows={3} value={settings.company_address} onChange={(e) => updateField('company_address', e.target.value)} placeholder="Masukkan alamat lengkap..." className="w-full bg-slate-900/40 border border-white/10 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 shadow-inner transition-all font-medium placeholder:text-slate-700"></textarea>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 ml-1">Alamat Kantor Pusat</label>
+                                    <textarea rows={4} value={settings.company_address} onChange={(e) => updateField('company_address', e.target.value)} placeholder="Masukkan alamat lengkap..." className="w-full clean-input resize-none py-5 px-6"></textarea>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <Field label="Email Support" field="company_email" type="email" />
                                     <Field label="WhatsApp Business" field="company_whatsapp" prefix="+62" />
                                 </div>
-                                <button type="submit" disabled={saving} className="w-full py-4.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black shadow-xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50 uppercase tracking-widest text-xs">
+                                <button type="submit" disabled={saving} className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-3xl font-black shadow-xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-4 active:scale-[0.98] disabled:opacity-50 uppercase tracking-[0.2em] text-xs">
                                     {saving ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                                     Simpan Identitas
                                 </button>
                             </form>
                         </div>
                     </div>
-                    <div className="space-y-8">
+                    <div className="space-y-10">
                         {/* Logo */}
-                        <div className="glass p-8 rounded-3xl border border-white/10 text-center flex flex-col items-center shadow-2xl relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-indigo-500 to-blue-500"></div>
-                            <h4 className="text-xs font-black text-white mb-6 uppercase tracking-[0.2em]">Logo Perusahaan</h4>
-                            <div className="w-36 h-36 bg-slate-950 rounded-3xl border-2 border-dashed border-slate-800 mb-5 flex items-center justify-center cursor-pointer hover:border-indigo-500 transition-all duration-500 relative overflow-hidden group/logo">
-                                <span className="text-6xl font-black bg-linear-to-br from-indigo-400 to-blue-600 bg-clip-text text-transparent group-hover/logo:scale-110 transition-transform duration-500">
+                        <div className="glass p-10 rounded-[2.5rem] text-center flex flex-col items-center shadow-xl border border-(--glass-border) relative overflow-hidden group">
+                            <div className="absolute top-0 left-0 w-full h-1.5 bg-linear-to-r from-indigo-600 to-blue-600"></div>
+                            <h4 className="text-[10px] font-black text-primary mb-8 uppercase tracking-[0.3em]">Logo Perusahaan</h4>
+                            <div className="w-44 h-44 bg-slate-50 dark:bg-slate-950 rounded-4xl border-2 border-dashed border-slate-200 dark:border-slate-800 mb-6 flex items-center justify-center cursor-pointer hover:border-indigo-500 transition-all duration-700 relative overflow-hidden group/logo shadow-inner">
+                                <span className="text-7xl font-black bg-linear-to-br from-indigo-600 to-blue-600 dark:from-indigo-400 dark:to-blue-600 bg-clip-text text-transparent group-hover/logo:scale-110 transition-transform duration-700">
                                     {(settings.company_name || 'J').charAt(0).toUpperCase()}
                                 </span>
-                                <div className="absolute inset-0 bg-indigo-600/90 opacity-0 group-hover/logo:opacity-100 flex flex-col items-center justify-center transition-all duration-300">
-                                    <Smartphone className="w-8 h-8 text-white mb-1" />
-                                    <span className="text-white text-[10px] font-black uppercase tracking-widest">Ganti</span>
+                                <div className="absolute inset-0 bg-indigo-600/90 opacity-0 group-hover/logo:opacity-100 flex flex-col items-center justify-center transition-all duration-500">
+                                    <Smartphone className="w-10 h-10 text-white mb-2" />
+                                    <span className="text-white text-[10px] font-black uppercase tracking-widest">Ganti Logo</span>
                                 </div>
                             </div>
-                            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-tight">Muncul pada Invoice & Vouchers</p>
+                            <p className="text-muted text-[10px] font-bold uppercase tracking-widest">Muncul pada Invoice & Vouchers</p>
                         </div>
                         {/* Automation Toggles */}
-                        <div className="glass p-6 rounded-3xl border border-white/10 shadow-2xl">
-                            <div className="flex items-center gap-3 mb-5">
-                                <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal-400 border border-teal-500/20"><FileCheck className="w-5 h-5" /></div>
-                                <h4 className="text-lg font-black text-white">Otomatisasi</h4>
+                        <div className="glass p-10 rounded-[2.5rem] shadow-xl border border-(--glass-border)">
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="w-12 h-12 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400 border border-teal-500/20 shadow-inner"><FileCheck className="w-6 h-6" /></div>
+                                <h4 className="text-xl font-black text-primary">Otomatisasi</h4>
                             </div>
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 <Toggle label="Pajak PPN 11%" desc="Otomatis pada tagihan" field="tax_enabled" color="indigo" />
                                 <Toggle label="Auto Isolir" desc="Lewat jatuh tempo 3 hari" field="auto_isolate" color="teal" />
                             </div>
@@ -251,52 +251,52 @@ export default function SettingsPage() {
 
             {/* TAB: Billing & Bank */}
             {activeTab === 'billing' && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in duration-300">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     {/* Payment Method */}
-                    <div className="glass p-8 rounded-3xl border border-white/10 shadow-2xl">
-                        <div className="flex items-center gap-4 mb-8">
-                            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20"><CreditCard className="w-6 h-6" /></div>
+                    <div className="glass p-10 rounded-[2.5rem] border border-(--glass-border) shadow-xl">
+                        <div className="flex items-center gap-5 mb-10">
+                            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shadow-inner"><CreditCard className="w-7 h-7" /></div>
                             <div>
-                                <h4 className="text-xl font-black text-white">Metode Pembayaran</h4>
-                                <p className="text-xs text-slate-400 font-bold">Ditampilkan pada invoice pelanggan</p>
+                                <h4 className="text-2xl font-black text-primary">Metode Pembayaran</h4>
+                                <p className="text-xs text-muted font-bold uppercase tracking-widest mt-1">Ditampilkan pada invoice pelanggan</p>
                             </div>
                         </div>
-                        <div className="space-y-4 mb-6">
+                        <div className="space-y-5 mb-8">
                             {['transfer', 'cod', 'ewallet'].map(method => (
-                                <div key={method} onClick={() => updateField('payment_method', method)} className={`p-4 rounded-2xl border cursor-pointer transition-all active:scale-[0.98] ${settings.payment_method === method ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-white/5 bg-slate-950/30 hover:bg-slate-900/50'}`}>
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${settings.payment_method === method ? 'border-emerald-400' : 'border-slate-600'}`}>
-                                            {settings.payment_method === method && <div className="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>}
+                                <div key={method} onClick={() => updateField('payment_method', method)} className={`p-6 rounded-3xl border-2 cursor-pointer transition-all active:scale-[0.98] ${settings.payment_method === method ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-(--glass-border) bg-slate-50 dark:bg-slate-950/30 hover:bg-slate-100 dark:hover:bg-slate-900/50'}`}>
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${settings.payment_method === method ? 'border-emerald-500 bg-emerald-500' : 'border-slate-400'}`}>
+                                            {settings.payment_method === method && <div className="w-2.5 h-2.5 rounded-full bg-white"></div>}
                                         </div>
-                                        <span className="font-black text-white text-sm">{method === 'transfer' ? 'Transfer Bank' : method === 'cod' ? 'Bayar Langsung (COD)' : 'E-Wallet (QRIS/Dana/OVO)'}</span>
+                                        <span className={`font-black text-sm ${settings.payment_method === method ? 'text-primary' : 'text-slate-500'}`}>{method === 'transfer' ? 'Transfer Bank' : method === 'cod' ? 'Bayar Langsung (COD)' : 'E-Wallet (QRIS/Dana/OVO)'}</span>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
                     {/* Bank Account / Payment Details */}
-                    <div className="glass p-8 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden group">
-                        <div className="absolute -right-16 -top-16 p-16 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                            <Landmark className="w-48 h-48 text-amber-400" />
+                    <div className="glass p-10 rounded-[2.5rem] border border-(--glass-border) shadow-xl relative overflow-hidden group">
+                        <div className="absolute -right-20 -top-20 p-20 opacity-[0.03] group-hover:opacity-[0.1] transition-opacity duration-700">
+                            <Landmark className="w-56 h-56 text-amber-500" />
                         </div>
-                        <div className="flex items-center gap-4 mb-8 relative z-10">
-                            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-400 border border-amber-500/20"><Landmark className="w-6 h-6" /></div>
+                        <div className="flex items-center gap-5 mb-10 relative z-10">
+                            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-inner"><Landmark className="w-7 h-7" /></div>
                             <div>
-                                <h4 className="text-xl font-black text-white">
+                                <h4 className="text-2xl font-black text-primary">
                                     {settings.payment_method === 'ewallet' ? 'Detail E-Wallet' : settings.payment_method === 'cod' ? 'Detail COD' : 'Rekening Bank'}
                                 </h4>
-                                <p className="text-xs text-slate-400 font-bold">Informasi pembayaran untuk pelanggan</p>
+                                <p className="text-xs text-muted font-bold uppercase tracking-widest mt-1">Informasi pembayaran untuk pelanggan</p>
                             </div>
                         </div>
                         
-                        <div className="space-y-5 relative z-10">
+                        <div className="space-y-6 relative z-10">
                             {settings.payment_method === 'cod' ? (
-                                <div className="p-8 bg-slate-900/40 border border-dashed border-white/10 rounded-3xl text-center">
-                                    <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-400">
-                                        <History className="w-8 h-8" />
+                                <div className="p-10 bg-slate-50 dark:bg-slate-900/40 border border-dashed border-(--glass-border) rounded-4xl text-center shadow-inner">
+                                    <div className="w-20 h-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-6 text-amber-600 dark:text-amber-400">
+                                        <History className="w-10 h-10" />
                                     </div>
-                                    <p className="text-sm font-bold text-white mb-1">Metode COD Terpilih</p>
-                                    <p className="text-[11px] text-slate-500">Pelanggan akan diarahkan untuk membayar langsung ke kantor atau teknisi.</p>
+                                    <p className="font-black mb-2">Metode COD Terpilih</p>
+                                    <p className="text-xs text-muted font-medium uppercase tracking-tight">Pelanggan akan diarahkan untuk membayar langsung ke kantor atau teknisi terdekat.</p>
                                 </div>
                             ) : (
                                 <>
@@ -320,20 +320,20 @@ export default function SettingsPage() {
                         </div>
                     </div>
                     {/* Printer */}
-                    <div className="glass p-8 rounded-3xl border border-white/10 shadow-2xl lg:col-span-2 relative overflow-hidden group">
-                        <div className="absolute -right-16 -top-16 p-16 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                            <Printer className="w-48 h-48 text-sky-400" />
+                    <div className="glass p-10 rounded-[2.5rem] border border-(--glass-border) shadow-xl lg:col-span-2 relative overflow-hidden group">
+                        <div className="absolute -right-20 -top-20 p-20 opacity-[0.03] group-hover:opacity-[0.1] transition-opacity duration-700">
+                            <Printer className="w-56 h-56 text-sky-500" />
                         </div>
-                        <div className="flex items-center gap-4 mb-8 relative z-10">
-                            <div className="w-12 h-12 rounded-2xl bg-sky-500/10 flex items-center justify-center text-sky-400 border border-sky-500/20"><Printer className="w-6 h-6" /></div>
+                        <div className="flex items-center gap-5 mb-10 relative z-10">
+                            <div className="w-14 h-14 rounded-2xl bg-sky-500/10 flex items-center justify-center text-sky-600 dark:text-sky-400 border border-sky-500/20 shadow-inner"><Printer className="w-7 h-7" /></div>
                             <div>
-                                <h4 className="text-xl font-black text-white">Pengaturan Printer</h4>
-                                <p className="text-xs text-slate-400 font-bold">Konfigurasi jenis dan ukuran kertas struk/invoice</p>
+                                <h4 className="text-2xl font-black text-primary">Pengaturan Printer</h4>
+                                <p className="text-xs text-muted font-bold uppercase tracking-widest mt-1">Konfigurasi jenis dan ukuran kertas struk/invoice</p>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
                             <div>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 ml-1">Tipe Printer</label>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 ml-1">Tipe Printer</label>
                                 <select 
                                     value={settings.printer_type} 
                                     onChange={(e) => {
@@ -343,7 +343,7 @@ export default function SettingsPage() {
                                         if (type === 'thermal') updateField('printer_width', '58');
                                         else updateField('printer_width', '210');
                                     }} 
-                                    className="w-full bg-slate-900/40 border border-white/10 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-sky-500/50 shadow-inner transition-all font-bold appearance-none cursor-pointer"
+                                    className="w-full clean-input py-4.5 px-6 appearance-none cursor-pointer"
                                 >
                                     <option value="thermal">Thermal (Struk / POS)</option>
                                     <option value="inkjet">Inkjet / Laser (A4)</option>
@@ -351,11 +351,11 @@ export default function SettingsPage() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 ml-1">Lebar Kertas</label>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 ml-1">Lebar Kertas</label>
                                 <select 
                                     value={settings.printer_width} 
                                     onChange={(e) => updateField('printer_width', e.target.value)} 
-                                    className="w-full bg-slate-900/40 border border-white/10 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-sky-500/50 shadow-inner transition-all font-bold appearance-none cursor-pointer"
+                                    className="w-full clean-input py-4.5 px-6 appearance-none cursor-pointer"
                                 >
                                     {settings.printer_type === 'thermal' ? (
                                         <>
@@ -372,15 +372,15 @@ export default function SettingsPage() {
                             </div>
                         </div>
                         
-                        <div className="mt-8 p-4 bg-sky-500/5 border border-sky-500/10 rounded-2xl flex items-start gap-3">
-                            <Info className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
-                            <p className="text-[10px] text-sky-300/80 leading-relaxed italic">
-                                *Pengaturan ini akan mempengaruhi tata letak (layout) saat Anda mencetak Invoice atau Voucher dari sistem.
+                        <div className="mt-10 p-6 bg-sky-500/5 border border-sky-500/10 rounded-3xl flex items-start gap-4">
+                            <Info className="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0 mt-0.5" />
+                            <p className="text-[11px] text-sky-700 dark:text-sky-300 leading-relaxed font-bold italic uppercase tracking-tight">
+                                *Pengaturan ini akan mempengaruhi tata letak (layout) saat Anda mencetak Invoice atau Voucher dari sistem agar presisi sesuai kertas.
                             </p>
                         </div>
                     </div>
                     <div className="lg:col-span-2">
-                        <button onClick={handleSave} disabled={saving} className="w-full py-4.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black shadow-xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50 uppercase tracking-widest text-xs">
+                        <button onClick={handleSave} disabled={saving} className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-3xl font-black shadow-xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-4 active:scale-[0.98] disabled:opacity-50 uppercase tracking-[0.2em] text-xs">
                             {saving ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                             Simpan Pengaturan Tagihan
                         </button>
@@ -390,59 +390,62 @@ export default function SettingsPage() {
 
             {/* TAB: Integrations */}
             {activeTab === 'integrations' && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in duration-300">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     {/* Telegram */}
-                    <div className="glass p-8 rounded-3xl border border-white/10 shadow-2xl">
-                        <div className="flex items-center justify-between mb-8">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20"><Send className="w-6 h-6" /></div>
+                    <div className="glass p-10 rounded-[2.5rem] border border-(--glass-border) shadow-xl relative overflow-hidden">
+                        <div className="absolute -right-20 -top-20 p-20 opacity-[0.03] transition-opacity duration-700">
+                            <Send className="w-56 h-56 text-blue-500" />
+                        </div>
+                        <div className="flex items-center justify-between mb-10 relative z-10">
+                            <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 border border-blue-500/20 shadow-inner"><Send className="w-7 h-7" /></div>
                                 <div>
-                                    <h4 className="text-xl font-black text-white">Telegram Bot</h4>
-                                    <p className="text-xs text-slate-400 font-bold">Notifikasi pembayaran & tagihan</p>
+                                    <h4 className="text-2xl font-black text-primary">Telegram Bot</h4>
+                                    <p className="text-xs text-muted font-bold uppercase tracking-widest mt-1">Notifikasi pembayaran & tagihan</p>
                                 </div>
                             </div>
                         </div>
-                        <div className="space-y-5">
+                        <div className="space-y-6 relative z-10">
                             <Toggle label="Aktifkan Telegram" desc="Kirim notifikasi otomatis" field="telegram_enabled" color="blue" />
                             <Field label="Bot Token" field="telegram_bot_token" placeholder="123456:ABC-DEF1234ghIkl..." />
                             <Field label="Chat ID" field="telegram_chat_id" placeholder="-1001234567890" />
                         </div>
                     </div>
                     {/* WhatsApp API */}
-                    <div className="glass p-8 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden group">
-                        <div className="absolute -right-16 -top-16 p-16 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
-                            <MessageCircle className="w-48 h-48 text-emerald-400" />
+                    <div className="glass p-10 rounded-[2.5rem] border border-(--glass-border) shadow-xl relative overflow-hidden group">
+                        <div className="absolute -right-20 -top-20 p-20 opacity-[0.03] group-hover:opacity-[0.1] transition-opacity duration-700">
+                            <MessageCircle className="w-56 h-56 text-emerald-500" />
                         </div>
-                        <div className="flex items-center justify-between mb-8 relative z-10">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20"><MessageCircle className="w-6 h-6" /></div>
+                        <div className="flex items-center justify-between mb-10 relative z-10">
+                            <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shadow-inner"><MessageCircle className="w-7 h-7" /></div>
                                 <div>
-                                    <h4 className="text-xl font-black text-white">WhatsApp API</h4>
-                                    <p className="text-xs text-slate-400 font-bold">Blast tagihan ke pelanggan</p>
+                                    <h4 className="text-2xl font-black text-primary">WhatsApp API</h4>
+                                    <p className="text-xs text-muted font-bold uppercase tracking-widest mt-1">Blast tagihan ke pelanggan</p>
                                 </div>
                             </div>
                         </div>
-                        <div className="space-y-6 relative z-10">
-                            <div className="bg-emerald-500/5 border border-emerald-500/10 p-5 rounded-2xl mb-2">
-                                <div className="flex items-center gap-3 mb-3">
-                                    <Smartphone className="w-5 h-5 text-emerald-400" />
-                                    <h5 className="font-bold text-white text-sm">Status Koneksi Device</h5>
+                        <div className="space-y-8 relative z-10">
+                            <div className="bg-emerald-500/5 border border-emerald-500/10 p-8 rounded-4xl mb-2 shadow-inner">
+                                <div className="flex items-center gap-4 mb-4">
+                                    <Smartphone className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                                    <h5 className="font-black text-primary text-sm uppercase tracking-widest">Status Device</h5>
                                 </div>
-                                <p className="text-[11px] text-emerald-300/80 leading-relaxed mb-4">
+                                <p className="text-xs text-muted leading-relaxed mb-6 font-medium">
                                     Gunakan WhatsApp Web untuk memantau pesan yang terkirim atau hubungkan device baru melalui gateway.
                                 </p>
                                 <a 
                                     href="https://web.whatsapp.com" 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-lg shadow-emerald-600/20 active:scale-[0.98]"
+                                    className="flex items-center justify-center gap-3 w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-[1.25rem] font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-xl shadow-emerald-600/20 active:scale-[0.98]"
                                 >
                                     <CheckCircle2 className="w-4 h-4" />
                                     Tautkan / Scan WA Web
                                 </a>
                             </div>
 
-                            <div className="space-y-5 pt-2">
+                            <div className="space-y-6 pt-2">
                                 <Toggle label="Aktifkan WA API" desc="Fonnte / WaBlas / WAPI" field="wa_api_enabled" color="teal" />
                                 <Field label="API Gateway URL" field="wa_api_url" placeholder="https://api.fonnte.com/send" />
                                 <Field label="API Token / Key" field="wa_api_token" placeholder="Token autentikasi dari provider" type="password" />
@@ -450,7 +453,7 @@ export default function SettingsPage() {
                         </div>
                     </div>
                     <div className="lg:col-span-2">
-                        <button onClick={handleSave} disabled={saving} className="w-full py-4.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black shadow-xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50 uppercase tracking-widest text-xs">
+                        <button onClick={handleSave} disabled={saving} className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-3xl font-black shadow-xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-4 active:scale-[0.98] disabled:opacity-50 uppercase tracking-[0.2em] text-xs">
                             {saving ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                             Simpan Integrasi
                         </button>
@@ -460,28 +463,28 @@ export default function SettingsPage() {
 
             {/* TAB: System */}
             {activeTab === 'system' && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in duration-300">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     {/* Activity Log */}
-                    <div className="glass p-8 rounded-3xl border border-white/10 shadow-2xl lg:col-span-2">
-                        <div className="flex items-center gap-4 mb-8">
-                            <div className="w-12 h-12 rounded-2xl bg-violet-500/10 flex items-center justify-center text-violet-400 border border-violet-500/20"><History className="w-6 h-6" /></div>
+                    <div className="glass p-10 rounded-[2.5rem] border border-(--glass-border) shadow-xl lg:col-span-2">
+                        <div className="flex items-center gap-5 mb-10">
+                            <div className="w-14 h-14 rounded-2xl bg-violet-500/10 flex items-center justify-center text-violet-600 dark:text-violet-400 border border-violet-500/20 shadow-inner"><History className="w-7 h-7" /></div>
                             <div>
-                                <h4 className="text-xl font-black text-white">Log Aktivitas Terakhir</h4>
-                                <p className="text-xs text-slate-400 font-bold">Riwayat perubahan pengaturan sistem</p>
+                                <h4 className="text-2xl font-black text-primary">Log Aktivitas Terakhir</h4>
+                                <p className="text-xs text-muted font-bold uppercase tracking-widest mt-1">Riwayat perubahan pengaturan sistem</p>
                             </div>
                         </div>
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             {logs.length === 0 ? (
-                                <div className="text-center py-10 text-slate-600 italic text-xs uppercase tracking-widest animate-pulse">Belum ada aktivitas tercatat...</div>
+                                <div className="text-center py-20 text-slate-400 italic text-xs uppercase tracking-[0.3em] font-black animate-pulse">Belum ada aktivitas tercatat...</div>
                             ) : (
                                 logs.map((log: any) => (
-                                    <div key={log.id} className="flex items-center gap-4 p-4 bg-slate-950/30 rounded-2xl border border-white/5 group hover:border-white/10 transition-all">
-                                        <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${log.color.replace('text-', 'bg-')} shadow-[0_0_10px_currentColor]`}></div>
+                                    <div key={log.id} className="flex items-center gap-5 p-6 bg-slate-50 dark:bg-slate-950/30 rounded-3xl border border-(--glass-border) group hover:border-indigo-500/30 transition-all shadow-sm">
+                                        <div className={`w-3 h-3 rounded-full shrink-0 ${log.color.replace('text-', 'bg-')} shadow-[0_0_15px_currentColor]`}></div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-bold text-white text-sm truncate">{log.action}</p>
-                                            <p className="text-[10px] text-slate-500 font-medium truncate">{log.description}</p>
+                                            <p className="font-black text-primary text-sm truncate uppercase tracking-tight">{log.action}</p>
+                                            <p className="text-[10px] text-muted font-bold truncate mt-1 uppercase">{log.description}</p>
                                         </div>
-                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-tight whitespace-nowrap bg-white/5 px-2 py-1 rounded-lg border border-white/5">
+                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap bg-slate-200 dark:bg-white/5 px-4 py-2 rounded-xl border border-(--glass-border) shadow-inner">
                                             {new Date(log.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     </div>
