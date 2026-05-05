@@ -14,7 +14,8 @@ async function ensureSchema() {
         const [rows]: any = await pool.query('SELECT COUNT(*) as count FROM Settings');
         if (rows[0].count === 0) {
             const defaults = [
-                ['company_name', 'JARFI Networks'],
+                ['company_name', 'Sahabat Network'],
+                ['company_logo', '/logo.png'],
                 ['company_address', 'Jl. Teknologi Masa Depan No. 99, Jakarta'],
                 ['company_email', 'cs@jarfi.net'],
                 ['company_whatsapp', '8123456789'],

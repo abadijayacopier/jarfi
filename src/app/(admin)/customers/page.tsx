@@ -1,11 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Swal from 'sweetalert2';
-import { RefreshCw, X, DownloadCloud, Edit, Trash2, ShieldAlert, Search, Users, Wifi, Calendar, Activity, Zap, ArrowDown, ArrowUp, MapPin } from 'lucide-react';
+import { 
+    RefreshCw, X, DownloadCloud, Edit, Trash2, ShieldAlert, Search, Users, 
+    Wifi, Calendar, Activity, Zap, ArrowDown, ArrowUp, MapPin, 
+    ChevronLeft, ChevronRight, Filter, MoreVertical, ExternalLink,
+    TrendingUp, Signal, Box, AlertTriangle, Monitor, Power, Plus, Eye,
+    Loader2, Database, HardDrive, Cpu, Network, Router as RouterIcon
+} from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { 
+    ResponsiveContainer, AreaChart, Area, CartesianGrid, Tooltip, XAxis, YAxis 
+} from 'recharts';
 
 const LocationPicker = dynamic(() => import('@/components/LocationPicker'), { ssr: false });
+
+const mockSparkline = [
+    { v: 40 }, { v: 45 }, { v: 42 }, { v: 48 }, { v: 46 }, { v: 52 }, { v: 50 }
+];
 
 export default function CustomersPage() {
     const [customers, setCustomers] = useState<any[]>([]);
@@ -13,110 +26,257 @@ export default function CustomersPage() {
     const [routers, setRouters] = useState<any[]>([]);
     const [packages, setPackages] = useState<any[]>([]);
     const [odps, setOdps] = useState<any[]>([]);
-    const [pppProfiles, setPppProfiles] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isSyncing, setIsSyncing] = useState(false);
+    const isFetchingRef = useRef(false);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
+    const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid');
     const [showForm, setShowForm] = useState(false);
+    const [showDetail, setShowDetail] = useState(false);
+    const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editId, setEditId] = useState<number | null>(null);
-    const [formData, setFormData] = useState({ user_id: '', name: '', phone: '', router_id: '', package_id: '', pppoe_username: '', pppoe_password: '', due_date: 1, latitude: '', longitude: '', odp_id: '' });
+    const [formData, setFormData] = useState({ 
+        user_id: '', name: '', phone: '', router_id: '', package_id: '', 
+        pppoe_username: '', pppoe_password: '', due_date: 1, 
+        latitude: '', longitude: '', odp_id: '' 
+    });
 
-    const [showImportModal, setShowImportModal] = useState(false);
-    const [importRouterId, setImportRouterId] = useState('');
-    const [mikrotikSecrets, setMikrotikSecrets] = useState([]);
-    const [importing, setImporting] = useState(false);
-
-    // Pagination
+    // Pagination & Traffic
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(10);
-
-    // Real-time traffic
+    const [itemsPerPage] = useState(30);
     const [trafficData, setTrafficData] = useState<any[]>([]);
     const [trafficLoading, setTrafficLoading] = useState(false);
+    const [chartData, setChartData] = useState<any[]>([
+        { name: '0s', down: 0, up: 0 },
+        { name: '1s', down: 0, up: 0 },
+        { name: '2s', down: 0, up: 0 },
+        { name: '3s', down: 0, up: 0 },
+        { name: '4s', down: 0, up: 0 },
+        { name: '5s', down: 0, up: 0 },
+    ]);
+    const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
     useEffect(() => {
-        fetchCustomers();
-        fetchRoutersAndPackages();
-        fetch('/api/odps').then(res => res.json()).then(data => setOdps(data.odps || []));
+        // Detect theme from document class
+        const isDark = document.documentElement.classList.contains('dark');
+        setTheme(isDark ? 'dark' : 'light');
+        
+        // Watch for theme changes
+        const observer = new MutationObserver(() => {
+            const dark = document.documentElement.classList.contains('dark');
+            setTheme(dark ? 'dark' : 'light');
+        });
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        return () => observer.disconnect();
     }, []);
 
-    // Auto-refresh traffic every 5s for real-time feel
+    useEffect(() => {
+        fetchData(true);
+    }, []);
+
     useEffect(() => {
         if (routers.length > 0) {
             fetchAllTraffic();
-            const timer = setInterval(fetchAllTraffic, 5000);
-            return () => clearInterval(timer);
+            const trafficTimer = setInterval(fetchAllTraffic, 3000);
+            const oltTimer = setInterval(syncOltData, 60000); 
+            return () => {
+                clearInterval(trafficTimer);
+                clearInterval(oltTimer);
+                if (abortControllerRef.current) abortControllerRef.current.abort();
+            };
         }
     }, [routers]);
 
-    const fetchAllTraffic = async () => {
-        setTrafficLoading(true);
+    const fetchData = async (firstLoad = false) => {
+        if (firstLoad) setLoading(true);
+        setIsSyncing(true);
         try {
-            const allTraffic: any[] = [];
-            for (const r of routers as any[]) {
-                try {
-                    const res = await fetch(`/api/mikrotik/traffic?router_id=${r.id}`);
-                    const data = await res.json();
-                    if (res.ok && data.traffic) {
-                        allTraffic.push(...data.traffic);
-                    }
-                } catch { /* skip unavailable routers */ }
+            const [cRes, rRes, pRes, oRes] = await Promise.all([
+                fetch('/api/customers'),
+                fetch('/api/routers'),
+                fetch('/api/packages'),
+                fetch('/api/odps')
+            ]);
+            if (cRes.ok) setCustomers((await cRes.json()).customers || []);
+            if (rRes.ok) {
+                const rData = await rRes.json();
+                setRouters(rData.routers || []);
             }
+            if (pRes.ok) setPackages((await pRes.json()).packages || []);
+            if (oRes.ok) setOdps((await oRes.json()).odps || []);
             
-            setTrafficData(prev => {
-                return allTraffic.map(curr => {
-                    const prevData = prev.find(p => p.name === curr.name);
-                    let rxSpeed = 0;
-                    let txSpeed = 0;
-                    if (prevData && curr.rxBytes && prevData.rxBytes) {
-                        // interval = 5 seconds
-                        const rxDiff = Math.max(0, curr.rxBytes - prevData.rxBytes);
-                        const txDiff = Math.max(0, curr.txBytes - prevData.txBytes);
-                        rxSpeed = (rxDiff * 8) / (5 * 1000); // Kbps
-                        txSpeed = (txDiff * 8) / (5 * 1000); // Kbps
-                    }
-                    return { ...curr, rxSpeed, txSpeed };
-                });
-            });
-        } catch (err) { console.error(err); }
-        finally { setTrafficLoading(false); }
-    };
-
-    const getTrafficInfo = (pppoeUsername: string) => {
-        return trafficData.find(t => t.name === pppoeUsername);
-    };
-
-    useEffect(() => {
-        if (formData.router_id) {
-            fetch(`/api/mikrotik/profiles?routerId=${formData.router_id}&type=ppp`)
-                .then(res => res.json())
-                .then(data => setPppProfiles(data.profiles || []))
-                .catch(() => setPppProfiles([]));
-        } else {
-            setPppProfiles([]);
-        }
-    }, [formData.router_id]);
-
-    const fetchCustomers = async () => {
-        try {
-            const res = await fetch('/api/customers');
-            const data = await res.json();
-            if (res.ok) setCustomers(data.customers || []);
+            if (!firstLoad) {
+                // Immediate pulse to MikroTik for fresh traffic
+                await fetchAllTraffic();
+            }
         } catch (err) {
             console.error(err);
         } finally {
             setLoading(false);
+            setIsSyncing(false);
         }
     };
 
-    const fetchRoutersAndPackages = async () => {
+    const syncOltData = async () => {
+        setIsSyncing(true);
         try {
-            const [rRes, pRes] = await Promise.all([fetch('/api/routers'), fetch('/api/packages')]);
-            if (rRes.ok) setRouters((await rRes.json()).routers || []);
-            if (pRes.ok) setPackages((await pRes.json()).packages || []);
-        } catch (error) {
-            console.error(error);
+            const res = await fetch('/api/olts/sync', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({}) 
+            });
+            const data = await res.json();
+            if (res.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Telemetri Disinkronkan',
+                    text: data.message,
+                    background: theme === 'dark' ? '#0f172a' : '#fff',
+                    color: theme === 'dark' ? '#fff' : '#1e293b',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                fetchData();
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsSyncing(false);
         }
+    };
+
+    const syncMikrotikData = async () => {
+        setIsSyncing(true);
+        try {
+            const res = await fetch('/api/customers/sync', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({})
+            });
+            const data = await res.json();
+            if (res.ok) {
+                const errorHtml = data.errors && data.errors.length > 0 
+                    ? `<div class="mt-4 text-left max-h-40 overflow-y-auto p-4 bg-red-500/5 rounded-2xl border border-red-500/10">
+                        ${data.errors.map((e: any) => `
+                            <div class="mb-3 last:mb-0">
+                                <div class="text-[10px] font-black text-red-500 uppercase tracking-widest">${e.username}</div>
+                                <div class="text-[9px] text-slate-500 font-bold">${e.error}</div>
+                                <div class="text-[8px] text-slate-400 opacity-50">${e.router}</div>
+                            </div>
+                        `).join('')}
+                       </div>`
+                    : '';
+
+                Swal.fire({
+                    icon: data.failCount > 0 ? 'warning' : 'success',
+                    title: 'Sinkronisasi MikroTik',
+                    html: `<div>${data.message}</div>${errorHtml}`,
+                    background: theme === 'dark' ? '#0f172a' : '#fff',
+                    color: theme === 'dark' ? '#fff' : '#1e293b',
+                    confirmButtonColor: '#6366f1'
+                });
+                fetchData();
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (err: any) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Sinkronisasi Gagal',
+                text: err.message,
+                background: theme === 'dark' ? '#0f172a' : '#fff',
+                color: theme === 'dark' ? '#fff' : '#1e293b'
+            });
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
+    const fetchAllTraffic = async () => {
+        if (routers.length === 0 || isFetchingRef.current) return;
+        
+        isFetchingRef.current = true;
+        if (abortControllerRef.current) abortControllerRef.current.abort();
+        abortControllerRef.current = new AbortController();
+
+        setTrafficLoading(true);
+        try {
+            const allTraffic: any[] = [];
+            const polledRouterIds = new Set<number>();
+            
+            // High-speed parallel orchestration
+            await Promise.all(routers.map(async (r) => {
+                try {
+                    const res = await fetch(`/api/mikrotik/traffic?router_id=${r.id}`, {
+                        signal: abortControllerRef.current?.signal
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.traffic) {
+                        const trafficArray = Array.isArray(data.traffic) ? data.traffic : [data.traffic];
+                        allTraffic.push(...trafficArray);
+                        polledRouterIds.add(r.id);
+                    }
+                } catch (e: any) { 
+                    if (e.name !== 'AbortError') console.error(`Router ${r.id} telemetry sync failed:`, e); 
+                }
+            }));
+            
+            if (allTraffic.length > 0) {
+                setTrafficData(allTraffic);
+                
+                // Real-time status sync: Update customer status based on active PPP sessions
+                setCustomers(prev => prev.map(c => {
+                    if (!c.pppoe_username) return { ...c, status: 'inactive' };
+                    
+                    // Only update status if the router was successfully polled
+                    if (!polledRouterIds.has(c.router_id)) return c; 
+
+                    const isActive = allTraffic.some(t => {
+                        const tName = String(t.name || '').trim().toLowerCase();
+                        const cName = String(c.pppoe_username || '').trim().toLowerCase();
+                        return tName === cName;
+                    });
+                    
+                    return { ...c, status: isActive ? 'active' : 'inactive' };
+                }));
+
+                // Update chart data if a customer is selected
+                if (showDetail && selectedCustomer) {
+                    const found = allTraffic.find(t => String(t.name || '').toLowerCase() === String(selectedCustomer.pppoe_username || '').toLowerCase());
+                    if (found) {
+                        const rx = found.rxSpeed ?? found['rx-bits-per-second'] ?? 0;
+                        const tx = found.txSpeed ?? found['tx-bits-per-second'] ?? 0;
+                        setChartData(prev => {
+                            const next = [...prev.slice(1), { 
+                                name: new Date().toLocaleTimeString(), 
+                                down: rx, 
+                                up: tx 
+                            }];
+                            return next;
+                        });
+                    }
+                }
+            }
+        } catch (err: any) { 
+            if (err.name !== 'AbortError') console.error('Telemetry heart-beat error:', err); 
+        } finally { 
+            setTrafficLoading(false); 
+            isFetchingRef.current = false;
+        }
+    };
+
+    const getTrafficInfo = (pppoeUsername: string) => {
+        if (!pppoeUsername || trafficData.length === 0) return null;
+        const found = trafficData.find(t => String(t.name || '').toLowerCase() === String(pppoeUsername || '').toLowerCase());
+        if (!found) return null;
+        
+        return {
+            rx: found.rxSpeed ?? found['rx-bits-per-second'] ?? found.rx_speed ?? found.rate_down ?? 0,
+            tx: found.txSpeed ?? found['tx-bits-per-second'] ?? found.tx_speed ?? found.rate_up ?? 0,
+            uptime: found.uptime ?? found['last-logged-out'] ?? null
+        };
     };
 
     const handleSave = async (e: React.FormEvent) => {
@@ -130,7 +290,7 @@ export default function CustomersPage() {
                 ...(isEditing && { id: editId })
             };
 
-            Swal.fire({ title: 'Menyimpan...', text: 'Singkronisasi ke Database & Mikrotik', allowOutsideClick: false, background: '#1e293b', color: '#fff', didOpen: () => { Swal.showLoading(); } });
+            Swal.fire({ title: 'Menyimpan...', text: 'Sinkronisasi Status Infrastruktur...', allowOutsideClick: false, background: theme === 'dark' ? '#0f172a' : '#fff', color: theme === 'dark' ? '#fff' : '#1e293b' });
 
             const res = await fetch('/api/customers', {
                 method: isEditing ? 'PUT' : 'POST',
@@ -138,12 +298,12 @@ export default function CustomersPage() {
                 body: JSON.stringify(payload)
             });
             if (res.ok) {
-                closeForm();
-                fetchCustomers();
-                Swal.fire({ icon: 'success', title: 'Berhasil', text: isEditing ? 'Data pelanggan dan pengaturan PPPoE terbarui!' : 'Pelanggan baru terdaftar dan masuk PPPoE Mikrotik!', background: '#1e293b', color: '#fff' });
+                setShowForm(false);
+                fetchData();
+                Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Data berhasil disimpan.', background: theme === 'dark' ? '#0f172a' : '#fff', color: theme === 'dark' ? '#fff' : '#1e293b' });
             } else {
                 const data = await res.json();
-                Swal.fire({ icon: 'error', title: 'Gagal', text: data.error || 'Terjadi kesalahan sistem', background: '#1e293b', color: '#fff' });
+                Swal.fire({ icon: 'error', title: 'Gagal', text: data.error || 'Terdeteksi kegagalan sistem.', background: theme === 'dark' ? '#0f172a' : '#fff', color: theme === 'dark' ? '#fff' : '#1e293b' });
             }
         } catch (err) {
             console.error(err);
@@ -158,7 +318,7 @@ export default function CustomersPage() {
             router_id: c.router_id ? c.router_id.toString() : '',
             package_id: c.package_id ? c.package_id.toString() : '',
             pppoe_username: c.pppoe_username || '',
-            pppoe_password: '', // blank by default for edit for security
+            pppoe_password: '', 
             due_date: c.due_date || 1,
             latitude: c.latitude ? c.latitude.toString() : '',
             longitude: c.longitude ? c.longitude.toString() : '',
@@ -167,665 +327,690 @@ export default function CustomersPage() {
         setEditId(c.id);
         setIsEditing(true);
         setShowForm(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleDelete = async (id: number, name: string) => {
         const result = await Swal.fire({
-            title: `Hapus Pelanggan ${name}?`,
-            text: "Perhatian: Pelanggan akan DIHAPUS PERMANEN dari database dan akun PPPoE-nya juga akan DIMUSNAHKAN dari Mikrotik Pusat!",
+            title: `Hentikan Node ${name}?`,
+            text: 'Tindakan ini akan menghapus akses pengguna.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#334155',
-            confirmButtonText: 'Ya, Hapus Total!',
-            background: '#1e293b',
-            color: '#fff'
+            confirmButtonText: 'Ya, Hentikan',
+            cancelButtonText: 'Batal',
+            background: theme === 'dark' ? '#0f172a' : '#fff',
+            color: theme === 'dark' ? '#fff' : '#1e293b'
         });
 
         if (result.isConfirmed) {
-            Swal.fire({ title: 'Menghapus...', text: 'Membersihkan data dari Database & RouterOS...', allowOutsideClick: false, background: '#1e293b', color: '#fff', didOpen: () => { Swal.showLoading(); } });
             try {
                 const res = await fetch(`/api/customers?id=${id}`, { method: 'DELETE' });
                 if (res.ok) {
-                    Swal.fire({ icon: 'success', title: 'Terhapus', text: 'Koneksi pelanggan berhasil disapu bersih dari Mikrotik dan sistem.', background: '#1e293b', color: '#fff' });
-                    fetchCustomers();
-                } else {
-                    const data = await res.json();
-                    Swal.fire({ icon: 'error', title: 'Gagal', text: data.error, background: '#1e293b', color: '#fff' });
+                    fetchData();
+                    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Node telah dihapus.', background: theme === 'dark' ? '#0f172a' : '#fff', color: theme === 'dark' ? '#fff' : '#1e293b' });
                 }
             } catch (err) {
-                Swal.fire({ icon: 'error', title: 'Error API', text: 'Gagal menghubungi server.', background: '#1e293b', color: '#fff' });
+                console.error(err);
             }
         }
     };
 
-    const handleIsolir = async (id: number, name: string) => {
-        const result = await Swal.fire({
-            title: `Isolir pelanggan ${name}?`,
-            text: "Aksi ini mengubah profil PPPoE di Mikrotik untuk memutus internet pelanggan.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#f97316',
-            cancelButtonColor: '#334155',
-            confirmButtonText: 'Ya, Isolir!',
-            background: '#1e293b',
-            color: '#fff'
-        });
+    const stats = useMemo(() => {
+        const total = customers.length;
+        const online = customers.filter(c => c.status === 'active').length;
+        const signalAlerts = customers.filter(c => c.rx < -27).length;
+        const disconnectedWithPayment = customers.filter(c => c.status !== 'active' && c.payment_status === 'paid').length;
+        const criticalOdps = odps.filter(o => o.status === 'critical').length;
 
-        if (result.isConfirmed) {
-            Swal.fire({ title: 'Diproses...', text: 'Memutus jaringan via RouterOS secara langsung...', allowOutsideClick: false, background: '#1e293b', color: '#fff', didOpen: () => { Swal.showLoading(); } });
+        return [
+            { label: 'Bayar Tapi Disconnect', value: disconnectedWithPayment, color: '#ef4444', icon: Power, status: 'Perlu perhatian' },
+            { label: 'Total ONU', value: total, color: '#6366f1', icon: Monitor, status: 'Semua perangkat' },
+            { label: 'ONU Online', value: online, color: '#10b981', icon: Zap, status: 'Terhubung' },
+            { label: 'Masalah Sinyal', value: signalAlerts, color: '#f59e0b', icon: Signal, status: 'Sinyal lemah' },
+            { label: 'ODP Bermasalah', value: criticalOdps, color: '#8b5cf6', icon: Box, status: 'Masalah ODP' }
+        ];
+    }, [customers, odps]);
 
-            try {
-                const res = await fetch('/api/mikrotik/isolate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ customer_id: id })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    Swal.fire({ icon: 'success', title: 'Terisolir', text: 'Koneksi berhasil diputus.', background: '#1e293b', color: '#fff' });
-                    fetchCustomers();
-                } else {
-                    Swal.fire({ icon: 'error', title: 'Gagal', text: data.error, background: '#1e293b', color: '#fff' });
-                }
-            } catch (err) {
-                Swal.fire({ icon: 'error', title: 'Error API', text: 'Gagal terhubung ke Server lokal', background: '#1e293b', color: '#fff' });
-            }
-        }
-    };
+    const filteredCustomers = customers.filter(c => 
+        (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-    const fetchMikrotikSecrets = async (routerId: string) => {
-        if (!routerId) return;
-        setImportRouterId(routerId);
-        Swal.fire({ title: 'Menarik data Live...', text: 'Membaca daftar Secret PPPoE langsung dari Mikrotik', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }, background: '#1e293b', color: '#fff' });
-
-        try {
-            const res = await fetch(`/api/mikrotik/secrets?router_id=${routerId}`);
-            const data = await res.json();
-            if (res.ok) {
-                setMikrotikSecrets(data.secrets || []);
-                Swal.close();
-            } else {
-                Swal.fire({ icon: 'error', title: 'Gagal', text: data.error, background: '#1e293b', color: '#fff' });
-            }
-        } catch {
-            Swal.fire({ icon: 'error', title: 'Error API', text: 'Gagal terhubung ke Mikrotik API', background: '#1e293b', color: '#fff' });
-        }
-    };
-
-    const handleSyncSecrets = async () => {
-        const unsynced = mikrotikSecrets.filter((s: any) => !s.is_synced);
-        if (unsynced.length === 0) return;
-
-        setImporting(true);
-        Swal.fire({ title: 'Menyinkronkan Database...', text: `Menarik ${unsynced.length} akun...`, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }, background: '#1e293b', color: '#fff' });
-
-        try {
-            const res = await fetch('/api/mikrotik/secrets', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ router_id: importRouterId, secrets: unsynced })
-            });
-            const data = await res.json();
-            if (res.ok) {
-                setShowImportModal(false);
-                fetchCustomers();
-                Swal.fire({ icon: 'success', title: 'Sinkronisasi Berhasil!', text: `${data.count} Pelanggan PPPoE Mikrotik telah dideteksi ke Database JARFI.`, background: '#1e293b', color: '#fff' });
-            } else {
-                Swal.fire({ icon: 'error', title: 'Gagal', text: data.error, background: '#1e293b', color: '#fff' });
-            }
-        } catch {
-            Swal.fire({ icon: 'error', title: 'Error Sync', text: 'Terjadi kesalahan sistem saat menyimpan ke MySQL', background: '#1e293b', color: '#fff' });
-        } finally {
-            setImporting(false);
-            setMikrotikSecrets([]);
-            setImportRouterId('');
-        }
-    };
-
-    const closeForm = () => {
-        setShowForm(false);
-        setIsEditing(false);
-        setEditId(null);
-        setFormData({ user_id: '', name: '', phone: '', router_id: '', package_id: '', pppoe_username: '', pppoe_password: '', due_date: 1, latitude: '', longitude: '', odp_id: '' });
-    };
+    const totalPages = Math.ceil(filteredCustomers.length / 30);
+    const paginatedCustomers = filteredCustomers.slice((currentPage - 1) * 30, currentPage * 30);
 
     return (
-        <div className="animate-in fade-in duration-500 pb-10">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                <div>
-                    <h3 className="text-3xl font-bold text-white">Daftar Pelanggan</h3>
-                    <p className="text-slate-400 mt-1">Data pelanggan & sinkronisasi PPPoE Mikrotik</p>
+        <div className="min-h-screen bg-slate-50 dark:bg-[#020617] transition-colors pb-24 pt-32 w-full space-y-10 animate-in fade-in duration-500">
+            {/* Header Vyber Style */}
+            <div className="flex justify-between items-center mb-8">
+                <div className="flex items-center gap-6">
+                    <div>
+                        <h1 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight uppercase">Manajemen Pelanggan</h1>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Monitoring dan provisi node pelanggan secara real-time</p>
+                    </div>
+                    {isSyncing && (
+                        <div className="flex items-center gap-3 px-4 py-2 bg-accent/5 dark:bg-accent/10 rounded-full animate-in slide-in-from-left-4 duration-300 border border-accent/10">
+                            <Loader2 className="w-4 h-4 text-accent animate-spin" />
+                            <span className="text-[10px] font-black text-accent uppercase tracking-widest">Sinkronisasi Jaringan...</span>
+                        </div>
+                    )}
                 </div>
-                <div className="flex flex-wrap gap-4">
-                    <button
-                        onClick={() => setShowImportModal(true)}
-                        className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 font-bold py-2.5 px-5 rounded-xl transition-all border border-blue-500/30 shadow-md flex items-center gap-2"
+                <div className="flex items-center gap-4">
+                    <button 
+                        onClick={syncOltData}
+                        disabled={isSyncing}
+                        className="bg-accent/5 hover:bg-accent/10 text-accent font-black py-3 px-6 rounded-2xl transition-all border border-accent/10 flex items-center gap-3 uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-50"
                     >
-                        <RefreshCw className="w-5 h-5" /> Live Mikrotik
+                        {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                        Sync OLT
                     </button>
-                    <button
-                        onClick={() => showForm ? closeForm() : setShowForm(true)}
-                        className={`${showForm ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-indigo-500 hover:bg-indigo-400 text-white'} font-bold py-2.5 px-6 rounded-xl transition-all shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] flex items-center gap-2`}
+                    <div className="flex bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-1 shadow-sm">
+                        <button 
+                            onClick={() => setViewMode('table')}
+                            className={`p-2 rounded-lg transition-all ${viewMode === 'table' ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white shadow-inner' : 'text-slate-400 hover:text-slate-600'}`}
+                            title="Tampilan Tabel"
+                        >
+                            <MoreVertical className="w-4 h-4 rotate-90" />
+                        </button>
+                        <button 
+                            onClick={() => setViewMode('grid')}
+                            className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white shadow-inner' : 'text-slate-400 hover:text-slate-600'}`}
+                            title="Tampilan Grid"
+                        >
+                            <Box className="w-4 h-4" />
+                        </button>
+                    </div>
+                    <button 
+                        onClick={syncMikrotikData} 
+                        disabled={isSyncing}
+                        className="bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-600 font-black py-3 px-6 rounded-2xl transition-all border border-indigo-600/10 flex items-center gap-3 uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-50"
                     >
-                        {showForm ? 'Batal' : '+ Pelanggan Baru'}
+                        {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RouterIcon className="w-4 h-4" />}
+                        Sync MikroTik
+                    </button>
+                    <button 
+                        onClick={() => fetchData(true)} 
+                        disabled={isSyncing}
+                        className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+                    >
+                        <RefreshCw className={`w-4 h-4 text-slate-600 dark:text-slate-400 ${isSyncing ? 'animate-spin' : ''}`} />
+                        <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">Refresh</span>
+                    </button>
+                    <button onClick={() => { setIsEditing(false); setFormData({ user_id: '', name: '', phone: '', router_id: '', package_id: '', pppoe_username: '', pppoe_password: '', due_date: 1, latitude: '', longitude: '', odp_id: '' }); setShowForm(true); }} className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-95">
+                        + Tambah Pelanggan
                     </button>
                 </div>
             </div>
 
-            {showImportModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-slate-800 w-full max-w-4xl p-6 rounded-3xl border border-white/10 shadow-2xl flex flex-col max-h-[90vh]">
-                        <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
-                            <h4 className="text-xl font-bold text-white flex items-center gap-2">
-                                <RefreshCw className="text-blue-400" />
-                                Sinkronisasi PPPoE Live
-                            </h4>
-                            <button
-                                onClick={() => { setShowImportModal(false); setMikrotikSecrets([]); setImportRouterId(''); }}
-                                className="text-slate-400 hover:text-white transition-colors bg-slate-700/50 hover:bg-slate-700 p-2 rounded-full"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                {stats.map((stat, i) => (
+                    <div key={i} className="bg-white dark:bg-slate-900 p-6 rounded-[24px] border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 hover:shadow-md dark:hover:shadow-indigo-900/10 transition-all group">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{stat.label}</p>
+                                <p className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter">{stat.value}</p>
+                            </div>
+                            <div className="w-16 h-10 opacity-30 group-hover:opacity-100 transition-opacity">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={mockSparkline}>
+                                        <Area type="monotone" dataKey="v" stroke={stat.color} fill={stat.color} fillOpacity={0.1} strokeWidth={2} isAnimationActive={false} />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
                         </div>
-
-                        <div className="mb-4">
-                            <label className="block text-sm text-slate-400 mb-1.5 font-medium">1. Pilih Router Target untuk Memindai Akun PPPoE</label>
-                            <select onChange={(e) => fetchMikrotikSecrets(e.target.value)} value={importRouterId} className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-400 transition-colors shadow-inner">
-                                <option value="">-- Pilih Router --</option>
-                                {routers.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}
-                            </select>
+                        <div className="flex items-center gap-2 pt-2 border-t border-slate-50 dark:border-slate-800">
+                            <div className={`p-1.5 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-800`}>
+                                <stat.icon className="w-3 h-3" style={{ color: stat.color }} />
+                            </div>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">{stat.status}</span>
                         </div>
+                    </div>
+                ))}
+            </div>
 
-                        <div className="flex-1 overflow-y-auto min-h-[350px] border border-white/10 rounded-xl bg-slate-900/50 relative">
-                            <table className="w-full text-left border-collapse">
-                                <thead className="sticky top-0 bg-slate-800 border-b border-white/10 shadow-sm z-10">
-                                    <tr className="uppercase text-xs tracking-wider font-semibold text-slate-300">
-                                        <th className="p-4">PPPoE Name</th>
-                                        <th className="p-4">Password</th>
-                                        <th className="p-4">Profile</th>
-                                        <th className="p-4 text-center">Status DB</th>
+            {/* Table Area / Grid View */}
+            <div className="space-y-6">
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="relative w-full md:w-[400px]">
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
+                        <input 
+                            type="text" 
+                            placeholder="Cari ID PPPOE atau Nama..." 
+                            value={searchTerm}
+                            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                            className="w-full pl-18 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-accent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600 outline-none"
+                        />
+                    </div>
+                    <button className="px-10 py-4 bg-accent text-white rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-lg shadow-accent/20 hover:bg-accent/90 transition-all active:scale-95">
+                        Cari Sekarang
+                    </button>
+                </div>
+
+                {loading ? (
+                    <div className="p-32 text-center bg-white dark:bg-slate-900/50 rounded-[32px] border border-slate-100 dark:border-white/5 shadow-sm space-y-4 backdrop-blur-xl">
+                        <div className="flex justify-center">
+                            <div className="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                                <Loader2 className="w-8 h-8 text-indigo-600 dark:text-indigo-400 animate-spin" />
+                            </div>
+                        </div>
+                        <p className="text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.2em] animate-pulse text-[10px]">Menginisialisasi Jaringan...</p>
+                    </div>
+                ) : viewMode === 'table' ? (
+                    <div className="glass rounded-[40px] border border-white/10 bg-white dark:bg-slate-900/50 shadow-2xl relative overflow-hidden backdrop-blur-xl group">
+                        <div className="overflow-x-auto custom-scrollbar">
+                            <table className="w-full text-left border-collapse min-w-[1500px]">
+                                <thead>
+                                    <tr className="bg-slate-50/50 dark:bg-white/2 text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] border-b border-slate-100 dark:border-white/5">
+                                        <th className="px-8 py-8 sticky left-0 bg-white dark:bg-slate-900 z-20 border-r border-slate-100 dark:border-white/5">#</th>
+                                        <th className="px-8 py-8 sticky left-[80px] bg-white dark:bg-slate-900 z-20 border-r border-slate-100 dark:border-white/5">ID Pelanggan</th>
+                                        <th className="px-8 py-8">Username PPPoE</th>
+                                        <th className="px-8 py-8">Pembayaran</th>
+                                        <th className="px-8 py-8">Koneksi</th>
+                                        <th className="px-8 py-8">Status</th>
+                                        <th className="px-8 py-8">ONU ID</th>
+                                        <th className="px-8 py-8">RX (dBm)</th>
+                                        <th className="px-8 py-8">TX (dBm)</th>
+                                        <th className="px-8 py-8">Nama OLT</th>
+                                        <th className="px-8 py-8">Tipe OLT</th>
+                                        <th className="px-8 py-8">MAC MikroTik</th>
+                                        <th className="px-8 py-8">MAC ONU</th>
+                                        <th className="px-8 py-8">ID ODP</th>
+                                        <th className="px-8 py-8">Password</th>
+                                        <th className="px-8 py-8">Terakhir Putus</th>
+                                        <th className="px-8 py-8 text-right">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-white/5 text-sm">
-                                    {mikrotikSecrets.length === 0 ? (
-                                        <tr key="empty-secrets"><td colSpan={4} className="p-12 text-center text-slate-500 font-medium">Pilih router di atas agar sistem bisa mendeteksi isi mikrotiknya sekarang juga.</td></tr>
-                                    ) : (
-                                        mikrotikSecrets.map((s: any, idx: number) => (
-                                            <tr key={s.id || `secret-${idx}`} className="hover:bg-white/5 transition-colors">
-                                                <td className="p-4 font-mono font-bold text-white text-lg">{s.name}</td>
-                                                <td className="p-4 font-mono text-slate-400">{s.password || '-'}</td>
-                                                <td className="p-4 text-blue-400 font-bold uppercase text-xs">{s.profile}</td>
-                                                <td className="p-4 text-center">
-                                                    {s.is_synced ? (
-                                                        <span className="px-3 py-1.5 rounded-full bg-slate-500/20 text-slate-400 text-xs font-bold whitespace-nowrap border border-slate-500/30">Terdaftar</span>
-                                                    ) : (
-                                                        <span className="px-3 py-1.5 rounded-full bg-green-500/20 text-green-400 text-xs font-bold whitespace-nowrap border border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.3)]">Baru!</span>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
+                        <tbody className="divide-y divide-slate-50 dark:divide-white/5">
+                            {paginatedCustomers.map((c, i) => (
+                                <tr key={c.id} className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-all group">
+                                    <td className="px-8 py-3 text-slate-400 dark:text-slate-500 font-bold text-[11px] sticky left-0 bg-white dark:bg-slate-900 z-10 border-r border-slate-50 dark:border-white/5 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 transition-colors">
+                                        {((currentPage-1)*itemsPerPage) + i + 1}
+                                    </td>
+                                    <td className="px-8 py-3 font-black text-slate-800 dark:text-white text-sm tracking-tight sticky left-[80px] bg-white dark:bg-slate-900 z-10 border-r border-slate-50 dark:border-white/5 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 transition-colors">
+                                        {c.user_id || 'N/A'}
+                                    </td>
+                                    <td className="px-8 py-3 text-indigo-600 dark:text-accent font-black text-sm tracking-tight">{c.pppoe_username}</td>
+                                    <td className="px-8 py-3">
+                                        <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${c.payment_status === 'paid' ? 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-500 border border-white/5'}`}>
+                                            {c.payment_status === 'paid' ? 'TERBAYAR' : 'TERTUNDA'}
+                                        </span>
+                                    </td>
+                                     <td className="px-8 py-3">
+                                        <div className="flex flex-col gap-2">
+                                            <span className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest w-fit shadow-md transition-all ${c.status === 'active' ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-rose-500 text-white shadow-rose-500/20'}`}>
+                                                {c.status === 'active' ? 'terhubung' : 'nonaktif'}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td className="px-8 py-3 font-mono text-sm text-slate-400 dark:text-slate-500 tracking-tighter">{c.onu_id || 'ONU01'}</td>
+                                    <td className="px-8 py-3">
+                                        <div className={`px-4 py-2 rounded-xl text-center font-black text-sm tracking-tighter shadow-sm ${c.rx < -27 ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : c.rx < -24 ? 'bg-yellow-400 text-slate-800' : 'bg-accent text-white shadow-lg shadow-accent/20'}`}>
+                                            {c.rx?.toFixed(2) || '-22.50'}
+                                        </div>
+                                    </td>
+                                    <td className="px-8 py-3">
+                                        <div className="px-4 py-2 bg-accent/20 text-accent rounded-xl text-center font-black text-sm tracking-tighter border border-accent/20">
+                                            {c.tx?.toFixed(2) || '2.45'}
+                                        </div>
+                                    </td>
+                                    <td className="px-8 py-3 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{c.olt_name || '01-OLT'}</td>
+                                    <td className="px-8 py-3 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{c.olt_type || 'HIOSO'}</td>
+                                    <td className="px-8 py-3 font-mono text-[10px] text-slate-400 dark:text-slate-500">{c.mikrotik_mac || '-'}</td>
+                                    <td className="px-8 py-3 font-mono text-[10px] text-slate-400 dark:text-slate-500">{c.onu_mac || '-'}</td>
+                                    <td className="px-8 py-3">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-[11px] font-black text-slate-800 dark:text-white uppercase leading-none tracking-tight">{c.odp_name || 'N/A'}</span>
+                                            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1.5 opacity-60">{c.region_name || 'WILAYAH'}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-8 py-3 font-mono text-sm text-slate-400 dark:text-slate-500">*******</td>
+                                    <td className="px-8 py-3 text-[11px] font-bold text-rose-500 dark:text-rose-400 uppercase tracking-widest">{c.last_disconnect || 'TIDAK ADA'}</td>
+                                    <td className="px-8 py-3 text-right">
+                                        <div className="flex justify-end gap-3">
+                                                    <button onClick={() => { setSelectedCustomer(c); setShowDetail(true); }} className="p-3 bg-slate-50 dark:bg-white/5 hover:bg-accent/10 text-slate-400 dark:text-slate-500 hover:text-accent rounded-xl transition-all border border-slate-100 dark:border-white/5 shadow-sm active:scale-90">
+                                                        <Eye className="w-4 h-4" />
+                                                    </button>
+                                                    <button onClick={() => openEditForm(c)} className="p-3 bg-slate-50 dark:bg-white/5 hover:bg-indigo-500/10 text-slate-400 dark:text-slate-500 hover:text-indigo-500 rounded-xl transition-all border border-slate-100 dark:border-white/5 shadow-sm active:scale-90">
+                                                        <Edit className="w-4 h-4" />
+                                                    </button>
+                                                    <button onClick={() => handleDelete(c.id, c.name)} className="p-3 bg-slate-50 dark:bg-white/5 hover:bg-red-500/10 text-slate-400 dark:text-slate-500 hover:text-red-500 rounded-xl transition-all border border-slate-100 dark:border-white/5 shadow-sm active:scale-90">
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
-
-                        <div className="mt-6 flex justify-between items-center bg-slate-900/50 p-4 rounded-xl border border-white/5">
-                            <p className="text-sm text-slate-400">Total: <span className="font-bold text-white px-2">{mikrotikSecrets.length} akun</span> | <span className="font-bold text-green-400 px-1">{mikrotikSecrets.filter((s: any) => !s.is_synced).length} belum disinkronisasi</span></p>
-                            <button
-                                type="button"
-                                onClick={handleSyncSecrets}
-                                disabled={importing || mikrotikSecrets.filter((s: any) => !s.is_synced).length === 0}
-                                className="px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
-                            >
-                                <DownloadCloud className="w-5 h-5" />
-                                {mikrotikSecrets.filter((s: any) => !s.is_synced).length > 0 ? `Sinkron ${mikrotikSecrets.filter((s: any) => !s.is_synced).length} Akun` : 'Sudah Sinkron'}
-                            </button>
-                        </div>
                     </div>
-                </div>
-            )}
-
-            {showForm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-md animate-in fade-in duration-300">
-                    <div className="bg-slate-800 w-full max-w-5xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[95vh] animate-in zoom-in-95 duration-300">
-                        <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/30">
-                                    {isEditing ? <Edit className="w-6 h-6" /> : <RefreshCw className="w-6 h-6" />}
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-4 gap-8 animate-in slide-in-from-bottom-4 duration-500 w-full relative">
+                        {isSyncing && (
+                            <div className="absolute -top-4 left-0 right-0 h-1 bg-accent animate-pulse z-50 rounded-full" />
+                        )}
+                        {paginatedCustomers.map((c) => (
+                            <div key={c.id} className="bg-white dark:bg-slate-900/50 rounded-[40px] border border-slate-200 dark:border-white/5 shadow-xl p-8 space-y-8 hover:shadow-2xl hover:shadow-accent/5 hover:-translate-y-2 transition-all duration-500 group relative overflow-hidden cursor-default backdrop-blur-xl">
+                                <div className={`absolute top-0 right-0 w-48 h-48 -mr-12 -mt-12 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity`}>
+                                    <Signal className="w-full h-full text-accent" />
                                 </div>
-                                <div>
-                                    <h4 className="text-xl font-black text-white">{isEditing ? 'Edit Profil & Sinkronisasi' : 'Registrasi Pelanggan Baru'}</h4>
-                                    <p className="text-xs text-slate-400 font-medium">Lengkapi data untuk sinkronisasi otomatis ke Mikrotik</p>
-                                </div>
-                            </div>
-                            <button onClick={closeForm} className="p-2 hover:bg-white/10 rounded-xl text-slate-400 transition-colors">
-                                <X className="w-6 h-6" />
-                            </button>
-                        </div>
-                        
-                        <div className="p-8 overflow-y-auto">
-                            <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <div className="space-y-1.5">
-                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Nama Lengkap</label>
-                                    <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full clean-input" placeholder="Contoh: Budi Santoso" />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Nomor WhatsApp</label>
-                                    <input type="text" required value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full clean-input" placeholder="08123456789" />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Pilih Router Mikrotik {isEditing && <span className="text-orange-400 text-[10px] ml-2">(Locked)</span>}</label>
-                                    <select required value={formData.router_id} disabled={isEditing} onChange={(e) => setFormData({ ...formData, router_id: e.target.value })} className="w-full clean-input disabled:opacity-50 appearance-none">
-                                        <option value="">-- Pilih Router --</option>
-                                        {routers.map((r: any) => <option key={r.id} value={r.id}>{r.name} ({r.ip_address})</option>)}
-                                    </select>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">PPPoE Username {isEditing && <span className="text-orange-400 text-[10px] ml-2">(Locked)</span>}</label>
-                                    <input type="text" required value={formData.pppoe_username} disabled={isEditing} onChange={(e) => setFormData({ ...formData, pppoe_username: e.target.value })} className="w-full clean-input disabled:opacity-50 font-mono font-bold" placeholder="username_ppp" />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">{isEditing ? 'Ubah Sandi PPPoE' : 'PPPoE Password'}</label>
-                                    <input type="text" required={!isEditing} value={formData.pppoe_password} onChange={(e) => setFormData({ ...formData, pppoe_password: e.target.value })} className="w-full clean-input font-mono" placeholder={isEditing ? 'Biarkan kosong jika tetap' : 'password123'} />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Jatuh Tempo (Tanggal)</label>
-                                    <select required value={formData.due_date} onChange={(e) => setFormData({ ...formData, due_date: parseInt(e.target.value) })} className="w-full clean-input appearance-none">
-                                        {[...Array(31)].map((_, i) => (
-                                            <option key={i + 1} value={i + 1}>Tanggal {i + 1}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Titik ODP Jaringan</label>
-                                    <select value={formData.odp_id} onChange={(e) => setFormData({ ...formData, odp_id: e.target.value })} className="w-full clean-input appearance-none">
-                                        <option value="">-- Tanpa ODP --</option>
-                                        {odps.map((o: any) => <option key={o.id} value={o.id}>{o.name} ({o.used_ports}/{o.capacity})</option>)}
-                                    </select>
-                                </div>
-                                <div className="lg:col-span-3 space-y-2">
-                                    <label className="text-xs font-black uppercase tracking-widest text-indigo-500 dark:text-indigo-400 ml-1 flex items-center gap-2">
-                                        <MapPin className="w-4 h-4" /> Pilih Titik Lokasi di Peta
-                                    </label>
-                                    <LocationPicker 
-                                        initialLat={formData.latitude} 
-                                        initialLng={formData.longitude} 
-                                        onLocationChange={(lat, lng) => setFormData({ ...formData, latitude: lat, longitude: lng })} 
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Latitude</label>
-                                    <input type="text" value={formData.latitude} onChange={(e) => setFormData({ ...formData, latitude: e.target.value })} className="w-full clean-input" placeholder="-6.2088" />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Longitude</label>
-                                    <input type="text" value={formData.longitude} onChange={(e) => setFormData({ ...formData, longitude: e.target.value })} className="w-full clean-input" placeholder="106.8456" />
-                                </div>
-                                 <div className="space-y-1.5">
-                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Profil Mikrotik (Live)</label>
-                                    <select 
-                                        required 
-                                        value={packages.find((p: any) => p.id.toString() === formData.package_id)?.name || ''} 
-                                        onChange={(e) => {
-                                            const selectedProfileName = e.target.value;
-                                            // Auto-match with local billing package by name (case-insensitive)
-                                            const matchingPackage = packages.find((p: any) => 
-                                                p.name.trim().toLowerCase() === selectedProfileName.trim().toLowerCase()
-                                            );
-                                            
-                                            if (matchingPackage) {
-                                                setFormData({ ...formData, package_id: (matchingPackage as any).id.toString() });
-                                            } else {
-                                                Swal.fire({ 
-                                                    icon: 'info', 
-                                                    title: 'Paket Tidak Terhubung', 
-                                                    text: `Profil "${selectedProfileName}" tidak ditemukan di database penagihan. Silakan pilih paket manual di kolom sebelah.`,
-                                                    background: 'var(--card-bg)', 
-                                                    color: 'var(--foreground)' 
-                                                });
-                                            }
-                                        }} 
-                                        className="w-full clean-input text-indigo-600 dark:text-indigo-400 font-bold appearance-none cursor-pointer"
-                                    >
-                                        <option value="">-- Deteksi Profile Router --</option>
-                                        {pppProfiles.map((p: any) => (
-                                            <option key={p.name} value={p.name}>{p.name} {p['rate-limit'] ? `(${p['rate-limit']})` : ''}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Sistem Penagihan</label>
-                                    <select required value={formData.package_id} onChange={(e) => setFormData({ ...formData, package_id: e.target.value })} className="w-full clean-input font-bold appearance-none">
-                                        <option value="">-- Pilih Paket --</option>
-                                        {packages.map((p: any) => <option key={p.id} value={p.id}>{p.name} - Rp {parseInt(p.price).toLocaleString()}</option>)}
-                                    </select>
-                                </div>
-
-                                <div className="lg:col-span-3 pt-6 flex justify-end gap-4 border-t border-(--glass-border) mt-4">
-                                    <button type="button" onClick={closeForm} className="px-8 py-3.5 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-bold transition-all">Batal</button>
-                                    <button type="submit" className="px-10 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-widest transition-all shadow-lg hover:shadow-indigo-500/30">
-                                        {isEditing ? 'Simpan Perubahan' : 'Daftarkan Pelanggan'}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Content View: Table (Desktop) & Cards (Mobile) */}
-            <div className="space-y-4">
-                {/* Desktop Table View */}
-                <div className="hidden md:block glass rounded-3xl overflow-hidden shadow-xl">
-                    <div className="p-6 border-b border-(--glass-border) flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <h4 className="text-xl font-bold text-primary">Database Pelanggan</h4>
-                        <div className="relative w-full md:w-96">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                            <input 
-                                type="text" 
-                                placeholder="Cari nama, username, atau nomor WA..." 
-                                value={searchTerm}
-                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                                className="w-full bg-slate-100 dark:bg-slate-900/50 border border-(--glass-border) rounded-xl py-2.5 pl-11 pr-4 text-sm text-primary focus:outline-none focus:border-indigo-500 transition-all"
-                            />
-                        </div>
-                    </div>
-                    <div className="overflow-x-auto min-h-[300px]">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-white/5 uppercase text-[10px] tracking-widest font-black text-slate-400 border-b border-white/5">
-                                    <th className="p-5">Customer</th>
-                                    <th className="p-5">PPPoE User</th>
-                                    <th className="p-5">Paket</th>
-                                    <th className="p-5">Router</th>
-                                    <th className="p-5">Status Akun</th>
-                                    <th className="p-5">Koneksi</th>
-                                    <th className="p-5 text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5 text-sm">
-                                {loading ? (
-                                    <tr><td colSpan={7} className="p-20 text-center text-slate-500 animate-pulse font-bold tracking-widest uppercase">Memuat Data...</td></tr>
-                                ) : customers.length === 0 ? (
-                                    <tr><td colSpan={7} className="p-20 text-center text-slate-500">Tidak ada pelanggan ditemukan.</td></tr>
-                                ) : (
-                                    customers
-                                        .filter((c: any) => 
-                                            (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                            (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                            (c.phone && c.phone.includes(searchTerm))
-                                        )
-                                        .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                                        .map((c: any) => (
-                                            <tr key={c.id} className="hover:bg-white/5 transition-all group">
-                                                <td className="p-5">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-inner">
-                                                            <Users className="w-5 h-5" />
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-bold text-primary text-base leading-tight">{c.name}</p>
-                                                            <p className="text-[11px] text-slate-500 font-medium">ID: #{c.id} | {c.phone || '-'}</p>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="p-5">
-                                                    <p className="text-white font-mono font-bold">{c.pppoe_username}</p>
-                                                </td>
-                                                <td className="p-5">
-                                                    {c.package_name ? (
-                                                        <div className="flex flex-col gap-1">
-                                                            <span className="px-3 py-1.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[11px] font-black uppercase tracking-wider w-fit">
-                                                                {c.package_name}
-                                                            </span>
-                                                            {(() => {
-                                                                const traffic = getTrafficInfo(c.pppoe_username);
-                                                                if (traffic && traffic.profile && traffic.profile !== c.package_name) {
-                                                                    return <span className="text-[9px] text-slate-500 ml-1 font-bold italic">Live: {traffic.profile}</span>;
-                                                                }
-                                                                return null;
-                                                            })()}
-                                                        </div>
-                                                    ) : (
-                                                        <div className="flex flex-col gap-1">
-                                                            {(() => {
-                                                                const traffic = getTrafficInfo(c.pppoe_username);
-                                                                if (traffic && traffic.profile) {
-                                                                    return (
-                                                                        <span className="px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 w-fit">
-                                                                            <Zap className="w-3.5 h-3.5" /> {traffic.profile}
-                                                                        </span>
-                                                                    );
-                                                                }
-                                                                return (
-                                                                    <span className="px-3 py-1.5 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 w-fit">
-                                                                        <ShieldAlert className="w-3.5 h-3.5" /> Tanpa Paket
-                                                                    </span>
-                                                                );
-                                                            })()}
-                                                        </div>
-                                                    )}
-                                                </td>
-                                                <td className="p-5">
-                                                    <div className="flex items-center gap-2 text-slate-400">
-                                                        <Wifi className="w-3.5 h-3.5 text-slate-500" />
-                                                        <span className="text-xs font-bold">{c.router_name}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="p-5">
-                                                    <span className={`px-2.5 py-1.5 rounded-full text-[10px] uppercase font-black tracking-widest ${c.status === 'ACTIVE' ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30' : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'}`}>
-                                                        {c.status}
-                                                    </span>
-                                                </td>
-                                                <td className="p-5">
-                                                    {(() => {
-                                                        const traffic = getTrafficInfo(c.pppoe_username);
-                                                        if (traffic) {
-                                                            return (
-                                                                <div className="flex flex-col gap-2">
-                                                                    <div className="flex items-center gap-2.5">
-                                                                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse"></div>
-                                                                        <div>
-                                                                            <p className="text-emerald-400 font-black text-[10px] uppercase tracking-wider">Online</p>
-                                                                            <p className="text-slate-500 text-[10px] font-bold">{traffic.uptime} | {traffic.address}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-3 text-[10px] font-bold">
-                                                                        <span className="text-blue-400 flex items-center gap-1" title="Download"><ArrowDown className="w-3 h-3"/> {traffic.txSpeed > 1000 ? (traffic.txSpeed / 1000).toFixed(2) + ' Mbps' : traffic.txSpeed?.toFixed(1) + ' Kbps'}</span>
-                                                                        <span className="text-green-400 flex items-center gap-1" title="Upload"><ArrowUp className="w-3 h-3"/> {traffic.rxSpeed > 1000 ? (traffic.rxSpeed / 1000).toFixed(2) + ' Mbps' : traffic.rxSpeed?.toFixed(1) + ' Kbps'}</span>
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        }
-                                                        return (
-                                                            <div className="flex items-center gap-2.5">
-                                                                <div className="w-2.5 h-2.5 rounded-full bg-slate-600"></div>
-                                                                <span className="text-slate-600 font-bold text-[10px] uppercase tracking-wider">Offline</span>
-                                                            </div>
-                                                        );
-                                                    })()}
-                                                </td>
-                                                <td className="p-5 text-right">
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        <button onClick={() => openEditForm(c)} title="Edit Profil" className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 hover:scale-110 transition-all">
-                                                            <Edit className="w-4 h-4" />
-                                                        </button>
-                                                        <button onClick={() => handleIsolir(c.id, c.name)} title="Isolir" className="p-2.5 rounded-xl bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 border border-orange-500/20 hover:scale-110 transition-all">
-                                                            <ShieldAlert className="w-4 h-4" />
-                                                        </button>
-                                                        <button onClick={() => handleDelete(c.id, c.name)} title="Hapus" className="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 hover:scale-110 transition-all">
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                {/* Mobile Card View */}
-                <div className="md:hidden space-y-4">
-                    <div className="glass p-4 rounded-2xl border border-white/10 mb-4">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                            <input 
-                                type="text" 
-                                placeholder="Cari pelanggan..." 
-                                value={searchTerm}
-                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                                className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500"
-                            />
-                        </div>
-                    </div>
-                    {loading ? (
-                        <div className="p-10 text-center text-slate-500 animate-pulse">Memuat...</div>
-                    ) : customers.length === 0 ? (
-                        <div className="p-10 text-center text-slate-500">Kosong</div>
-                    ) : (
-                        customers
-                            .filter((c: any) => 
-                                (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                (c.phone && c.phone.includes(searchTerm))
-                            )
-                            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                            .map((c: any) => (
-                                <div key={c.id} className="glass p-5 rounded-3xl border border-white/10 space-y-4 shadow-xl">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-inner">
-                                                <Users className="w-6 h-6" />
-                                            </div>
-                                            <div>
-                                                <h4 className="font-black text-white text-lg leading-tight">{c.name}</h4>
-                                                <p className="text-xs text-slate-500 font-bold tracking-wider">#{c.id} | {c.phone || 'No Phone'}</p>
-                                            </div>
+                                
+                                <div className="flex justify-between items-start relative z-10">
+                                    <div className="flex items-center gap-5">
+                                        <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 border border-indigo-500/10 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-inner">
+                                            <Users className="w-7 h-7" />
                                         </div>
-                                        <div className="flex gap-2">
-                                            <button onClick={() => openEditForm(c)} className="p-3 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 active:scale-95 transition-all">
-                                                <Edit className="w-5 h-5" />
-                                            </button>
+                                        <div className="max-w-[140px]">
+                                            <h3 className="text-sm font-black text-primary uppercase truncate group-hover:text-accent transition-colors tracking-tight leading-tight">{c.name}</h3>
+                                            <p className="text-[10px] font-bold text-muted uppercase tracking-[0.2em] mt-2 opacity-50">{c.user_id || 'ID PELANGGAN'}</p>
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
-                                        <div className="bg-slate-900/50 p-3 rounded-2xl">
-                                            <p className="text-[9px] uppercase font-black text-slate-500 mb-1">Username</p>
-                                            <p className="font-mono text-xs text-slate-200 truncate">{c.pppoe_username}</p>
-                                        </div>
-                                        <div className="bg-slate-900/50 p-3 rounded-2xl">
-                                            <p className="text-[9px] uppercase font-black text-slate-500 mb-1">Paket</p>
-                                            <p className="font-black text-xs text-indigo-400 truncate uppercase">
-                                                {c.package_name || (() => {
-                                                    const traffic = getTrafficInfo(c.pppoe_username);
-                                                    return traffic?.profile || 'N/A';
-                                                })()}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="bg-indigo-500/5 p-3 rounded-2xl flex items-center justify-between border border-white/5">
-                                        <span className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Router: {c.router_name}</span>
-                                        <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase ${c.status === 'ACTIVE' ? 'text-teal-400' : 'text-orange-400'}`}>
-                                            {c.status}
+                                    <div className="absolute top-8 right-8">
+                                        <span className={`px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest shadow-2xl whitespace-nowrap border border-white/20 transition-all duration-500 ${c.status === 'active' ? 'bg-emerald-500 text-white shadow-emerald-500/40' : 'bg-rose-500 text-white shadow-rose-500/40'}`}>
+                                            {c.status === 'active' ? 'terhubung' : 'nonaktif'}
                                         </span>
                                     </div>
-                                    {/* Connection Status */}
-                                    {(() => {
-                                        const traffic = getTrafficInfo(c.pppoe_username);
-                                        return (
-                                            <div className={`p-3 rounded-2xl flex flex-col gap-2 border ${traffic ? 'bg-emerald-500/5 border-emerald-500/10' : 'bg-slate-900/30 border-white/5'}`}>
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-3 h-3 rounded-full ${traffic ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse' : 'bg-slate-600'}`}></div>
-                                                    <div className="flex-1">
-                                                        <p className={`font-black text-[10px] uppercase tracking-wider ${traffic ? 'text-emerald-400' : 'text-slate-600'}`}>{traffic ? 'Online' : 'Offline'}</p>
-                                                        {traffic && <p className="text-slate-500 text-[10px] font-bold">Uptime: {traffic.uptime} | IP: {traffic.address}</p>}
-                                                    </div>
+                                </div>
+ 
+                                <div className="space-y-6 relative z-10">
+                                    <div className="p-6 bg-slate-50/50 dark:bg-white/5 rounded-3xl space-y-4 group-hover:bg-slate-100/50 dark:group-hover:bg-white/10 transition-all border border-slate-100 dark:border-white/5 shadow-inner">
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-2 h-2 rounded-full ${c.rx < -27 ? 'bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-accent animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
+                                                <div className="flex flex-col">
+                                                    <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Kesehatan Optik</span>
+                                                    <span className="text-[7px] font-bold text-accent uppercase tracking-widest opacity-60 flex items-center gap-1">
+                                                        <Activity className="w-2 h-2" /> Live Pulse
+                                                    </span>
                                                 </div>
-                                                {traffic && (
-                                                    <div className="flex items-center gap-4 text-[10px] font-bold pt-1">
-                                                        <span className="text-blue-400 flex items-center gap-1"><ArrowDown className="w-3 h-3"/> {traffic.txSpeed > 1000 ? (traffic.txSpeed / 1000).toFixed(2) + ' Mbps' : traffic.txSpeed?.toFixed(1) + ' Kbps'}</span>
-                                                        <span className="text-green-400 flex items-center gap-1"><ArrowUp className="w-3 h-3"/> {traffic.rxSpeed > 1000 ? (traffic.rxSpeed / 1000).toFixed(2) + ' Mbps' : traffic.rxSpeed?.toFixed(1) + ' Kbps'}</span>
-                                                    </div>
-                                                )}
                                             </div>
-                                        );
-                                    })()}
-                                    <div className="flex gap-2 pt-2">
-                                        <button onClick={() => handleIsolir(c.id, c.name)} className="flex-1 py-3 rounded-xl bg-orange-500/10 text-orange-400 border border-orange-500/20 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
-                                            <ShieldAlert className="w-3 h-3" /> Isolir
-                                        </button>
-                                        <button onClick={() => handleDelete(c.id, c.name)} className="flex-1 py-3 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
-                                            <Trash2 className="w-3 h-3" /> Hapus
-                                        </button>
+                                            <span className={`text-base font-black tracking-tighter ${c.rx < -27 ? 'text-rose-600' : 'text-slate-800 dark:text-white'}`}>{c.rx?.toFixed(2) || '-22.50'} <span className="text-[10px] text-muted-foreground ml-0.5 tracking-normal">dBm</span></span>
+                                        </div>
+                                        <div className="w-full h-2.5 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden p-0.5">
+                                            <div 
+                                                className={`h-full rounded-full transition-all duration-1000 ${c.rx < -27 ? 'bg-linear-to-r from-red-500 to-rose-600 shadow-[0_0_15px_rgba(244,63,94,0.4)]' : c.rx < -24 ? 'bg-linear-to-r from-yellow-400 to-orange-500' : 'bg-linear-to-r from-accent to-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]'}`} 
+                                                style={{ width: `${Math.min(100, Math.max(5, (c.rx + 40) * 2.5))}%` }}
+                                            />
+                                        </div>
+                                    </div>
+ 
+                                    <div className="grid grid-cols-2 gap-6 px-2">
+                                        <div className="space-y-1.5">
+                                            <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] opacity-60">ID PPPoE</p>
+                                            <p className="text-xs font-black text-indigo-600 dark:text-indigo-400 truncate tracking-tight uppercase">{c.pppoe_username}</p>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] opacity-60">Router Hub</p>
+                                            <p className="text-xs font-black text-slate-800 dark:text-slate-200 truncate tracking-tight uppercase">{c.router_name || 'GERBANG-01'}</p>
+                                        </div>
+                                    </div>
+ 
+                                    {/* Real-time Throughput (TX/RX) */}
+                                    <div className="pt-6 border-t border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50/30 dark:bg-white/2 -mx-8 px-8 py-5">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Unduh (RX)</span>
+                                            <div className="flex items-center gap-2 text-accent">
+                                                <ArrowDown className="w-4 h-4 animate-bounce" />
+                                                <span className="text-sm font-black tracking-tighter">
+                                                    {(() => {
+                                                        const traffic = getTrafficInfo(c.pppoe_username);
+                                                        if (!traffic) return '0.0 kbps';
+                                                        const rx = traffic.rx;
+                                                        if (rx >= 1000000) return (rx / 1000000).toFixed(1) + ' Mbps';
+                                                        if (rx >= 1000) return (rx / 1000).toFixed(1) + ' kbps';
+                                                        return rx.toFixed(0) + ' bps';
+                                                    })()}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="w-px h-10 bg-slate-200 dark:bg-white/5" />
+                                        <div className="flex flex-col items-end gap-1">
+                                            <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Unggah (TX)</span>
+                                            <div className="flex items-center gap-2 text-blue-500">
+                                                <span className="text-sm font-black tracking-tighter">
+                                                    {(() => {
+                                                        const traffic = getTrafficInfo(c.pppoe_username);
+                                                        if (!traffic) return '0.0 kbps';
+                                                        const tx = traffic.tx;
+                                                        if (tx >= 1000000) return (tx / 1000000).toFixed(1) + ' Mbps';
+                                                        if (tx >= 1000) return (tx / 1000).toFixed(1) + ' kbps';
+                                                        return tx.toFixed(0) + ' bps';
+                                                    })()}
+                                                </span>
+                                                <ArrowUp className="w-4 h-4" />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            ))
-                    )}
-                </div>
-
-                {/* Pagination Controls */}
-                {!loading && customers.length > 0 && (
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-8 px-2">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
-                            Showing <span className="text-white">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="text-white">{Math.min(currentPage * itemsPerPage, customers.filter((c: any) => (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length)}</span> 
-                            {" "} of <span className="text-white">{customers.filter((c: any) => (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length}</span> Entries
-                        </p>
-                        <div className="flex items-center gap-2">
-                            <button 
-                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                disabled={currentPage === 1}
-                                className="px-5 py-2.5 rounded-xl glass border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                            >
-                                Prev
-                            </button>
-                            <div className="hidden sm:flex gap-1">
-                                {(() => {
-                                    const totalPages = Math.ceil(customers.filter((c: any) => (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length / itemsPerPage);
-                                    const pages = [];
-                                    const showRange = 2; // Pages to show on either side of current
-
-                                    for (let i = 1; i <= totalPages; i++) {
-                                        if (
-                                            i === 1 || 
-                                            i === totalPages || 
-                                            (i >= currentPage - showRange && i <= currentPage + showRange)
-                                        ) {
-                                            pages.push(i);
-                                        } else if (i === currentPage - showRange - 1 || i === currentPage + showRange + 1) {
-                                            pages.push('...');
-                                        }
-                                    }
-
-                                    return pages.filter((v, i, a) => a.indexOf(v) === i).map((p, i) => (
-                                        typeof p === 'number' ? (
-                                            <button
-                                                key={i}
-                                                onClick={() => setCurrentPage(p)}
-                                                className={`w-10 h-10 rounded-xl font-black text-xs transition-all ${currentPage === p ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 border border-indigo-400/50' : 'glass border border-white/10 text-slate-500 hover:text-white'}`}
-                                            >
-                                                {p}
-                                            </button>
-                                        ) : (
-                                            <span key={i} className="w-10 h-10 flex items-center justify-center text-slate-600 font-bold">...</span>
-                                        )
-                                    ));
-                                })()}
+ 
+                                <div className="flex gap-3 pt-2 relative z-10">
+                                    <button onClick={() => { setSelectedCustomer(c); setShowDetail(true); }} className="flex-1 h-14 bg-slate-50 dark:bg-white/5 hover:bg-accent/10 text-slate-400 dark:text-slate-500 hover:text-accent rounded-[20px] transition-all border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm active:scale-95 group/btn" title="Lihat Detail">
+                                        <Eye className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                                    </button>
+                                    <button onClick={() => openEditForm(c)} className="flex-1 h-14 bg-slate-50 dark:bg-white/5 hover:bg-indigo-500/10 text-slate-400 dark:text-slate-500 hover:text-indigo-500 rounded-[20px] transition-all border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm active:scale-95 group/btn" title="Edit Pelanggan">
+                                        <Edit className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                                    </button>
+                                    <button onClick={() => handleDelete(c.id, c.name)} className="flex-1 h-14 bg-slate-50 dark:bg-white/5 hover:bg-red-500/10 text-slate-400 dark:text-slate-500 hover:text-red-500 rounded-[20px] transition-all border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm active:scale-95 group/btn" title="Hapus Pelanggan">
+                                        <Trash2 className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                                    </button>
+                                </div>
                             </div>
-                            <button 
-                                onClick={() => setCurrentPage(p => Math.min(Math.ceil(customers.filter((c: any) => (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length / itemsPerPage), p + 1))}
-                                disabled={currentPage === Math.ceil(customers.filter((c: any) => (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (c.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length / itemsPerPage)}
-                                className="px-5 py-2.5 rounded-xl glass border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                            >
-                                Next
+                        ))}
+                    </div>
+                )}
+
+                {/* Pagination */}
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-sm flex justify-between items-center">
+                    <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                        Halaman <span className="text-slate-900 dark:text-white">{currentPage}</span> dari <span className="text-slate-900 dark:text-white">{totalPages || 1}</span>
+                    </p>
+                    <div className="flex gap-3">
+                        <button 
+                            disabled={currentPage === 1} 
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            className="p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-400 dark:text-slate-500 disabled:opacity-30 transition-all"
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <button 
+                            disabled={currentPage === totalPages} 
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            className="p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-400 dark:text-slate-500 disabled:opacity-30 transition-all"
+                        >
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Form Modal: Node Provisioning Wizard */}
+            {showForm && (
+                <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-950/90 dark:bg-black/95 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-5xl rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh] border border-white/20 dark:border-white/5">
+                        {/* Modal Header */}
+                        <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
+                            <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
+                                    <Zap className="w-7 h-7" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">{isEditing ? 'Modifikasi Konfigurasi Node' : 'Aktivasi Node Jaringan Baru'}</h2>
+                                    <p className="text-slate-500 dark:text-slate-400 text-[10px] font-black tracking-[0.2em] uppercase opacity-60">Wisaya Provisi Infrastruktur NOC</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowForm(false)} className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+                                <X className="w-6 h-6 text-slate-400" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-10 custom-scrollbar bg-white dark:bg-slate-900">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                                {/* Section 1: Identitas & Kontak */}
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="w-1.5 h-6 bg-indigo-600 rounded-full" />
+                                        <h3 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">Identitas & Kontak</h3>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Nama Lengkap</label>
+                                        <input type="text" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-indigo-500/20 focus:bg-white dark:focus:bg-slate-800 rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 transition-all outline-none" placeholder="Contoh: John Doe" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Nomor Telepon</label>
+                                        <input type="text" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-indigo-500/20 focus:bg-white dark:focus:bg-slate-800 rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 transition-all outline-none" placeholder="08123456..." />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">ID Pengguna (Otomatis)</label>
+                                        <input type="text" value={formData.user_id} onChange={(e) => setFormData({...formData, user_id: e.target.value})} className="w-full p-4 bg-slate-100 dark:bg-slate-800 border-none rounded-2xl text-sm font-bold text-slate-400 dark:text-slate-500 cursor-not-allowed" placeholder="AUTO_GEN" disabled />
+                                    </div>
+                                </div>
+
+                                {/* Section 2: Provisi Jaringan */}
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
+                                        <h3 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">Provisi Jaringan</h3>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Router Gerbang</label>
+                                        <select required value={formData.router_id} onChange={(e) => setFormData({...formData, router_id: e.target.value})} className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-emerald-500/20 focus:bg-white dark:focus:bg-slate-800 rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 transition-all outline-none appearance-none">
+                                            <option value="">Pilih Router</option>
+                                            {routers.map(r => <option key={r.id} value={r.id}>{r.name} ({r.ip_address})</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Kredensial PPPoE</label>
+                                        <div className="space-y-3">
+                                            <input type="text" required value={formData.pppoe_username} onChange={(e) => setFormData({...formData, pppoe_username: e.target.value})} className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-indigo-500/20 focus:bg-white dark:focus:bg-slate-800 rounded-2xl text-sm font-mono font-bold text-indigo-600 dark:text-indigo-400 transition-all outline-none" placeholder="Username" />
+                                            <input type="password" required={!isEditing} value={formData.pppoe_password} onChange={(e) => setFormData({...formData, pppoe_password: e.target.value})} className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-indigo-500/20 focus:bg-white dark:focus:bg-slate-800 rounded-2xl text-sm font-mono font-bold text-slate-600 dark:text-slate-400 transition-all outline-none" placeholder={isEditing ? "Kosongkan jika tidak ganti" : "Password"} />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Tingkat Layanan (Paket)</label>
+                                        <select required value={formData.package_id} onChange={(e) => setFormData({...formData, package_id: e.target.value})} className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-emerald-500/20 focus:bg-white dark:focus:bg-slate-800 rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 transition-all outline-none appearance-none">
+                                            <option value="">Pilih Paket</option>
+                                            {packages.map(p => <option key={p.id} value={p.id}>{p.name} - {p.price?.toLocaleString()}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Section 3: Lapisan Fisik & Penagihan */}
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
+                                        <h3 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">Fisik & Penagihan</h3>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Terminal ODP</label>
+                                        <select required value={formData.odp_id} onChange={(e) => setFormData({...formData, odp_id: e.target.value})} className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-orange-500/20 focus:bg-white dark:focus:bg-slate-800 rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 transition-all outline-none appearance-none">
+                                            <option value="">Pilih ODP</option>
+                                            {odps.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Latitude</label>
+                                            <input type="text" value={formData.latitude} onChange={(e) => setFormData({...formData, latitude: e.target.value})} className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-none rounded-2xl text-xs font-bold dark:text-slate-200" placeholder="-7.xxx" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Longitude</label>
+                                            <input type="text" value={formData.longitude} onChange={(e) => setFormData({...formData, longitude: e.target.value})} className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-none rounded-2xl text-xs font-bold dark:text-slate-200" placeholder="111.xxx" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Tanggal Jatuh Tempo</label>
+                                        <input type="number" min="1" max="31" value={formData.due_date} onChange={(e) => setFormData({...formData, due_date: parseInt(e.target.value)})} className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-none rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 -mx-10 px-10 py-8">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+                                        <Activity className="w-5 h-5 text-indigo-600 dark:text-indigo-400 animate-pulse" />
+                                    </div>
+                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">Siap untuk sinkronisasi<br/><span className="text-indigo-600 dark:text-indigo-400">Push otomatis ke MikroTik aktif</span></p>
+                                </div>
+                                <div className="flex gap-4">
+                                    <button type="button" onClick={() => setShowForm(false)} className="px-8 py-4 text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-[0.2em] hover:text-slate-600 dark:hover:text-slate-300 transition-all">Batalkan Aksi</button>
+                                    <button type="submit" className="px-12 py-5 bg-indigo-600 text-white rounded-[24px] font-black uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-indigo-600/30 hover:bg-indigo-700 hover:-translate-y-1 transition-all active:scale-95 flex items-center gap-3">
+                                        {isEditing ? 'Terapkan Perubahan' : 'Inisialisasi Provisi'}
+                                        <ChevronRight className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Node Intelligence Detail Modal */}
+            {showDetail && selectedCustomer && (
+                <div className="fixed inset-0 z-100 flex items-center justify-center p-4 md:p-8 bg-slate-950/90 dark:bg-black/95 backdrop-blur-md animate-in fade-in zoom-in duration-300">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-5xl rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-white/20 dark:border-white/5">
+                        {/* Modal Header */}
+                        <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
+                            <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
+                                    <Monitor className="w-7 h-7" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Ringkasan Inteligensi Node</h2>
+                                    <p className="text-slate-500 dark:text-slate-400 text-xs font-bold tracking-widest uppercase">ID: {selectedCustomer.user_id || 'TIDAK DIKENAL'}</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowDetail(false)} className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+                                <X className="w-6 h-6 text-slate-400" />
+                            </button>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div className="p-8 overflow-y-auto custom-scrollbar space-y-10 bg-white dark:bg-slate-900">
+                            {/* Summary Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl space-y-1 border border-slate-100 dark:border-slate-800">
+                                    <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Status Jaringan</p>
+                                    <p className={`text-sm font-black uppercase ${selectedCustomer.status === 'active' ? 'text-emerald-600' : 'text-rose-600'}`}>{selectedCustomer.status === 'active' ? 'Operasional' : 'Terputus'}</p>
+                                </div>
+                                <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl space-y-1 border border-slate-100 dark:border-slate-800">
+                                    <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Daya Optik (Rx)</p>
+                                    <p className={`text-lg font-black ${selectedCustomer.rx < -27 ? 'text-rose-600' : 'text-slate-800 dark:text-white'}`}>{selectedCustomer.rx?.toFixed(2) || '-22.50'} dBm</p>
+                                </div>
+                                <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl space-y-1 border border-slate-100 dark:border-slate-800">
+                                    <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Status Pembayaran</p>
+                                    <p className={`text-sm font-black uppercase ${selectedCustomer.payment_status === 'paid' ? 'text-indigo-600' : 'text-slate-400'}`}>{selectedCustomer.payment_status === 'paid' ? 'Terbayar / Lunas' : 'Menunggu'}</p>
+                                </div>
+                                <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl space-y-1 border border-slate-100 dark:border-slate-800">
+                                    <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Protokol Autentikasi</p>
+                                    <p className="text-sm font-black text-slate-800 dark:text-slate-200 uppercase">PPPoE / Fiber</p>
+                                </div>
+                            </div>
+
+                            {/* Detailed Categories */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                {/* Left Col: Identity & Access */}
+                                <div className="space-y-8">
+                                    <div>
+                                        <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-3">
+                                            <Users className="w-4 h-4 text-indigo-600" /> Identitas & Akses
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-y-4 text-sm">
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Nama Lengkap</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black">{selectedCustomer.name}</span>
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Nomor Telepon</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black">{selectedCustomer.phone || '-'}</span>
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Identitas PPPoE</span>
+                                            <span className="text-indigo-600 dark:text-indigo-400 font-black">{selectedCustomer.pppoe_username}</span>
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Tanggal Penagihan</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black">Tanggal {selectedCustomer.due_date || '1'}</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-3">
+                                            <Wifi className="w-4 h-4 text-indigo-600" /> Jalur Infrastruktur
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-y-4 text-sm">
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Router / Gerbang</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.router_name || 'GERBANG-01'}</span>
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Nama OLT</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.olt_name || 'OLT-ZTE-01'}</span>
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Terminal ODP</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.odp_name || 'ODP-MAG-01'}</span>
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Wilayah Layanan</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.region_name || 'MAGETAN'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Right Col: Hardware & Telemetry */}
+                                <div className="space-y-8">
+                                    <div>
+                                        <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-3">
+                                            <Zap className="w-4 h-4 text-indigo-600" /> Telemetri Perangkat
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-y-4 text-sm">
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">ID ONU</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black">{selectedCustomer.onu_id || 'ONU01'}</span>
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">MAC ONU</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-mono font-bold text-xs uppercase">{selectedCustomer.onu_mac || '-'}</span>
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">MAC MikroTik</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-mono font-bold text-xs uppercase">{selectedCustomer.mikrotik_mac || '-'}</span>
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Daya TX</span>
+                                            <span className="text-emerald-600 dark:text-emerald-400 font-black">{selectedCustomer.tx?.toFixed(2) || '2.45'} dBm</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-3">
+                                            <Activity className="w-4 h-4 text-indigo-600" /> Log Operasional
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-y-4 text-sm">
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Paket Layanan</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.package_name || 'UNLIMITED 10M'}</span>
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Terakhir Putus</span>
+                                            <span className="text-rose-600 dark:text-rose-400 font-black uppercase">{selectedCustomer.last_disconnect || 'TIDAK PERNAH'}</span>
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Uptime (Live)</span>
+                                            <span className="text-emerald-600 dark:text-emerald-400 font-black uppercase">{getTrafficInfo(selectedCustomer.pppoe_username)?.uptime || 'OFFLINE'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* Throughput Chart Integration */}
+                            <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-800">
+                                <div className="flex justify-between items-center mb-6">
+                                    <div>
+                                        <h4 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">Vektor Performa Real-time</h4>
+                                        <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-1">Sumber Telemetri: {selectedCustomer.router_name || 'Gerbang MikroTik'}</p>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                                            <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase">Masuk (RX)</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
+                                            <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase">Keluar (TX)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="h-[200px] w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={chartData}>
+                                            <defs>
+                                                <linearGradient id="colorDown" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                                </linearGradient>
+                                                <linearGradient id="colorUp" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#334155' : '#e2e8f0'} />
+                                            <XAxis dataKey="name" hide />
+                                            <YAxis hide />
+                                            <Tooltip 
+                                                contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '10px' }}
+                                                itemStyle={{ fontWeight: 'bold' }}
+                                            />
+                                            <Area type="monotone" dataKey="down" stroke="#10b981" fillOpacity={1} fill="url(#colorDown)" strokeWidth={3} isAnimationActive={false} />
+                                            <Area type="monotone" dataKey="up" stroke="#3b82f6" fillOpacity={1} fill="url(#colorUp)" strokeWidth={3} isAnimationActive={false} />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-8 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex justify-end gap-4">
+                            <button onClick={() => setShowDetail(false)} className="px-10 py-4 bg-slate-800 dark:bg-slate-950 text-white rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-lg shadow-slate-900/10 hover:bg-slate-950 dark:hover:bg-black transition-all active:scale-95">
+                                Tutup Dashboard
                             </button>
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 }

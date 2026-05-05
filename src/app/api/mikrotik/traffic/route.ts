@@ -34,9 +34,8 @@ export async function GET(req: Request) {
         
         let trafficData = [];
         try {
-            const [activeUsers, interfaces, pppSecrets] = await Promise.all([
+            const [activeUsers, pppSecrets] = await Promise.all([
                 conn.menu('/ppp/active').get(),
-                conn.menu('/interface').get(),
                 conn.menu('/ppp/secret').get()
             ]);
 
@@ -46,34 +45,42 @@ export async function GET(req: Request) {
                 if (s.name) secretProfiles[s.name] = s.profile || 'default';
             });
 
-            // Create a lookup for interface rx/tx bytes
-            const ifaceStats: Record<string, any> = {};
-            interfaces.forEach((iface: any) => {
-                if (iface.name) {
-                    // Stripping brackets <> and prefix "pppoe-" to match with user.name
-                    const cleanName = iface.name.replace(/[<>]/g, '').replace(/^pppoe-/, '');
-                    const rx = iface.rxByte || iface['rx-byte'] || '0';
-                    const tx = iface.txByte || iface['tx-byte'] || '0';
-                    ifaceStats[cleanName] = {
-                        rxBytes: parseInt(rx),
-                        txBytes: parseInt(tx)
-                    };
-                }
-            });
+            if (activeUsers.length > 0) {
+                // Get real-time traffic for all active users at once
+                const ifaceList = activeUsers.map((u: any) => `<pppoe-${u.name}>`).join(',');
+                const monitorResults = await conn.menu('/interface').exec('monitor-traffic', { 
+                    interface: ifaceList, 
+                    once: '' 
+                });
 
-            trafficData = (activeUsers || []).map((user: any) => {
-                const stats = ifaceStats[user.name] || { rxBytes: 0, txBytes: 0 };
-                return {
-                    name: user.name || '',
-                    address: user.address || user['caller-id'] || '-',
-                    uptime: user.uptime || '0s',
-                    encoding: user.encoding || '-',
-                    service: user.service || 'pppoe',
-                    rxBytes: stats.rxBytes,
-                    txBytes: stats.txBytes,
-                    profile: secretProfiles[user.name] || '?'
-                };
-            });
+                // Create a lookup for real-time rates
+                const rateStats: Record<string, any> = {};
+                (Array.isArray(monitorResults) ? monitorResults : [monitorResults]).forEach((res: any) => {
+                    const cleanName = res.name?.replace(/[<>]/g, '').replace(/^pppoe-/, '');
+                    if (cleanName) {
+                        rateStats[cleanName] = {
+                            rxSpeed: parseInt(res['rx-bits-per-second'] || '0'),
+                            txSpeed: parseInt(res['tx-bits-per-second'] || '0')
+                        };
+                    }
+                });
+
+                trafficData = activeUsers.map((user: any) => {
+                    const stats = rateStats[user.name] || { rxSpeed: 0, txSpeed: 0 };
+                    return {
+                        name: user.name || '',
+                        address: user.address || user['caller-id'] || '-',
+                        uptime: user.uptime || '0s',
+                        encoding: user.encoding || '-',
+                        service: user.service || 'pppoe',
+                        rxSpeed: stats.rxSpeed,
+                        txSpeed: stats.txSpeed,
+                        rxBytes: 0, // Legacy support if needed
+                        txBytes: 0,
+                        profile: secretProfiles[user.name] || '?'
+                    };
+                });
+            }
         } finally {
             client.close();
         }

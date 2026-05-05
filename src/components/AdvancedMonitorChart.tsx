@@ -35,28 +35,28 @@ export default function AdvancedMonitorChart({
         <div className="w-full h-full min-h-[250px] relative">
             {title && (
                 <div className="absolute top-0 left-0 z-10">
-                    <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4">{title}</h5>
+                    <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted mb-4">{title}</h5>
                 </div>
             )}
             <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={data} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
                     <defs>
                         <linearGradient id={`color1_${type}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={isBandwidth ? "#6366f1" : isLatency ? "#f59e0b" : "#a855f7"} stopOpacity={0.2}/>
-                            <stop offset="95%" stopColor={isBandwidth ? "#6366f1" : isLatency ? "#f59e0b" : "#a855f7"} stopOpacity={0}/>
+                            <stop offset="5%" stopColor={isBandwidth ? "#0ea5e9" : isLatency ? "#f59e0b" : "#10b981"} stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor={isBandwidth ? "#0ea5e9" : isLatency ? "#f59e0b" : "#10b981"} stopOpacity={0}/>
                         </linearGradient>
                         <linearGradient id={`color2_${type}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#ec4899" stopOpacity={0.2}/>
-                            <stop offset="95%" stopColor="#ec4899" stopOpacity={0}/>
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                         </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.05)" />
                     <XAxis 
                         dataKey="time" 
                         hide 
                     />
                     <YAxis 
-                        tick={{ fill: '#475569', fontSize: 10, fontWeight: 'bold' }}
+                        tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: '800' }}
                         axisLine={false}
                         tickLine={false}
                         tickFormatter={formatValue}
@@ -64,16 +64,18 @@ export default function AdvancedMonitorChart({
                     />
                     <Tooltip 
                         contentStyle={{ 
-                            backgroundColor: '#0f172a', 
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: '12px',
+                            backgroundColor: 'rgba(15, 23, 42, 0.8)', 
+                            backdropFilter: 'blur(12px)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            borderRadius: '16px',
                             color: '#fff',
                             fontSize: '11px',
-                            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
+                            padding: '12px'
                         }}
-                        itemStyle={{ fontWeight: 'bold', padding: '2px 0' }}
+                        itemStyle={{ fontWeight: '900', padding: '4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                         labelStyle={{ display: 'none' }}
-                        cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }}
+                        cursor={{ stroke: 'rgba(14, 165, 233, 0.2)', strokeWidth: 2 }}
                         formatter={(val: any) => [formatValue(val)]}
                     />
                     {isBandwidth ? (
@@ -82,8 +84,8 @@ export default function AdvancedMonitorChart({
                                 name="Download (RX)"
                                 type="monotone" 
                                 dataKey="rx" 
-                                stroke="#6366f1" 
-                                strokeWidth={2}
+                                stroke="#0ea5e9" 
+                                strokeWidth={3}
                                 fillOpacity={1} 
                                 fill={`url(#color1_${type})`} 
                                 isAnimationActive={true}
@@ -93,8 +95,8 @@ export default function AdvancedMonitorChart({
                                 name="Upload (TX)"
                                 type="monotone" 
                                 dataKey="tx" 
-                                stroke="#ec4899" 
-                                strokeWidth={2}
+                                stroke="#10b981" 
+                                strokeWidth={3}
                                 fillOpacity={1} 
                                 fill={`url(#color2_${type})`} 
                                 isAnimationActive={true}
@@ -106,8 +108,8 @@ export default function AdvancedMonitorChart({
                             name={isLatency ? "Latency" : "Usage"}
                             type="monotone" 
                             dataKey="value" 
-                            stroke={isLatency ? "#f59e0b" : "#a855f7"} 
-                            strokeWidth={2}
+                            stroke={isLatency ? "#f59e0b" : "#10b981"} 
+                            strokeWidth={3}
                             fillOpacity={1} 
                             fill={`url(#color1_${type})`} 
                             isAnimationActive={true}
@@ -119,3 +121,4 @@ export default function AdvancedMonitorChart({
         </div>
     );
 }
+

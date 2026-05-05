@@ -6,8 +6,11 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Sahabat Networks | ISP Management",
+  title: "Sahabat Network | ISP Management",
   description: "Advanced Management System for ISP & Mikrotik",
+  icons: {
+    icon: '/favicon.png',
+  }
 };
 
 export default function RootLayout({

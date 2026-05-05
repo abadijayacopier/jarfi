@@ -4,10 +4,28 @@ import { MikrotikService } from '@/lib/mikrotik';
 
 export async function GET() {
     try {
+        // Ensure ONU telemetry columns exist
+        const columns = [
+            { name: 'rx', type: 'FLOAT DEFAULT -22.5' },
+            { name: 'tx', type: 'FLOAT DEFAULT 2.1' },
+            { name: 'olt_name', type: 'VARCHAR(100) DEFAULT \'01-OLT\'' },
+            { name: 'olt_type', type: 'VARCHAR(50) DEFAULT \'EPON\'' },
+            { name: 'onu_id', type: 'VARCHAR(50)' },
+            { name: 'onu_mac', type: 'VARCHAR(50)' },
+            { name: 'payment_status', type: 'ENUM(\'paid\', \'unpaid\') DEFAULT \'unpaid\'' },
+            { name: 'last_disconnect', type: 'DATETIME' }
+        ];
+
+        for (const col of columns) {
+            try {
+                await pool.query(`ALTER TABLE Customers ADD COLUMN ${col.name} ${col.type}`);
+            } catch (e) { /* Column likely exists */ }
+        }
+
         const [rows] = await pool.query(`
-      SELECT c.*, u.name, u.phone, p.name as package_name, r.name as router_name 
+      SELECT c.*, COALESCE(u.name, c.pppoe_username) as name, u.phone, p.name as package_name, r.name as router_name 
       FROM Customers c
-      JOIN Users u ON c.user_id = u.id
+      LEFT JOIN Users u ON c.user_id = u.id
       LEFT JOIN Packages p ON c.package_id = p.id
       LEFT JOIN Routers r ON c.router_id = r.id
       ORDER BY c.created_at DESC

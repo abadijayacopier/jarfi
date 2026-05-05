@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { Printer, Edit, Trash2, CheckCircle, X, Save, Search, AlertTriangle } from 'lucide-react';
+import { Printer, Edit, Trash2, CheckCircle, X, Save, Search, AlertTriangle, Loader2, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function InvoicesPage() {
@@ -13,7 +13,6 @@ export default function InvoicesPage() {
     const [showEditForm, setShowEditForm] = useState(false);
     const [editData, setEditData] = useState({ id: 0, amount: 0, billing_month: '', status: '' });
 
-    // Pagination
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
 
@@ -35,20 +34,20 @@ export default function InvoicesPage() {
 
     const handleGenerateInvoices = async () => {
         const result = await Swal.fire({
-            title: 'Generate Tagihan?',
-            text: "Sistem akan otomatis membuat tagihan untuk semua pelanggan aktif.",
+            title: 'Buat Tagihan?',
+            text: "Sistem akan secara otomatis membuat tagihan untuk semua pelanggan aktif.",
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#3b82f6',
-            cancelButtonColor: '#334155',
-            confirmButtonText: 'Ya, Buat Tagihan',
-            background: '#1e293b',
+            confirmButtonColor: '#10b981',
+            confirmButtonText: 'Buat Sekarang',
+            cancelButtonText: 'Batal',
+            background: '#0f172a',
             color: '#fff'
         });
 
         if (!result.isConfirmed) return;
 
-        Swal.fire({ title: 'Memproses...', allowOutsideClick: false, background: '#1e293b', color: '#fff', didOpen: () => { Swal.showLoading(); } });
+        Swal.fire({ title: 'Memproses...', allowOutsideClick: false, background: '#0f172a', color: '#fff', didOpen: () => { Swal.showLoading(); } });
         try {
             const res = await fetch('/api/invoices/generate', { method: 'POST' });
             const data = await res.json();
@@ -56,29 +55,29 @@ export default function InvoicesPage() {
                 Swal.fire({ 
                     icon: 'success', 
                     title: 'Berhasil', 
-                    text: data.message || `${data.count} tagihan baru telah dibuat!`, 
-                    background: '#1e293b', 
+                    text: data.message || `${data.count} tagihan baru telah dibuat.`, 
+                    background: '#0f172a', 
                     color: '#fff' 
                 });
                 fetchInvoices();
             } else {
-                Swal.fire({ icon: 'error', title: 'Gagal', text: data.error, background: '#1e293b', color: '#fff' });
+                Swal.fire({ icon: 'error', title: 'Kegagalan', text: data.error, background: '#0f172a', color: '#fff' });
             }
         } catch (err) {
-            Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal terhubung ke API.', background: '#1e293b', color: '#fff' });
+            Swal.fire({ icon: 'error', title: 'Kesalahan', text: 'Kegagalan konektivitas API.', background: '#0f172a', color: '#fff' });
         }
     };
 
     const handleConfirmPayment = async (id: number) => {
         const result = await Swal.fire({
-            title: 'Konfirmasi Lunas?',
-            text: "Anda menyatakan bahwa tagihan ini telah dibayar LUNAS.",
+            title: 'Konfirmasi Pembayaran?',
+            text: "Tandai tagihan ini sebagai LUNAS dalam buku kas.",
             icon: 'success',
             showCancelButton: true,
-            confirmButtonColor: '#14b8a6',
-            cancelButtonColor: '#334155',
-            confirmButtonText: 'Ya, Lunas!',
-            background: '#1e293b',
+            confirmButtonColor: '#10b981',
+            confirmButtonText: 'Konfirmasi Lunas',
+            cancelButtonText: 'Batal',
+            background: '#0f172a',
             color: '#fff'
         });
 
@@ -91,7 +90,7 @@ export default function InvoicesPage() {
                 body: JSON.stringify({ id, status: 'PAID' })
             });
             if (res.ok) {
-                Swal.fire({ icon: 'success', title: 'Selesai', text: 'Status tagihan jadi Lunas', background: '#1e293b', color: '#fff', timer: 1500, showConfirmButton: false });
+                Swal.fire({ icon: 'success', title: 'Selesai', text: 'Tagihan diperbarui menjadi LUNAS.', background: '#0f172a', color: '#fff', timer: 1500, showConfirmButton: false });
                 fetchInvoices();
             }
         } catch (err) {
@@ -102,13 +101,13 @@ export default function InvoicesPage() {
     const handleDelete = async (id: number) => {
         const result = await Swal.fire({
             title: 'Hapus Tagihan?',
-            text: "Data tagihan ini akan dihapus permanen!",
+            text: "Tindakan ini tidak dapat dibatalkan.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#f43f5e',
-            cancelButtonColor: '#334155',
-            confirmButtonText: 'Ya, hapus!',
-            background: '#1e293b',
+            confirmButtonText: 'Hapus Catatan',
+            cancelButtonText: 'Batal',
+            background: '#0f172a',
             color: '#fff'
         });
 
@@ -118,7 +117,7 @@ export default function InvoicesPage() {
             const res = await fetch(`/api/invoices?id=${id}`, { method: 'DELETE' });
             if (res.ok) {
                 fetchInvoices();
-                Swal.fire({ icon: 'success', title: 'Terhapus!', text: 'Tagihan telah dihapus.', background: '#1e293b', color: '#fff' });
+                Swal.fire({ icon: 'success', title: 'Dihapus', text: 'Tagihan telah dihapus dari sistem.', background: '#0f172a', color: '#fff' });
             }
         } catch (err) {
             console.error(err);
@@ -145,142 +144,164 @@ export default function InvoicesPage() {
             if (res.ok) {
                 setShowEditForm(false);
                 fetchInvoices();
-                Swal.fire({ icon: 'success', title: 'Diperbarui!', text: 'Data tagihan berhasil diubah.', background: '#1e293b', color: '#fff' });
+                Swal.fire({ icon: 'success', title: 'Diperbarui', text: 'Catatan penagihan telah disinkronkan.', background: '#0f172a', color: '#fff' });
             }
         } catch (err) {
             console.error(err);
         }
     };
 
+    const filteredInvoices = invoices.filter((inv: any) => 
+        (inv.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (inv.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (inv.billing_month || '').includes(searchTerm)
+    );
+
+    const paginatedInvoices = filteredInvoices.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
+
     return (
         <div className="animate-in fade-in duration-500 pb-20 space-y-10">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12">
+            {/* Page Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12 border-b border-(--glass-border) pb-8">
                 <div>
-                    <h3 className="text-4xl font-black text-primary flex items-center gap-4">
-                        <Printer className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
-                        Billing & Invoices
+                    <h3 className="text-4xl font-bold text-primary flex items-center gap-4 tracking-tight">
+                        <FileText className="w-10 h-10 text-accent" />
+                        Buku Kas Penagihan
                     </h3>
-                    <p className="text-muted font-medium mt-2 text-sm">Kelola penagihan bulanan dan status pembayaran seluruh pelanggan ISP.</p>
+                    <p className="text-muted font-medium mt-2 text-lg">Tagihan pelanggan dan catatan transaksi.</p>
                 </div>
                 <button
                     onClick={handleGenerateInvoices}
-                    className="bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4.5 px-10 rounded-2xl transition-all shadow-2xl shadow-indigo-600/30 hover:scale-105 active:scale-95 flex items-center gap-3 uppercase tracking-[0.2em] text-[10px]"
+                    className="bg-accent hover:bg-accent/90 text-white font-bold py-4 px-10 rounded-2xl transition-all shadow-xl active:scale-95 flex items-center gap-3 uppercase tracking-widest text-[10px]"
                 >
-                    <Save className="w-5 h-5" /> Generate Tagihan Baru
+                    <Save className="w-5 h-5" /> Buat Siklus Tagihan
                 </button>
             </div>
 
-            {/* Content View: Table (Desktop) & Cards (Mobile) */}
+            {/* Main Content Area */}
             <div className="space-y-8">
-                {/* Desktop Table View */}
-                <div className="hidden md:block glass rounded-[3rem] overflow-hidden shadow-2xl border border-(--glass-border)">
-                    <div className="p-10 border-b border-(--glass-border) flex flex-col md:flex-row justify-between items-start md:items-center gap-8 bg-white/5">
-                        <h4 className="text-2xl font-black text-primary">Data Ledger Tagihan</h4>
-                        <div className="relative w-full md:w-[450px]">
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                {/* Search & Stats Card */}
+                <div className="glass p-8 rounded-4xl border border-(--glass-border) shadow-xl bg-white/2 relative overflow-hidden group">
+                    <div className="absolute -right-24 -top-24 w-64 h-64 bg-accent/5 rounded-full blur-3xl transition-all duration-700 group-hover:bg-accent/10"></div>
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
+                        <div className="relative w-full md:w-[500px]">
+                            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                             <input 
                                 type="text" 
-                                placeholder="Cari nama, username, atau bulan..." 
+                                placeholder="Saring catatan berdasarkan nama atau periode..." 
                                 value={searchTerm}
                                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                                className="w-full bg-slate-100 dark:bg-slate-900/50 border-2 border-(--glass-border) rounded-3xl py-4.5 pl-14 pr-6 text-sm font-bold text-primary focus:outline-none focus:border-indigo-500 transition-all shadow-inner"
+                                className="w-full clean-input pl-18 pr-6 py-4 font-bold text-sm"
                             />
                         </div>
+                        <div className="flex items-center gap-10">
+                            <div className="text-center">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Catatan</p>
+                                <p className="text-2xl font-bold text-primary">{filteredInvoices.length}</p>
+                            </div>
+                            <div className="w-px h-8 bg-white/5"></div>
+                            <div className="text-center">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Pendapatan Tertunda</p>
+                                <p className="text-2xl font-bold text-red-500">{filteredInvoices.filter((i:any) => i.status !== 'PAID').length}</p>
+                            </div>
+                        </div>
                     </div>
-                    <div className="overflow-x-auto min-h-[450px]">
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden md:block glass rounded-4xl overflow-hidden shadow-xl border border-(--glass-border) bg-white/2">
+                    <div className="overflow-x-auto min-h-[500px] custom-scrollbar">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-slate-50 dark:bg-white/2 uppercase text-[10px] tracking-[0.3em] font-black text-slate-500 border-b border-(--glass-border)">
-                                    <th className="p-8">Bulan Billing</th>
-                                    <th className="p-8">Profil Pelanggan</th>
-                                    <th className="p-8">Total Amount</th>
-                                    <th className="p-8">Status</th>
-                                    <th className="p-8">Log Pembayaran</th>
-                                    <th className="p-8 text-center">Aksi Manajemen</th>
+                                <tr className="bg-white/1 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-white/5">
+                                    <th className="px-10 py-8">Siklus Penagihan</th>
+                                    <th className="px-10 py-8">Pelanggan</th>
+                                    <th className="px-10 py-8">Jumlah Pendapatan</th>
+                                    <th className="px-10 py-8">Status</th>
+                                    <th className="px-10 py-8">Eksekusi</th>
+                                    <th className="px-10 py-8 text-right">Orkestrasi</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-(--glass-border) text-sm">
+                            <tbody className="divide-y divide-white/5 text-sm">
                                 {loading ? (
-                                    <tr><td colSpan={6} className="p-32 text-center text-slate-500">
+                                    <tr><td colSpan={6} className="p-32 text-center">
                                         <div className="flex flex-col items-center gap-6 animate-pulse">
-                                            <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600"></div>
-                                            <span className="font-black uppercase tracking-[0.3em] text-[10px]">Menyinkronkan data ledger...</span>
+                                            <Loader2 className="w-10 h-10 text-accent animate-spin" />
+                                            <span className="font-bold uppercase tracking-widest text-[10px] text-slate-500">Menyinkronkan Buku Kas...</span>
                                         </div>
                                     </td></tr>
-                                ) : invoices.length === 0 ? (
-                                    <tr><td colSpan={6} className="p-32 text-center text-slate-500 font-black uppercase tracking-widest opacity-60">Database tagihan masih kosong.</td></tr>
+                                ) : paginatedInvoices.length === 0 ? (
+                                    <tr><td colSpan={6} className="p-32 text-center text-slate-400 font-bold uppercase tracking-widest opacity-40">Tidak ada catatan yang teridentifikasi.</td></tr>
                                 ) : (
-                                    invoices
-                                        .filter((inv: any) => 
-                                            (inv.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                            (inv.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                            (inv.billing_month || '').includes(searchTerm)
-                                        )
-                                        .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                                        .map((inv: any) => (
-                                        <tr key={inv.id} className="hover:bg-slate-50 dark:hover:bg-white/2 transition-all group">
-                                            <td className="p-8 font-black text-primary group-hover:text-indigo-600 transition-colors uppercase tracking-[0.2em] text-[11px]">{inv.billing_month}</td>
-                                            <td className="p-8">
-                                                <div className="font-black text-primary text-lg tracking-tight leading-tight">{inv.customer_name}</div>
-                                                <div className="text-[10px] font-black font-mono text-muted mt-2 uppercase tracking-widest bg-slate-100 dark:bg-white/5 inline-block px-2 py-1 rounded-md">{inv.pppoe_username}</div>
+                                    paginatedInvoices.map((inv: any) => (
+                                        <tr key={inv.id} className="hover:bg-white/2 transition-all group">
+                                            <td className="px-8 py-3">
+                                                <span className="font-bold text-primary group-hover:text-accent transition-colors uppercase tracking-widest text-[10px] bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+                                                    {inv.billing_month}
+                                                </span>
                                             </td>
-                                             <td className="p-8 font-black text-indigo-600 dark:text-indigo-400 text-2xl tracking-tight">
+                                            <td className="px-8 py-3">
+                                                <div className="text-value uppercase">{inv.customer_name}</div>
+                                                <div className="text-label mt-1.5 opacity-40">@{inv.pppoe_username}</div>
+                                            </td>
+                                             <td className="px-8 py-3">
                                                  <div className="flex items-center gap-4">
-                                                     Rp {parseInt(inv.amount).toLocaleString('id-ID')}
+                                                     <span className="font-bold text-primary text-[15px] tracking-tight">Rp {parseInt(inv.amount).toLocaleString('id-ID')}</span>
                                                      {parseInt(inv.amount) === 0 && (
                                                          <div className="group/warn relative">
-                                                             <AlertTriangle className="w-6 h-6 text-amber-500 animate-pulse" />
-                                                             <div className="absolute left-full ml-4 px-4 py-3 bg-slate-950 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl whitespace-nowrap opacity-0 group-hover/warn:opacity-100 transition-all pointer-events-none z-50 shadow-2xl border border-white/10 border-l-4 border-l-amber-500">
-                                                                 Konfigurasi paket belum diatur
+                                                             <AlertTriangle className="w-5 h-5 text-amber-500 animate-pulse" />
+                                                             <div className="absolute left-full ml-4 px-4 py-2 bg-slate-900 text-white text-[9px] font-bold uppercase tracking-widest rounded-xl whitespace-nowrap opacity-0 group-hover/warn:opacity-100 transition-all z-50 border border-white/10 shadow-2xl">
+                                                                 Kesalahan Profil Terdeteksi
                                                              </div>
                                                          </div>
                                                      )}
                                                  </div>
                                              </td>
-                                            <td className="p-8">
-                                                <span className={`px-5 py-2.5 rounded-2xl text-[10px] font-black tracking-[0.25em] uppercase border shadow-sm ${inv.status === 'PAID' ? 'bg-teal-500/10 text-teal-600 border-teal-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}>
-                                                    {inv.status}
+                                            <td className="px-8 py-3">
+                                                <span className={`px-4 py-2 rounded-xl text-[9px] font-bold tracking-widest uppercase border ${inv.status === 'PAID' ? 'bg-accent/10 text-accent border-accent/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
+                                                    {inv.status === 'PAID' ? 'LUNAS' : 'TERTUNDA'}
                                                 </span>
                                             </td>
-                                            <td className="p-8 text-muted font-black text-[10px] uppercase tracking-[0.2em] opacity-80">
+                                            <td className="px-8 py-3">
                                                 {inv.paid_at ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <CheckCircle className="w-3.5 h-3.5 text-teal-500" />
-                                                        {new Date(inv.paid_at).toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                    <div className="flex items-center gap-3 text-slate-500 font-bold text-[10px] uppercase tracking-widest">
+                                                        <CheckCircle className="w-3.5 h-3.5 text-accent" />
+                                                        {new Date(inv.paid_at).toLocaleDateString('id-ID')}
                                                     </div>
-                                                ) : <span className="opacity-30">Pending Transaction</span>}
+                                                ) : <span className="text-slate-600 font-bold text-[10px] uppercase tracking-widest italic opacity-20">Belum Bayar</span>}
                                             </td>
-                                            <td className="p-8">
-                                                <div className="flex items-center justify-center gap-4">
-                                                    {inv.status === 'UNPAID' && (
+                                            <td className="px-8 py-3">
+                                                <div className="flex items-center justify-end gap-3 opacity-40 group-hover:opacity-100 transition-opacity">
+                                                    {inv.status !== 'PAID' && (
                                                         <button 
                                                             onClick={() => handleConfirmPayment(inv.id)} 
-                                                            title="Konfirmasi Pelunasan" 
-                                                            className="p-4 rounded-2xl bg-teal-500/10 text-teal-600 dark:text-teal-400 hover:bg-teal-600 hover:text-white border-2 border-teal-500/10 hover:scale-110 active:scale-90 transition-all shadow-md"
+                                                            className="p-3 rounded-xl bg-accent/10 text-accent hover:bg-accent hover:text-white border border-accent/20 transition-all"
+                                                            title="Konfirmasi Lunas"
                                                         >
-                                                            <CheckCircle className="w-5 h-5" />
+                                                            <CheckCircle className="w-4 h-4" />
                                                         </button>
                                                     )}
                                                     <Link 
                                                         href={`/invoices/print/${inv.id}`} 
-                                                        title="Cetak Invoice Fisik" 
-                                                        className="p-4 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white border-2 border-indigo-500/10 hover:scale-110 active:scale-90 transition-all shadow-md"
+                                                        className="p-3 rounded-xl bg-white/5 text-slate-400 hover:bg-sky-500 hover:text-white border border-white/5 transition-all"
+                                                        title="Cetak"
                                                     >
-                                                        <Printer className="w-5 h-5" />
+                                                        <Printer className="w-4 h-4" />
                                                     </Link>
                                                     <button 
                                                         onClick={() => openEditModal(inv)} 
-                                                        title="Koreksi Data Tagihan" 
-                                                        className="p-4 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white border-2 border-blue-500/10 hover:scale-110 active:scale-90 transition-all shadow-md"
+                                                        className="p-3 rounded-xl bg-white/5 text-slate-400 hover:bg-slate-700 hover:text-white border border-white/5 transition-all"
+                                                        title="Ubah"
                                                     >
-                                                        <Edit className="w-5 h-5" />
+                                                        <Edit className="w-4 h-4" />
                                                     </button>
                                                     <button 
                                                         onClick={() => handleDelete(inv.id)} 
-                                                        title="Hapus Permanent" 
-                                                        className="p-4 rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white border-2 border-red-500/10 hover:scale-110 active:scale-90 transition-all shadow-md"
+                                                        className="p-3 rounded-xl bg-white/5 text-slate-400 hover:bg-red-500 hover:text-white border border-white/5 transition-all"
+                                                        title="Hapus"
                                                     >
-                                                        <Trash2 className="w-5 h-5" />
+                                                        <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 </div>
                                             </td>
@@ -292,86 +313,73 @@ export default function InvoicesPage() {
                     </div>
                 </div>
 
-                {/* Mobile Card View */}
+                {/* Mobile View */}
                 <div className="md:hidden space-y-6">
-                    <div className="glass p-6 rounded-4xl border border-(--glass-border) shadow-xl">
-                        <div className="relative">
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                            <input 
-                                type="text" 
-                                placeholder="Cari tagihan..." 
-                                value={searchTerm}
-                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                                className="w-full bg-slate-100 dark:bg-slate-900/50 border-2 border-(--glass-border) rounded-[1.25rem] py-4.5 pl-14 pr-6 text-sm font-bold text-primary focus:outline-none focus:border-indigo-500 shadow-inner"
-                            />
-                        </div>
-                    </div>
                     {loading ? (
-                        <div className="p-20 text-center text-slate-500 animate-pulse font-black uppercase tracking-[0.3em] text-[10px]">Sinkronisasi...</div>
-                    ) : invoices.length === 0 ? (
-                        <div className="p-20 text-center text-slate-500 font-black uppercase text-[10px] tracking-widest opacity-60">Tidak ada data</div>
-                    ) : (
-                        invoices
-                            .filter((inv: any) => 
-                                (inv.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                (inv.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                (inv.billing_month || '').includes(searchTerm)
-                            )
-                            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                            .map((inv: any) => (
-                                <div key={inv.id} className="glass p-8 rounded-[2.5rem] space-y-6 shadow-2xl border border-(--glass-border) relative overflow-hidden group">
-                                    <div className="flex justify-between items-start relative z-10">
-                                        <div>
-                                            <h4 className="font-black text-primary text-2xl leading-tight tracking-tight">{inv.customer_name}</h4>
-                                            <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em] mt-3 bg-indigo-500/5 px-3 py-1.5 rounded-xl border border-indigo-500/10 inline-block">{inv.billing_month}</p>
-                                        </div>
-                                        <span className={`px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-[0.25em] border shadow-sm ${inv.status === 'PAID' ? 'bg-teal-500/10 text-teal-600 border-teal-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}>
-                                            {inv.status}
-                                        </span>
-                                    </div>
-                                    <div className="bg-slate-100 dark:bg-slate-900/50 p-6 rounded-4xl border-2 border-(--glass-border) shadow-inner relative z-10">
-                                        <p className="text-[9px] uppercase font-black text-slate-500 mb-2 tracking-[0.2em]">Current Billing Amount</p>
-                                        <p className="text-3xl font-black text-primary tracking-tight">Rp {parseInt(inv.amount).toLocaleString('id-ID')}</p>
-                                    </div>
-                                    <div className="flex flex-col sm:flex-row gap-4 relative z-10">
-                                        {inv.status === 'UNPAID' && (
-                                            <button onClick={() => handleConfirmPayment(inv.id)} className="flex-1 py-4.5 rounded-2xl bg-teal-500/10 text-teal-600 border-2 border-teal-500/10 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-all shadow-lg hover:bg-teal-600 hover:text-white">
-                                                <CheckCircle className="w-4 h-4" /> Tandai Lunas
-                                            </button>
-                                        )}
-                                        <Link href={`/invoices/print/${inv.id}`} className="flex-1 py-4.5 rounded-2xl bg-indigo-500/10 text-indigo-600 border-2 border-indigo-500/10 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-all shadow-lg hover:bg-indigo-600 hover:text-white">
-                                            <Printer className="w-4 h-4" /> Cetak Invoice
-                                        </Link>
-                                    </div>
-                                    <div className="flex gap-4 pt-2 relative z-10">
-                                        <button onClick={() => openEditModal(inv)} className="flex-1 py-4 rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border-2 border-(--glass-border) text-[9px] font-black uppercase tracking-[0.2em] hover:text-primary transition-all">Edit Data</button>
-                                        <button onClick={() => handleDelete(inv.id)} className="flex-1 py-4 rounded-2xl bg-red-500/5 text-red-600 border-2 border-red-500/10 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all">Hapus Tagihan</button>
-                                    </div>
+                        <div className="p-20 text-center">
+                            <Loader2 className="w-10 h-10 text-accent animate-spin mx-auto mb-4" />
+                            <p className="font-bold text-[10px] text-slate-500 uppercase tracking-widest">Sinkronisasi...</p>
+                        </div>
+                    ) : paginatedInvoices.map((inv: any) => (
+                        <div key={inv.id} className="glass p-8 rounded-4xl space-y-6 shadow-xl border border-(--glass-border) bg-white/2">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h4 className="font-bold text-primary text-xl tracking-tight">{inv.customer_name}</h4>
+                                    <p className="text-[10px] font-bold text-accent uppercase tracking-widest mt-2 px-3 py-1 bg-accent/5 rounded-lg border border-accent/10 inline-block">{inv.billing_month}</p>
                                 </div>
-                            ))
-                    )}
+                                <span className={`px-4 py-2 rounded-xl text-[9px] font-bold uppercase tracking-widest border ${inv.status === 'PAID' ? 'bg-accent/10 text-accent border-accent/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
+                                    {inv.status === 'PAID' ? 'LUNAS' : 'TERTUNDA'}
+                                </span>
+                            </div>
+                            <div className="bg-slate-950/40 p-6 rounded-3xl border border-white/5">
+                                <p className="text-[9px] uppercase font-bold text-slate-500 mb-2 tracking-widest">Jumlah Tagihan</p>
+                                <p className="text-3xl font-bold text-primary tracking-tighter">Rp {parseInt(inv.amount).toLocaleString('id-ID')}</p>
+                            </div>
+                            <div className="flex gap-3">
+                                {inv.status !== 'PAID' && (
+                                    <button onClick={() => handleConfirmPayment(inv.id)} className="flex-1 py-4 rounded-xl bg-accent text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all">
+                                        <CheckCircle className="w-4 h-4" /> LUNASKAN
+                                    </button>
+                                )}
+                                <Link href={`/invoices/print/${inv.id}`} className="flex-1 py-4 rounded-xl bg-white/5 text-slate-400 border border-white/5 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
+                                    <Printer className="w-4 h-4" /> CETAK
+                                </Link>
+                            </div>
+                        </div>
+                    ))}
                 </div>
 
-                {/* Pagination Controls */}
-                {!loading && invoices.length > itemsPerPage && (
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-8 pt-12 px-4">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">
-                            Found <span className="text-primary font-black">{invoices.filter((inv: any) => (inv.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (inv.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length}</span> Billing Records
+                {/* Pagination */}
+                {!loading && totalPages > 1 && (
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-8 pt-10 px-4">
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                            Menampilkan <span className="text-primary font-bold">{paginatedInvoices.length}</span> dari <span className="text-primary font-bold">{filteredInvoices.length}</span> catatan
                         </p>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
                             <button 
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="px-8 py-4 rounded-2xl glass border-2 border-(--glass-border) text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary disabled:opacity-30 transition-all shadow-xl shadow-black/5 active:scale-95"
+                                className="p-3.5 rounded-xl glass border border-white/5 text-slate-500 hover:text-accent disabled:opacity-20 transition-all active:scale-95"
                             >
-                                Previous
+                                <ChevronLeft className="w-5 h-5" />
                             </button>
+                            <div className="flex items-center gap-2">
+                                {[...Array(totalPages)].map((_, i) => (
+                                    <button 
+                                        key={i}
+                                        onClick={() => setCurrentPage(i + 1)}
+                                        className={`w-9 h-9 rounded-lg font-bold text-[10px] transition-all ${currentPage === i + 1 ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'bg-white/5 border border-white/5 text-slate-500'}`}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
+                            </div>
                             <button 
-                                onClick={() => setCurrentPage(p => p + 1)}
-                                disabled={currentPage >= Math.ceil(invoices.filter((inv: any) => (inv.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (inv.pppoe_username || '').toLowerCase().includes(searchTerm.toLowerCase())).length / itemsPerPage)}
-                                className="px-8 py-4 rounded-2xl glass border-2 border-(--glass-border) text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary disabled:opacity-30 transition-all shadow-xl shadow-black/5 active:scale-95"
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="p-3.5 rounded-xl glass border border-white/5 text-slate-500 hover:text-accent disabled:opacity-20 transition-all active:scale-95"
                             >
-                                Next Page
+                                <ChevronRight className="w-5 h-5" />
                             </button>
                         </div>
                     </div>
@@ -380,82 +388,79 @@ export default function InvoicesPage() {
 
             {/* Edit Modal */}
             {showEditForm && (
-                <div className="fixed inset-0 z-60 flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-500">
-                    <div className="glass w-full max-w-lg p-10 lg:p-12 rounded-[3rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] border border-(--glass-border) animate-in zoom-in-95 duration-500 relative overflow-hidden">
-                        <div className="absolute -top-32 -right-32 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-slate-900 w-full max-w-lg p-10 lg:p-12 rounded-4xl shadow-2xl border border-white/10 animate-in zoom-in-95 duration-300 relative overflow-hidden">
+                        <div className="absolute -top-32 -right-32 w-80 h-80 bg-accent/5 rounded-full blur-3xl pointer-events-none"></div>
                         
-                        <div className="flex justify-between items-center mb-10 border-b border-(--glass-border) pb-8 relative z-10">
+                        <div className="flex justify-between items-center mb-12 border-b border-white/5 pb-8">
                             <div className="flex items-center gap-5">
-                                <div className="w-14 h-14 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400 border-2 border-teal-500/20 shadow-inner">
-                                    <Edit className="w-7 h-7" />
+                                <div className="w-14 h-14 rounded-2xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10 shadow-inner">
+                                    <Edit className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h4 className="text-2xl font-black text-primary">Koreksi Tagihan</h4>
-                                    <p className="text-[10px] text-muted font-black tracking-[0.2em] uppercase mt-1">Manual adjustment utility</p>
+                                    <h4 className="text-2xl font-bold text-primary tracking-tight">Ubah Buku Kas</h4>
+                                    <p className="text-[10px] text-muted font-bold tracking-widest uppercase mt-1">Penyesuaian catatan manual</p>
                                 </div>
                             </div>
                             <button 
                                 onClick={() => setShowEditForm(false)} 
-                                className="text-slate-400 hover:text-primary transition-all bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800 p-3 rounded-2xl active:scale-90 shadow-sm"
+                                className="text-slate-500 hover:text-white transition-all bg-white/5 p-3 rounded-xl"
                             >
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
 
-                        <div className="space-y-10 relative z-10">
+                        <div className="space-y-10">
                             <div>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 ml-1">Periode Tagihan</label>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 ml-1">Periode Siklus</label>
                                 <input 
                                     type="text" 
                                     value={editData.billing_month} 
                                     onChange={(e) => setEditData({...editData, billing_month: e.target.value})} 
-                                    className="w-full clean-input font-mono font-black text-xl py-5 px-6" 
+                                    className="w-full clean-input font-mono font-bold text-xl py-5 px-6" 
                                     placeholder="YYYY-MM"
                                 />
-                                <p className="text-[10px] text-slate-500 mt-4 ml-1 font-bold italic opacity-70 uppercase tracking-widest">Gunakan format standarisasi: 2024-05</p>
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 ml-1">Koreksi Nominal</label>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 ml-1">Jumlah Penyesuaian</label>
                                 <div className="relative">
                                     <input 
                                         type="number" 
                                         value={editData.amount} 
                                         onChange={(e) => setEditData({...editData, amount: parseInt(e.target.value)})} 
-                                        className="w-full clean-input pl-16 font-mono font-black text-2xl py-5" 
+                                        className="w-full clean-input pl-16 font-mono font-bold text-2xl py-5" 
                                     />
-                                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 font-black text-lg">Rp</span>
+                                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-lg">Rp</span>
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 ml-1">Status Final Tagihan</label>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 ml-1">Status Pelunasan</label>
                                 <div className="relative">
                                     <select 
                                         value={editData.status} 
                                         onChange={(e) => setEditData({...editData, status: e.target.value})} 
-                                        className="w-full clean-input appearance-none font-black text-xs uppercase tracking-[0.2em] py-5 px-6 cursor-pointer"
+                                        className="w-full clean-input appearance-none font-bold text-[10px] uppercase tracking-widest py-5 px-6 cursor-pointer"
                                     >
-                                        <option value="UNPAID">BELUM DIBAYAR (UNPAID)</option>
-                                        <option value="PAID">LUNAS (PAID)</option>
+                                        <option value="UNPAID">VEKTOR BELUM BAYAR</option>
+                                        <option value="PAID">CATATAN LUNAS</option>
                                     </select>
-                                    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
-                                        <CheckCircle className="w-5 h-5 text-indigo-500" />
-                                    </div>
+                                    <CheckCircle className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-accent/50 pointer-events-none" />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="mt-16 flex flex-col sm:flex-row gap-5 pt-10 border-t border-(--glass-border) relative z-10">
+                        <div className="mt-16 flex flex-col sm:flex-row gap-5 pt-10 border-t border-white/5">
                             <button 
                                 onClick={() => setShowEditForm(false)} 
-                                className="flex-1 px-10 py-5 rounded-2xl text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest text-[10px] hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+                                className="flex-1 px-10 py-4 rounded-2xl text-slate-500 font-bold uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
                             >
-                                Batalkan
+                                Batal
                             </button>
                             <button 
                                 onClick={handleUpdate}
-                                className="flex-1 px-12 py-5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black shadow-2xl shadow-indigo-600/30 transition-all flex items-center justify-center gap-4 hover:scale-105 active:scale-95 uppercase tracking-[0.2em] text-[10px]"
+                                className="flex-1 px-12 py-4 rounded-2xl bg-accent hover:bg-accent/90 text-white font-bold shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95 uppercase tracking-widest text-[10px]"
                             >
-                                <Save className="w-5 h-5" /> Simpan Update
+                                <Save className="w-5 h-5" /> Simpan Pembaruan
                             </button>
                         </div>
                     </div>
