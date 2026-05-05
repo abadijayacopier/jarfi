@@ -104,7 +104,7 @@ export default function InventoryPage() {
     return (
         <div className="animate-in fade-in duration-500 pb-20 space-y-12">
             {/* Header Area */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12 border-b border-white/5 pb-10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-6 border-b border-white/5 pb-10">
                 <div>
                     <h3 className="text-4xl font-black text-slate-800 dark:text-white flex items-center gap-5 tracking-tight uppercase">
                         <Box className="w-10 h-10 text-accent" />
@@ -122,7 +122,7 @@ export default function InventoryPage() {
             </div>
 
             {showForm && (
-                <div className="glass p-10 rounded-[40px] border border-white/10 bg-white/5 dark:bg-slate-900/50 animate-in slide-in-from-top-6 duration-500 shadow-2xl relative overflow-hidden backdrop-blur-xl mb-12">
+                <div className="glass p-10 rounded-[40px] border border-white/10 bg-white/5 dark:bg-slate-900/50 animate-in slide-in-from-top-6 duration-500 shadow-2xl relative overflow-hidden backdrop-blur-xl mb-6">
                     <h4 className="text-xl font-black text-slate-800 dark:text-white mb-8 flex items-center gap-3 uppercase tracking-tighter">
                         <Edit className="w-6 h-6 text-accent" />
                         {editingItem ? 'Edit Item' : 'Barang Baru'}
@@ -167,6 +167,32 @@ export default function InventoryPage() {
                 </div>
             )}
 
+            {/* Stat Cards - Optimized for Pro Max Visibility */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+                {[
+                    { label: 'Total Barang', value: items.length, icon: Box, color: 'text-indigo-500' },
+                    { label: 'Total Nilai Stok', value: `Rp ${(items.reduce((acc, item) => acc + (item.stock * item.price_per_unit), 0) / 1000000).toFixed(1)}M`, icon: FileSpreadsheet, color: 'text-emerald-500' },
+                    { label: 'Stok Kritis', value: items.filter(i => i.stock <= i.min_stock).length, icon: AlertCircle, color: 'text-rose-500' },
+                    { label: 'Kategori Aktif', value: new Set(items.map(i => i.category)).size, icon: Filter, color: 'text-amber-500' },
+                ].map((stat, i) => (
+                    <div key={i} className="glass p-5 md:p-8 rounded-3xl md:rounded-[40px] flex flex-col justify-between min-h-[160px] md:min-h-[220px] hover:border-accent/30 transition-all duration-500 group bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+                        <div className="absolute -right-10 -bottom-10 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-700 pointer-events-none">
+                            <stat.icon className={`w-32 md:w-48 h-32 md:h-48 ${stat.color}`} />
+                        </div>
+                        <div className="flex justify-between items-start relative z-10">
+                            <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center ${stat.color} border border-white/10 group-hover:scale-110 transition-transform shadow-inner`}>
+                                <stat.icon className="w-5 h-5 md:w-7 md:h-7" />
+                            </div>
+                            <span className="text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{stat.label}</span>
+                        </div>
+                        <div className="relative z-10 mt-4 md:mt-0">
+                            <div className={`text-3xl md:text-5xl font-black tracking-tighter mb-1 tabular-nums ${stat.color}`}>{loading ? '...' : stat.value}</div>
+                            <p className="text-[8px] md:text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Data Sinkron</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
             <div className="space-y-8">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="relative w-full md:w-96">
@@ -176,15 +202,15 @@ export default function InventoryPage() {
                             placeholder="CARI BARANG ATAU KATEGORI..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full h-14 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl pl-16 pr-6 font-black text-xs uppercase tracking-widest focus:border-accent/50 transition-all shadow-sm outline-none"
+                            className="w-full h-14 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl pl-16 pr-6 font-black text-xs uppercase tracking-widest focus:border-accent/50 transition-all shadow-sm outline-none"
                         />
                     </div>
                     <div className="flex items-center gap-4">
-                        <button className="h-14 px-6 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl flex items-center gap-3 text-slate-500 hover:text-accent transition-all shadow-sm">
+                        <button className="h-14 px-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl flex items-center gap-3 text-slate-500 hover:text-accent transition-all shadow-sm">
                             <Filter className="w-4 h-4" />
                             <span className="text-[10px] font-black uppercase tracking-widest">Filter</span>
                         </button>
-                        <button className="h-14 px-6 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl flex items-center gap-3 text-slate-500 hover:text-emerald-500 transition-all shadow-sm">
+                        <button className="h-14 px-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl flex items-center gap-3 text-slate-500 hover:text-emerald-500 transition-all shadow-sm">
                             <FileSpreadsheet className="w-4 h-4" />
                             <span className="text-[10px] font-black uppercase tracking-widest">Ekspor</span>
                         </button>
@@ -192,7 +218,8 @@ export default function InventoryPage() {
                 </div>
 
                 <div className="glass rounded-[40px] overflow-hidden border border-white/10 bg-white dark:bg-slate-900/50 shadow-2xl backdrop-blur-xl">
-                    <div className="overflow-x-auto min-h-[400px]">
+                    {/* Desktop View */}
+                    <div className="hidden md:block overflow-x-auto min-h-[400px]">
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-50/50 dark:bg-white/2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] border-b border-slate-100 dark:border-white/5">
@@ -266,6 +293,36 @@ export default function InventoryPage() {
                                 )}
                             </tbody>
                         </table>
+                    </div>
+
+                    {/* Mobile View - 2-Grid System */}
+                    <div className="md:hidden grid grid-cols-2 gap-4 p-4">
+                        {loading ? (
+                            <div className="col-span-2 p-20 text-center animate-pulse font-black uppercase tracking-widest text-[10px] text-slate-500">Sinkronisasi...</div>
+                        ) : paginatedItems.length === 0 ? (
+                            <div className="col-span-2 p-20 text-center text-slate-400 uppercase font-black text-[10px] tracking-widest opacity-40">Kosong.</div>
+                        ) : (
+                            paginatedItems.map((item) => (
+                                <div key={item.id} className="glass p-5 rounded-3xl border border-white/5 bg-white/2 flex flex-col justify-between shadow-lg group aspect-square">
+                                    <div className="flex justify-between items-start">
+                                        <div className={`w-2 h-2 rounded-full ${item.stock <= item.min_stock ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`}></div>
+                                        <span className="text-[7px] font-black uppercase text-slate-500 tracking-tighter">{item.category}</span>
+                                    </div>
+                                    <div className="text-center overflow-hidden">
+                                        <h4 className="font-black text-primary text-[10px] uppercase leading-tight truncate px-2">{item.item_name}</h4>
+                                        <p className={`text-sm font-black tracking-tighter mt-1 ${item.stock <= item.min_stock ? 'text-red-500' : 'text-accent'}`}>{item.stock} {item.unit}</p>
+                                    </div>
+                                    <div className="flex items-center justify-between pt-3 border-t border-white/5 mt-auto">
+                                        <button onClick={() => { setEditingItem(item); setFormData(item); setShowForm(true); }} className="text-slate-500 active:scale-90 transition-all">
+                                            <Edit className="w-3.5 h-3.5" />
+                                        </button>
+                                        <button onClick={() => handleDelete(item.id, item.item_name)} className="text-red-500 active:scale-90 transition-all">
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
 
                     {/* Pagination */}

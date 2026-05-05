@@ -121,7 +121,7 @@ export default function AutomationPage() {
                         <div className="absolute -right-40 -top-40 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[100px] pointer-events-none transition-all duration-700"></div>
 
                         <div className="relative z-10">
-                            <div className="flex flex-col md:flex-row items-start md:items-center gap-8 mb-12">
+                            <div className="flex flex-col md:flex-row items-start md:items-center gap-8 mb-6">
                                 <div className="w-20 h-20 rounded-3xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10 shadow-inner group-hover:scale-110 transition-all duration-500">
                                     <Cpu className="w-10 h-10" />
                                 </div>
@@ -131,7 +131,7 @@ export default function AutomationPage() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
                                 <div className="bg-white/1 p-8 rounded-3xl border border-white/5 shadow-inner transition-all">
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Integrity</p>
                                     <div className="font-bold text-accent flex items-center gap-3 uppercase tracking-widest">
@@ -169,7 +169,7 @@ export default function AutomationPage() {
                     </div>
 
                     <div className="glass p-12 rounded-4xl shadow-xl border border-(--glass-border) bg-white/2 relative">
-                        <div className="flex items-center gap-6 mb-12">
+                        <div className="flex items-center gap-6 mb-6">
                             <div className="w-16 h-16 rounded-2xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10 shadow-inner">
                                 <MessageSquare className="w-8 h-8" />
                             </div>

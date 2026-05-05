@@ -145,7 +145,7 @@ export default function SystemMonitorPage() {
                 <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none group-hover:scale-110 transition-transform duration-1000">
                     <Activity className="w-96 h-96 text-accent" />
                 </div>
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-8 relative z-10">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-8 relative z-10">
                     <div>
                         <h3 className="text-2xl font-bold text-primary tracking-tight">Analitik Throughput</h3>
                         <p className="text-[10px] text-muted font-bold mt-2 uppercase tracking-widest">Vektor Antarmuka: {selectedInterface || 'Memeriksa Node...'}</p>

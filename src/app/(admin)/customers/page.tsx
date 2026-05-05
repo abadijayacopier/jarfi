@@ -46,7 +46,12 @@ export default function CustomersPage() {
 
     // Pagination & Traffic
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(30);
+    const [itemsPerPage] = useState(10);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
     const [trafficData, setTrafficData] = useState<any[]>([]);
     const [trafficLoading, setTrafficLoading] = useState(false);
     const [chartData, setChartData] = useState<any[]>([
@@ -58,15 +63,18 @@ export default function CustomersPage() {
         { name: '5s', down: 0, up: 0 },
     ]);
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
-    const [currentTime, setCurrentTime] = useState(new Date());
+    const [currentTime, setCurrentTime] = useState<Date | null>(null);
     const [showPppoePass, setShowPppoePass] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
+        setCurrentTime(new Date());
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
     }, []);
 
     useEffect(() => {
+        if (!mounted) return;
         // Detect theme from document class
         const isDark = document.documentElement.classList.contains('dark');
         setTheme(isDark ? 'dark' : 'light');
@@ -251,7 +259,7 @@ export default function CustomersPage() {
                         console.warn(`Router ${r.id} reported error:`, data.error || 'Unknown error');
                     }
                 } catch (e: any) { 
-                    if (e.name !== 'AbortError') console.error(`Router ${r.id} fetch failed:`, e.message); 
+                    if (e.name !== 'AbortError') console.warn(`Router ${r.id} fetch failed:`, e.message); 
                 }
             }));
             
@@ -336,9 +344,10 @@ export default function CustomersPage() {
     };
 
     const formatUptimeLive = (connectedAt: string | null) => {
-        if (!connectedAt) return 'OFFLINE';
+        if (!connectedAt || !currentTime) return 'OFFLINE';
+        const now = currentTime;
         const start = new Date(connectedAt).getTime();
-        const diff = Math.floor((currentTime.getTime() - start) / 1000);
+        const diff = Math.floor((now.getTime() - start) / 1000);
         
         if (diff < 0) return '0 Detik';
 
@@ -459,76 +468,91 @@ export default function CustomersPage() {
     const paginatedCustomers = filteredCustomers.slice((currentPage - 1) * 30, currentPage * 30);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#020617] transition-colors pb-24 pt-32 w-full space-y-10 animate-in fade-in duration-500">
+        <div className="min-h-screen bg-slate-50 dark:bg-[#020617] transition-colors pb-24 w-full space-y-10 animate-in fade-in duration-500">
             {/* Header Vyber Style */}
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 mb-6 border-b border-slate-200 dark:border-white/5 pb-10">
                 <div className="flex items-center gap-6">
+                    <div className="w-16 h-16 rounded-[24px] bg-indigo-600/10 flex items-center justify-center text-indigo-600 border border-indigo-600/20 shadow-inner">
+                        <Users className="w-8 h-8" />
+                    </div>
                     <div>
-                        <h1 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight uppercase">Manajemen Pelanggan</h1>
+                        <h1 className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter uppercase">Manajemen Pelanggan</h1>
                         <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Monitoring {customers.length} node pelanggan secara real-time</p>
                     </div>
                     {isSyncing && (
-                        <div className="flex items-center gap-3 px-4 py-2 bg-accent/5 dark:bg-accent/10 rounded-full animate-in slide-in-from-left-4 duration-300 border border-accent/10">
+                        <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-accent/5 dark:bg-accent/10 rounded-full animate-in slide-in-from-left-4 duration-300 border border-accent/10">
                             <Loader2 className="w-4 h-4 text-accent animate-spin" />
                             <span className="text-[10px] font-black text-accent uppercase tracking-widest">Sinkronisasi Jaringan...</span>
                         </div>
                     )}
                 </div>
-                <div className="flex items-center gap-4">
-                    <button 
-                        onClick={syncOltData}
-                        disabled={isSyncing}
-                        className="bg-accent/5 hover:bg-accent/10 text-accent font-black py-3 px-6 rounded-2xl transition-all border border-accent/10 flex items-center gap-3 uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-50"
-                    >
-                        {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                        Sync OLT
-                    </button>
-                    <div className="flex bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-1 shadow-sm">
-                        <button 
-                            onClick={() => setViewMode('table')}
-                            className={`p-2 rounded-lg transition-all ${viewMode === 'table' ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white shadow-inner' : 'text-slate-400 hover:text-slate-600'}`}
-                            title="Tampilan Tabel"
-                        >
-                            <MoreVertical className="w-4 h-4 rotate-90" />
-                        </button>
-                        <button 
-                            onClick={() => setViewMode('grid')}
-                            className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white shadow-inner' : 'text-slate-400 hover:text-slate-600'}`}
-                            title="Tampilan Grid"
-                        >
-                            <Box className="w-4 h-4" />
-                        </button>
+                
+                <div className="w-full lg:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                    <div className="flex-1 overflow-x-auto custom-scrollbar">
+                        <div className="flex items-center gap-4 min-w-max pr-4">
+                            <button 
+                                onClick={syncOltData}
+                                disabled={isSyncing}
+                                className="h-14 bg-accent/5 hover:bg-accent/10 text-accent font-black px-8 rounded-2xl transition-all border border-accent/10 flex items-center gap-3 uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-50"
+                            >
+                                {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                                Sync OLT
+                            </button>
+                            
+                            <div className="flex h-14 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-1 shadow-sm">
+                                <button 
+                                    onClick={() => setViewMode('table')}
+                                    className={`px-4 rounded-xl transition-all ${viewMode === 'table' ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white shadow-inner' : 'text-slate-400 hover:text-slate-600'}`}
+                                    title="Tampilan Tabel"
+                                >
+                                    <MoreVertical className="w-4 h-4 rotate-90" />
+                                </button>
+                                <button 
+                                    onClick={() => setViewMode('grid')}
+                                    className={`px-4 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white shadow-inner' : 'text-slate-400 hover:text-slate-600'}`}
+                                    title="Tampilan Grid"
+                                >
+                                    <Box className="w-4 h-4" />
+                                </button>
+                            </div>
+                            
+                            <button 
+                                onClick={syncMikrotikData} 
+                                disabled={isSyncing}
+                                className="h-14 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-600 font-black px-8 rounded-2xl transition-all border border-indigo-600/10 flex items-center gap-3 uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-50 shadow-sm"
+                            >
+                                {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RouterIcon className="w-4 h-4" />}
+                                Sync MikroTik
+                            </button>
+                            
+                            <button 
+                                onClick={() => fetchData(true)} 
+                                disabled={isSyncing}
+                                className="h-14 flex items-center gap-3 px-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+                            >
+                                <RefreshCw className={`w-4 h-4 text-slate-600 dark:text-slate-400 ${isSyncing ? 'animate-spin' : ''}`} />
+                                <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">Refresh</span>
+                            </button>
+                        </div>
                     </div>
+                    
                     <button 
-                        onClick={syncMikrotikData} 
-                        disabled={isSyncing}
-                        className="bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-600 font-black py-3 px-6 rounded-2xl transition-all border border-indigo-600/10 flex items-center gap-3 uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-50"
+                        onClick={() => { setIsEditing(false); setFormData({ user_id: '', name: '', phone: '', router_id: '', package_id: '', pppoe_username: '', pppoe_password: '', due_date: 1, latitude: '', longitude: '', odp_id: '' }); setShowForm(true); }} 
+                        className="h-14 px-8 bg-indigo-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-95 whitespace-nowrap shrink-0"
                     >
-                        {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RouterIcon className="w-4 h-4" />}
-                        Sync MikroTik
-                    </button>
-                    <button 
-                        onClick={() => fetchData(true)} 
-                        disabled={isSyncing}
-                        className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm active:scale-95 disabled:opacity-50"
-                    >
-                        <RefreshCw className={`w-4 h-4 text-slate-600 dark:text-slate-400 ${isSyncing ? 'animate-spin' : ''}`} />
-                        <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">Refresh</span>
-                    </button>
-                    <button onClick={() => { setIsEditing(false); setFormData({ user_id: '', name: '', phone: '', router_id: '', package_id: '', pppoe_username: '', pppoe_password: '', due_date: 1, latitude: '', longitude: '', odp_id: '' }); setShowForm(true); }} className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-95">
                         + Tambah Pelanggan
                     </button>
                 </div>
             </div>
 
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
                 {stats.map((stat, i) => (
-                    <div key={i} className="bg-white dark:bg-slate-900 p-6 rounded-[24px] border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 hover:shadow-md dark:hover:shadow-indigo-900/10 transition-all group">
+                    <div key={i} className="aspect-square md:aspect-auto bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl md:rounded-[24px] border border-slate-200 dark:border-slate-800 shadow-sm space-y-3 md:space-y-4 hover:shadow-md dark:hover:shadow-indigo-900/10 transition-all group">
                         <div className="flex justify-between items-start">
                             <div className="space-y-1">
-                                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{stat.label}</p>
-                                <p className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter">{stat.value}</p>
+                                <p className="text-[8px] md:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-tight">{stat.label}</p>
+                                <p className="text-xl md:text-3xl font-black text-slate-800 dark:text-white tracking-tighter">{stat.value}</p>
                             </div>
                             <div className="w-16 h-10 opacity-30 group-hover:opacity-100 transition-opacity">
                                 <ResponsiveContainer width="100%" height="100%">
@@ -665,99 +689,82 @@ export default function CustomersPage() {
                         </div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 animate-in slide-in-from-bottom-4 duration-500 w-full relative">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-8 animate-in slide-in-from-bottom-4 duration-500 w-full relative">
                         {isSyncing && (
                             <div className="absolute -top-4 left-0 right-0 h-1 bg-accent animate-pulse z-50 rounded-full" />
                         )}
                         {paginatedCustomers.map((c) => (
-                            <div key={c.id} className="bg-white dark:bg-slate-900/50 rounded-[40px] border border-slate-200 dark:border-white/5 shadow-xl p-8 space-y-8 hover:shadow-2xl hover:shadow-accent/5 hover:-translate-y-2 transition-all duration-500 group relative overflow-hidden cursor-default backdrop-blur-xl">
-                                <div className={`absolute top-0 right-0 w-48 h-48 -mr-12 -mt-12 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity`}>
+                            <div key={c.id} className="bg-white dark:bg-slate-900/50 rounded-2xl md:rounded-[32px] border border-slate-200 dark:border-white/5 shadow-xl p-8 md:p-8 space-y-8 md:space-y-8 hover:shadow-2xl hover:shadow-accent/5 hover:-translate-y-2 transition-all duration-500 group relative overflow-hidden cursor-default backdrop-blur-xl md:aspect-auto flex flex-col justify-between">
+                                <div className={`absolute top-0 right-0 w-24 md:w-48 h-24 md:h-48 -mr-6 -mt-6 md:-mr-12 md:-mt-12 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity`}>
                                     <Signal className="w-full h-full text-accent" />
                                 </div>
                                 
                                 <div className="flex justify-between items-start relative z-10">
-                                    <div className="flex items-center gap-5">
-                                        <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 border border-indigo-500/10 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-inner">
-                                            <Users className="w-7 h-7" />
+                                    <div className="flex items-center gap-4 md:gap-5">
+                                        <div className="w-16 h-16 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 border border-indigo-500/10 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-inner">
+                                            <Users className="w-8 h-8 md:w-7 md:h-7" />
                                         </div>
-                                        <div className="max-w-[140px]">
-                                            <h3 className="text-sm font-black text-primary uppercase truncate group-hover:text-accent transition-colors tracking-tight leading-tight">{c.name}</h3>
-                                            <p className="text-[10px] font-bold text-muted uppercase tracking-[0.2em] mt-2 opacity-50">{c.user_id || 'ID PELANGGAN'}</p>
+                                        <div className="max-w-[140px] md:max-w-[140px]">
+                                            <h3 className="text-sm md:text-sm font-black text-primary uppercase truncate group-hover:text-accent transition-colors tracking-tight leading-tight">{c.name}</h3>
+                                            <p className="text-[10px] md:text-[10px] font-bold text-muted uppercase tracking-widest mt-1.5 md:mt-2 opacity-50">{c.user_id || 'ID PELANGGAN'}</p>
                                         </div>
                                     </div>
-                                    <div className="absolute top-8 right-8">
-                                        <span className={`px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest shadow-2xl whitespace-nowrap border border-white/20 transition-all duration-500 ${c.status === 'active' ? 'bg-emerald-500 text-white shadow-emerald-500/40' : 'bg-rose-500 text-white shadow-rose-500/40'}`}>
-                                            {c.status === 'active' ? 'terhubung' : 'nonaktif'}
-                                        </span>
+                                    <div className={`px-3 py-1.5 md:px-3 md:py-1 rounded-lg md:rounded-lg text-[10px] md:text-[10px] font-black uppercase tracking-widest relative z-10 shadow-sm ${c.status.toUpperCase() === 'ACTIVE' || c.status.toUpperCase() === 'TERHUBUNG' ? 'bg-emerald-500 text-white animate-pulse' : 'bg-rose-500 text-white'}`}>
+                                        {c.status}
                                     </div>
                                 </div>
- 
-                                <div className="space-y-6 relative z-10">
-                                    <div className="p-6 bg-slate-50/50 dark:bg-white/5 rounded-3xl space-y-4 group-hover:bg-slate-100/50 dark:group-hover:bg-white/10 transition-all border border-slate-100 dark:border-white/5 shadow-inner">
-                                        <div className="flex justify-between items-center">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-2 h-2 rounded-full ${c.rx < -27 ? 'bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-accent animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
+
+                                <div className="space-y-2 md:space-y-6 relative z-10">
+                                    <div className="space-y-1 md:space-y-3">
+                                        <div className="flex justify-between items-end">
+                                            <div className="flex items-center gap-1.5 md:gap-3">
+                                                <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${c.rx < -27 ? 'bg-red-500 animate-pulse' : 'bg-accent animate-pulse'}`} />
                                                 <div className="flex flex-col">
-                                                    <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Kesehatan Optik</span>
-                                                    <span className="text-[7px] font-bold text-accent uppercase tracking-widest opacity-60 flex items-center gap-1">
-                                                        <Activity className="w-2 h-2" /> Live Pulse
-                                                    </span>
+                                                    <span className="text-[9px] md:text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Sinyal</span>
                                                 </div>
                                             </div>
-                                            <span className={`text-base font-black tracking-tighter ${c.rx < -27 ? 'text-rose-600' : 'text-slate-800 dark:text-white'}`}>{c.rx?.toFixed(2) || '-22.50'} <span className="text-[10px] text-muted-foreground ml-0.5 tracking-normal">dBm</span></span>
+                                            <span className={`text-sm md:text-base font-black tracking-tighter ${c.rx < -27 ? 'text-rose-600' : 'text-slate-800 dark:text-white'}`}>{c.rx?.toFixed(1) || '-22.5'} <span className="text-[9px] md:text-[10px] text-muted-foreground ml-0.5 tracking-normal font-normal">dBm</span></span>
                                         </div>
-                                        <div className="w-full h-2.5 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden p-0.5">
+                                        <div className="h-1 md:h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                                             <div 
-                                                className={`h-full rounded-full transition-all duration-1000 ${c.rx < -27 ? 'bg-linear-to-r from-red-500 to-rose-600 shadow-[0_0_15px_rgba(244,63,94,0.4)]' : c.rx < -24 ? 'bg-linear-to-r from-yellow-400 to-orange-500' : 'bg-linear-to-r from-accent to-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]'}`} 
-                                                style={{ width: `${Math.min(100, Math.max(5, (c.rx + 40) * 2.5))}%` }}
+                                                className={`h-full transition-all duration-1000 ${c.rx < -27 ? 'bg-rose-500' : 'bg-accent'}`}
+                                                style={{ width: `${Math.min(100, Math.max(0, (c.rx + 40) * 4))}%` }}
                                             />
                                         </div>
                                     </div>
- 
-                                    <div className="grid grid-cols-2 gap-6 px-2">
-                                        <div className="space-y-1.5">
-                                            <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] opacity-60">ID PPPoE</p>
-                                            <p className="text-xs font-black text-indigo-600 dark:text-indigo-400 truncate tracking-tight uppercase">{c.pppoe_username}</p>
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] opacity-60">Router Hub</p>
-                                            <p className="text-xs font-black text-slate-800 dark:text-slate-200 truncate tracking-tight uppercase">{c.router_name || 'GERBANG-01'}</p>
-                                        </div>
-                                    </div>
- 
-                                    {/* Real-time Throughput (TX/RX) */}
-                                    <div className="pt-6 border-t border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50/30 dark:bg-white/2 -mx-8 px-8 py-5">
-                                        <div className="flex flex-col gap-1">
-                                            <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Unduh (RX)</span>
-                                            <div className="flex items-center gap-2 text-accent">
-                                                <ArrowDown className="w-4 h-4 animate-bounce" />
-                                                <span className="text-sm font-black tracking-tighter">
+
+                                    <div className="flex justify-between items-center py-3 md:py-4 border-y border-slate-100 dark:border-white/5">
+                                        <div className="flex flex-col gap-1 md:gap-1">
+                                            <span className="text-[9px] md:text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Down</span>
+                                            <div className="flex items-center gap-2 md:gap-2 text-accent">
+                                                <ArrowDown className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                                                <span className="text-xs md:text-sm font-black tracking-tighter">
                                                     {formatSpeed(getTrafficInfo(c.pppoe_username)?.rx || 0)}
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="w-px h-10 bg-slate-200 dark:bg-white/5" />
-                                        <div className="flex flex-col items-end gap-1">
-                                            <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Unggah (TX)</span>
-                                            <div className="flex items-center gap-2 text-blue-500">
-                                                <span className="text-sm font-black tracking-tighter">
+                                        <div className="w-px h-8 md:h-10 bg-slate-200 dark:bg-white/5" />
+                                        <div className="flex flex-col items-end gap-1 md:gap-1">
+                                            <span className="text-[9px] md:text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Up</span>
+                                            <div className="flex items-center gap-2 md:gap-2 text-blue-500">
+                                                <span className="text-xs md:text-sm font-black tracking-tighter">
                                                     {formatSpeed(getTrafficInfo(c.pppoe_username)?.tx || 0)}
                                                 </span>
-                                                <ArrowUp className="w-4 h-4" />
+                                                <ArrowUp className="w-3.5 h-3.5 md:w-4 md:h-4" />
                                             </div>
                                         </div>
                                     </div>
                                 </div>
  
-                                <div className="flex gap-3 pt-2 relative z-10">
-                                    <button onClick={() => { setSelectedCustomer(c); setShowDetail(true); }} className="flex-1 h-14 bg-slate-50 dark:bg-white/5 hover:bg-accent/10 text-slate-400 dark:text-slate-500 hover:text-accent rounded-[20px] transition-all border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm active:scale-95 group/btn" title="Lihat Detail">
-                                        <Eye className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                                <div className="flex gap-1.5 md:gap-3 relative z-10">
+                                    <button onClick={() => { setSelectedCustomer(c); setShowDetail(true); }} className="flex-1 h-8 md:h-14 bg-slate-50 dark:bg-white/5 hover:bg-accent/10 text-slate-400 dark:text-slate-500 hover:text-accent rounded-lg md:rounded-[20px] transition-all border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm active:scale-95 group/btn" title="Detail">
+                                        <Eye className="w-3.5 h-3.5 md:w-5 md:h-5 group-hover/btn:scale-110 transition-transform" />
                                     </button>
-                                    <button onClick={() => openEditForm(c)} className="flex-1 h-14 bg-slate-50 dark:bg-white/5 hover:bg-indigo-500/10 text-slate-400 dark:text-slate-500 hover:text-indigo-500 rounded-[20px] transition-all border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm active:scale-95 group/btn" title="Edit Pelanggan">
-                                        <Edit className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                                    <button onClick={() => openEditForm(c)} className="flex-1 h-8 md:h-14 bg-slate-50 dark:bg-white/5 hover:bg-indigo-500/10 text-slate-400 dark:text-slate-500 hover:text-indigo-500 rounded-lg md:rounded-[20px] transition-all border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm active:scale-95 group/btn" title="Edit">
+                                        <Edit className="w-3.5 h-3.5 md:w-5 md:h-5 group-hover/btn:scale-110 transition-transform" />
                                     </button>
-                                    <button onClick={() => handleDelete(c.id, c.name)} className="flex-1 h-14 bg-slate-50 dark:bg-white/5 hover:bg-red-500/10 text-slate-400 dark:text-slate-500 hover:text-red-500 rounded-[20px] transition-all border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm active:scale-95 group/btn" title="Hapus Pelanggan">
-                                        <Trash2 className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                                    <button onClick={() => handleDelete(c.id, c.name)} className="flex-1 h-8 md:h-14 bg-slate-50 dark:bg-white/5 hover:bg-red-500/10 text-slate-400 dark:text-slate-500 hover:text-red-500 rounded-lg md:rounded-[20px] transition-all border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm active:scale-95 group/btn" title="Hapus">
+                                        <Trash2 className="w-3.5 h-3.5 md:w-5 md:h-5 group-hover/btn:scale-110 transition-transform" />
                                     </button>
                                 </div>
                             </div>

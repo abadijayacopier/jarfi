@@ -129,7 +129,7 @@ export default function ToolsPage() {
                 <div className="glass p-10 rounded-4xl border border-(--glass-border) bg-white/2 hover:border-accent/30 transition-all duration-500 group shadow-xl relative overflow-hidden">
                     <div className="absolute -right-24 -top-24 w-64 h-64 bg-accent/5 rounded-full blur-3xl pointer-events-none transition-all duration-700"></div>
                     
-                    <div className="flex items-center gap-6 mb-12 relative z-10">
+                    <div className="flex items-center gap-6 mb-6 relative z-10">
                         <div className="w-20 h-20 rounded-3xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10 shadow-inner group-hover:scale-110 transition-all duration-500">
                             <Download className="w-10 h-10" />
                         </div>
@@ -165,7 +165,7 @@ export default function ToolsPage() {
                 <div className="glass p-10 rounded-4xl border border-(--glass-border) bg-white/2 hover:border-amber-500/30 transition-all duration-500 group shadow-xl relative overflow-hidden">
                     <div className="absolute -right-24 -top-24 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none transition-all duration-700"></div>
                     
-                    <div className="flex items-center gap-6 mb-12 relative z-10">
+                    <div className="flex items-center gap-6 mb-6 relative z-10">
                         <div className="w-20 h-20 rounded-3xl bg-amber-500/5 flex items-center justify-center text-amber-500 border border-amber-500/10 shadow-inner group-hover:scale-110 transition-all duration-500">
                             <History className="w-10 h-10" />
                         </div>

@@ -2,18 +2,21 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
     LayoutDashboard, Router as RouterIcon, Users, Activity, Ticket, Receipt,
     Settings, LogOut, ChevronLeft, ChevronRight, Menu, Package, Zap, Map,
     Database, Bell, Globe, Box, Wallet, ChevronDown, Archive, Warehouse, Cpu,
-    FileText
+    FileText, X as CloseIcon
 } from 'lucide-react';
+
+// Force refresh for Turbopack stale state
 import ThemeToggle from '@/components/ThemeToggle';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const [currentTime, setCurrentTime] = useState(new Date());
+    const router = useRouter();
+    const [currentTime, setCurrentTime] = useState<Date | null>(null);
     const [mounted, setMounted] = useState(false);
     const [settings, setSettings] = useState<any>(null);
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -74,6 +77,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         };
     }, []);
 
+    // Auto-close dropdown on navigation
+    useEffect(() => {
+        setActiveDropdown(null);
+    }, [pathname]);
+
     const formatDate = (date: Date) => {
         return date.toLocaleDateString('id-ID', {
             weekday: 'long',
@@ -106,7 +114,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="fixed bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-teal-500/3 rounded-full blur-[150px] z-0 pointer-events-none"></div>
 
             {/* Top Navigation Bar */}
-            <header className="fixed top-0 left-0 right-0 z-50 w-full px-6 py-4">
+            <header className="sticky top-0 z-50 w-full px-6 py-4 bg-(--background)/80 backdrop-blur-xl">
                 <div className="w-full">
                     <div className="glass rounded-[40px] h-24 flex items-center px-10 justify-between shadow-2xl border border-white/10 dark:border-white/5 relative">
 
@@ -141,17 +149,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                             {item.href ? (
                                                 <Link
                                                     href={item.href}
-                                                    className={`flex items-center px-5 py-2.5 rounded-2xl transition-all duration-300 font-bold text-[10px] uppercase tracking-wider ${isActive ? 'bg-white dark:bg-white/10 text-primary shadow-sm border border-white/10' : 'text-muted hover:text-primary hover:bg-white/5'}`}
+                                                    className={`flex items-center px-5 py-2.5 rounded-2xl transition-all duration-300 font-bold text-[10px] uppercase tracking-wider ${isActive ? 'bg-white dark:bg-white/15 text-slate-900 dark:text-white shadow-sm border border-white/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/10 dark:hover:bg-white/5'}`}
                                                 >
-                                                    <Icon className={`w-4 h-4 mr-2.5 ${isActive ? 'text-accent' : ''}`} />
+                                                    <Icon className={`w-4 h-4 mr-2.5 ${isActive ? 'text-accent' : 'opacity-50'}`} />
                                                     {item.label}
                                                 </Link>
                                             ) : (
                                                 <button
                                                     onClick={() => setActiveDropdown(activeDropdown === item.label ? null : item.label)}
-                                                    className={`flex items-center px-5 py-2.5 rounded-2xl transition-all duration-300 font-bold text-[10px] uppercase tracking-wider ${isActive ? 'bg-white dark:bg-white/10 text-primary shadow-sm border border-white/10' : 'text-muted hover:text-primary hover:bg-white/5'}`}
+                                                    className={`flex items-center px-5 py-2.5 rounded-2xl transition-all duration-300 font-bold text-[10px] uppercase tracking-wider ${isActive ? 'bg-white dark:bg-white/15 text-slate-900 dark:text-white shadow-sm border border-white/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/10 dark:hover:bg-white/5'}`}
                                                 >
-                                                    <Icon className={`w-4 h-4 mr-2.5 ${isActive ? 'text-accent' : ''}`} />
+                                                    <Icon className={`w-4 h-4 mr-2.5 ${isActive ? 'text-accent' : 'opacity-50'}`} />
                                                     {item.label}
                                                     <ChevronDown className={`w-3.5 h-3.5 ml-2 transition-transform duration-300 ${activeDropdown === item.label ? 'rotate-180' : ''}`} />
                                                 </button>
@@ -184,10 +192,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <div className="flex items-center gap-4 relative z-10">
                             <div className="hidden lg:flex flex-col items-end mr-4 border-r border-white/10 pr-6">
                                 <span className="text-[10px] text-accent font-bold uppercase tracking-widest leading-none">
-                                    {mounted ? formatTime(currentTime) : '--:--:--'}
+                                    {currentTime ? formatTime(currentTime) : '--:--:--'}
                                 </span>
                                 <span className="text-[8px] text-muted font-semibold uppercase tracking-tight mt-1">
-                                    {mounted ? formatDate(currentTime) : 'Memuat...'}
+                                    {currentTime ? formatDate(currentTime) : 'Memuat...'}
                                 </span>
                             </div>
 
@@ -217,21 +225,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </header>
 
             {/* Main Content Area */}
-            <main className="flex-1 flex flex-col pt-32 px-6 md:px-12 pb-24 md:pb-8 relative w-full">
+            <main className="flex-1 flex flex-col px-6 md:px-12 pt-6 pb-24 md:pb-8 relative w-full">
                 <div className="flex-1 min-h-0">
                     {children}
                 </div>
             </main>
 
-            {/* Mobile Nav (Bottom) */}
+            {/* Mobile Nav (Bottom) - Optimized for Field Operations */}
             <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] glass rounded-[32px] z-50 flex items-center justify-around p-3 shadow-2xl border border-white/10 dark:border-white/5 bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl">
-                {navItems.filter(item => item.href || item.label === 'Pusat Laporan').slice(0, 4).map((item, idx) => {
+                {[
+                    { href: '/dashboard', label: 'Dasbor', icon: LayoutDashboard },
+                    { href: '/map', label: 'Pemetaan', icon: Map },
+                    { href: '/customers', label: 'Pelanggan', icon: Users },
+                    { href: '/reports', label: 'Laporan', icon: FileText },
+                ].map((item, idx) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href;
                     return (
                         <Link
                             key={idx}
-                            href={item.href || '/reports'}
+                            href={item.href}
                             className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all duration-300 ${isActive ? 'text-accent bg-accent/10 shadow-inner' : 'text-muted hover:text-primary hover:bg-white/5'}`}
                         >
                             <Icon className={`w-6 h-6 ${isActive ? 'scale-110' : ''}`} />
@@ -247,43 +260,126 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <span className="text-[8px] font-black uppercase mt-1 tracking-tighter">Menu</span>
                 </button>
 
-                {/* Mobile More Menu Overlay */}
-                {activeDropdown === 'mobile-more' && (
-                    <div className="absolute bottom-20 left-0 right-0 glass rounded-[32px] p-6 shadow-2xl border border-white/10 dark:border-white/5 animate-in slide-in-from-bottom-4 duration-300 max-h-[70vh] overflow-y-auto">
-                        <div className="grid grid-cols-2 gap-4">
-                            {navItems.map((item, idx) => (
-                                <div key={idx} className="space-y-3">
-                                    <h4 className="text-[10px] font-black text-accent uppercase tracking-widest px-2">{item.label}</h4>
-                                    {item.href ? (
-                                        <Link
-                                            href={item.href}
-                                            onClick={() => setActiveDropdown(null)}
-                                            className={`flex items-center gap-3 p-3 rounded-2xl transition-all ${pathname === item.href ? 'bg-accent/10 text-accent' : 'text-muted hover:bg-white/5'}`}
-                                        >
-                                            <item.icon className="w-4 h-4" />
-                                            <span className="text-xs font-bold">{item.label}</span>
-                                        </Link>
-                                    ) : (
-                                        <div className="space-y-1">
-                                            {item.subItems?.map((sub, sIdx) => (
-                                                <Link
-                                                    key={sIdx}
-                                                    href={sub.href}
-                                                    onClick={() => setActiveDropdown(null)}
-                                                    className={`flex items-center gap-3 p-3 rounded-2xl transition-all ${pathname === sub.href ? 'bg-accent/10 text-accent' : 'text-muted hover:bg-white/5 hover:text-primary'}`}
-                                                >
-                                                    <sub.icon className="w-4 h-4" />
-                                                    <span className="text-xs font-bold">{sub.label}</span>
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    )}
+            </nav>
+
+            {/* Mobile More Menu Overlay - Moved to root for absolute z-index priority */}
+            {activeDropdown === 'mobile-more' && (
+                <div className="fixed inset-0 z-9999 flex items-end justify-center p-4 sm:p-6 animate-in fade-in duration-500">
+                    <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-2xl" onClick={() => setActiveDropdown(null)}></div>
+                    <div className="bg-[#0f172a]/90 w-full max-w-2xl rounded-[48px] shadow-[0_-25px_100px_rgba(0,0,0,0.9)] border border-white/15 flex flex-col relative z-10 overflow-hidden animate-in slide-in-from-bottom-full duration-700 mb-16 backdrop-saturate-150">
+                        {/* Industrial Header Ornament */}
+                        <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-transparent via-accent/50 to-transparent"></div>
+                        
+                        {/* Drag Handle */}
+                        <div className="w-16 h-1.5 bg-white/10 rounded-full mx-auto mt-5 mb-2 shadow-inner"></div>
+                        
+                        <div className="px-10 py-6 border-b border-white/10 flex justify-between items-center bg-linear-to-b from-white/5 to-transparent">
+                            <div className="flex flex-col">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_10px_rgba(99,102,241,0.8)]"></div>
+                                    <span className="text-[12px] font-black text-white uppercase tracking-[0.4em] drop-shadow-lg">Matriks Navigasi</span>
                                 </div>
-                            ))}
+                                <span className="text-[8px] font-bold text-accent uppercase tracking-widest mt-1.5 opacity-80">Jarfi Industrial Intelligence v3.0</span>
+                            </div>
+                            <button onClick={() => setActiveDropdown(null)} className="w-12 h-12 rounded-[20px] bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-all border border-white/10 shadow-inner group active:scale-90">
+                                <CloseIcon className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
+                            </button>
+                        </div>
+
+                        <div className="p-8 space-y-8 overflow-y-auto custom-scrollbar max-h-[75vh]">
+                            <div className="space-y-10">
+                                {navItems
+                                    .filter(item => !['Dasbor', 'Pemetaan', 'Pelanggan', 'Laporan', 'Dashboard', 'Pusat Laporan'].includes(item.label))
+                                    .map((item, idx) => {
+                                        const hasSubItems = !!item.subItems;
+                                        const isDirectLink = !!item.href;
+                                        const filteredSubItems = item.subItems?.filter(sub => !['Pemetaan & ODP'].includes(sub.label));
+                                        if (hasSubItems && filteredSubItems?.length === 0) return null;
+
+                                        const isActive = isDirectLink ? pathname === item.href : filteredSubItems?.some(s => s.href === pathname);
+
+                                        return (
+                                            <div key={idx} className="space-y-6">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="h-px flex-1 bg-linear-to-r from-transparent to-white/10"></div>
+                                                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] whitespace-nowrap">{item.label}</h4>
+                                                    <div className="h-px flex-1 bg-linear-to-l from-transparent to-white/10"></div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    {!hasSubItems ? (
+                                                        <Link
+                                                            href={item.href!}
+                                                            className={`group relative flex items-center gap-5 p-5 rounded-[32px] transition-all border overflow-hidden cursor-pointer active:scale-95 ${isActive ? 'bg-accent/20 border-accent/40 text-white shadow-[0_20px_40px_rgba(99,102,241,0.2)]' : 'bg-white/2 border-white/5 text-slate-400 hover:bg-white/5'}`}
+                                                        >
+                                                            {isActive && <div className="absolute inset-0 bg-linear-to-r from-accent/10 to-transparent pointer-events-none"></div>}
+                                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-500 ${isActive ? 'bg-accent text-white scale-110' : 'bg-white/5 text-slate-500 group-hover:text-accent group-hover:scale-105'}`}>
+                                                                <item.icon className="w-6 h-6" />
+                                                            </div>
+                                                            <div className="flex flex-col text-left">
+                                                                <span className="text-[13px] font-black uppercase tracking-wider">{item.label}</span>
+                                                                <span className="text-[8px] opacity-40 font-bold uppercase mt-1 tracking-widest">Entry Access</span>
+                                                            </div>
+                                                        </Link>
+                                                    ) : (
+                                                        filteredSubItems?.map((sub, sIdx) => {
+                                                            const isSubActive = pathname === sub.href;
+                                                            return (
+                                                                <Link
+                                                                    key={sIdx}
+                                                                    href={sub.href}
+                                                                    className={`group relative flex items-center gap-5 p-5 rounded-[32px] transition-all border overflow-hidden cursor-pointer active:scale-95 ${isSubActive ? 'bg-accent/20 border-accent/40 text-white shadow-[0_20px_40px_rgba(99,102,241,0.2)]' : 'bg-white/2 border-white/5 text-slate-400 hover:bg-white/5'}`}
+                                                                >
+                                                                    {isSubActive && <div className="absolute inset-0 bg-linear-to-r from-accent/10 to-transparent pointer-events-none"></div>}
+                                                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-500 ${isSubActive ? 'bg-accent text-white scale-110' : 'bg-white/5 text-slate-500 group-hover:text-accent group-hover:scale-105'}`}>
+                                                                        <sub.icon className="w-6 h-6" />
+                                                                    </div>
+                                                                    <div className="flex flex-col text-left">
+                                                                        <span className="text-[12px] font-black uppercase tracking-wider">{sub.label}</span>
+                                                                        <span className="text-[8px] opacity-40 font-bold uppercase mt-1 tracking-widest">Sub-Matrix Portal</span>
+                                                                    </div>
+                                                                </Link>
+                                                            );
+                                                        })
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                            </div>
+
+                            <div className="mt-12 pt-10 border-t border-white/10 space-y-8">
+                                <div className="group relative flex items-center justify-between bg-white/2 p-6 rounded-[40px] border border-white/5 hover:bg-white/5 transition-all duration-500">
+                                    <div className="flex items-center gap-6">
+                                        <div className="relative">
+                                            <div className="absolute inset-0 bg-accent rounded-2xl blur-md opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                                            <div className="relative w-16 h-16 rounded-2xl bg-linear-to-br from-accent/30 to-emerald-500/30 flex items-center justify-center font-black text-[18px] text-white border border-white/20 shadow-2xl">
+                                                AD
+                                            </div>
+                                        </div>
+                                        <div className="text-left">
+                                            <p className="text-[14px] font-black text-white uppercase leading-none tracking-widest">Administrator</p>
+                                            <div className="flex items-center gap-2 mt-2.5">
+                                                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]"></div>
+                                                <p className="text-[9px] font-black text-accent uppercase tracking-[0.3em]">Neural Link Secure</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <ThemeToggle />
+                                </div>
+                                
+                                <button className="w-full flex items-center justify-center gap-6 text-red-400 font-black uppercase text-[11px] tracking-[0.4em] py-7 bg-red-500/5 hover:bg-red-500/10 rounded-[40px] border border-red-500/10 active:scale-95 transition-all shadow-2xl group relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-linear-to-r from-red-500/0 via-red-500/5 to-red-500/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                                    <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20 transition-all border border-red-500/20 shadow-inner">
+                                        <LogOut className="w-6 h-6" />
+                                    </div>
+                                    Terminate All Sessions
+                                </button>
+                            </div>
                         </div>
                     </div>
-                )}
-            </nav>
+                </div>
+            )}
         </div>
     );
 }

@@ -34,17 +34,53 @@ export async function GET(request: Request) {
 
         const conn = await client.connect();
         
-        // Fetch active users and interfaces with full details
+        // Fetch active users and interfaces
         const [activeUsers, interfaces] = await Promise.all([
             conn.menu('/ppp/active').get(),
             conn.menu('/interface').get()
         ]);
 
         const now = Date.now();
+        
+        // Collect interface names for monitoring
+        // Only monitor interfaces that are dynamic pppoe-in or physical ones used by active users
+        const activeInterfaceNames = activeUsers
+            .map((u: any) => u.interface || `<pppoe-${u.name}>`)
+            .filter((name: string) => name && !name.includes('unreachable'));
+
+        // Also include physical interfaces just in case
+        const physicalInterfaces = interfaces
+            .filter((i: any) => !i.name.includes('<') && !i.name.includes('pppoe-'))
+            .map((i: any) => i.name);
+        
+        const monitorList = Array.from(new Set([...activeInterfaceNames, ...physicalInterfaces])).join(',');
+
+        let monitorData: any[] = [];
+        if (monitorList) {
+            try {
+                // Get instantaneous rates directly from MikroTik
+                monitorData = await conn.menu('/interface/monitor-traffic')
+                    .where('interface', monitorList)
+                    .where('once', true)
+                    .get();
+            } catch (e) {
+                console.error('Monitor-traffic failed, falling back to delta:', e);
+            }
+        }
+
+        const monitorMap: Record<string, any> = {};
+        if (Array.isArray(monitorData)) {
+            monitorData.forEach((m: any) => {
+                monitorMap[m.name] = {
+                    rx: parseInt(m['rx-bits-per-second'] || '0'),
+                    tx: parseInt(m['tx-bits-per-second'] || '0')
+                };
+            });
+        }
+
         const trafficData: any[] = [];
         const statsMap: Record<string, any> = {};
         
-        // Step 1: Calculate real-time speed and collect totals
         interfaces.forEach((i: any) => {
             if (!i.name) return;
 
@@ -53,21 +89,28 @@ export async function GET(request: Request) {
             const currentRxPkt = parseInt(i.rxPacket || i['rx-packet'] || '0');
             const currentTxPkt = parseInt(i.txPacket || i['tx-packet'] || '0');
             
-            const cacheKey = `${routerId}_${i.name}`;
-            const lastData = trafficCache.get(cacheKey);
-
+            // Use monitor-traffic data for speed (Instantaneous)
+            const monitorStats = monitorMap[i.name];
             let rxSpeed = 0;
             let txSpeed = 0;
 
-            if (lastData && lastData.rx > 0 && lastData.tx > 0) {
-                const timeDiff = (now - lastData.time) / 1000;
-                if (timeDiff > 0 && timeDiff < 60) {
-                    rxSpeed = Math.max(0, Math.round(((currentTx - lastData.tx) * 8) / timeDiff));
-                    txSpeed = Math.max(0, Math.round(((currentRx - lastData.rx) * 8) / timeDiff));
+            if (monitorStats) {
+                // Router TX is user RX (Download), Router RX is user TX (Upload)
+                rxSpeed = monitorStats.tx; 
+                txSpeed = monitorStats.rx;
+            } else {
+                // Fallback to delta calculation
+                const cacheKey = `${routerId}_${i.name}`;
+                const lastData = trafficCache.get(cacheKey);
+                if (lastData && lastData.rx > 0 && lastData.tx > 0) {
+                    const timeDiff = (now - lastData.time) / 1000;
+                    if (timeDiff > 0 && timeDiff < 60) {
+                        rxSpeed = Math.max(0, Math.round(((currentTx - lastData.tx) * 8) / timeDiff));
+                        txSpeed = Math.max(0, Math.round(((currentRx - lastData.rx) * 8) / timeDiff));
+                    }
                 }
+                trafficCache.set(cacheKey, { rx: currentRx, tx: currentTx, time: now });
             }
-
-            trafficCache.set(cacheKey, { rx: currentRx, tx: currentTx, time: now });
             
             statsMap[i.name] = { 
                 rx: rxSpeed, 

@@ -82,9 +82,9 @@ export default function OLTManagementPage() {
     );
 
     return (
-        <div className="animate-in fade-in duration-500 pb-20 space-y-12">
+        <div className="animate-in fade-in duration-500 pb-20 space-y-8">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-16 border-b border-(--glass-border) pb-10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-6 border-b border-(--glass-border) pb-10">
                 <div className="space-y-2">
                     <h3 className="text-4xl font-bold text-primary flex items-center gap-5 tracking-tight">
                         <Zap className="w-10 h-10 text-accent fill-accent/5" />
@@ -106,31 +106,36 @@ export default function OLTManagementPage() {
 
             {/* Stats Summary */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-                <div className="glass p-10 rounded-4xl flex items-center gap-10 shadow-xl border border-(--glass-border) bg-white/2 group hover:border-accent/20 transition-all duration-500">
-                    <div className="w-16 h-16 rounded-3xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10 shadow-inner group-hover:scale-110 transition-all">
-                        <Server className="w-8 h-8" />
+                <div className="glass p-10 rounded-[48px] flex items-center gap-10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 bg-linear-to-br from-white/5 to-transparent group hover:border-accent/40 transition-all duration-700 relative overflow-hidden">
+                    <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-accent/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+                    <div className="w-20 h-20 rounded-[32px] bg-accent/10 flex items-center justify-center text-accent border border-accent/20 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
+                        <Server className="w-10 h-10" />
                     </div>
-                    <div>
-                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-2">Node Terpasang</p>
-                        <h4 className="text-4xl font-bold text-primary tracking-tight">{olts.length}</h4>
-                    </div>
-                </div>
-                <div className="glass p-10 rounded-4xl flex items-center gap-10 shadow-xl border border-(--glass-border) bg-white/2 group hover:border-accent/20 transition-all duration-500">
-                    <div className="w-16 h-16 rounded-3xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10 shadow-inner group-hover:scale-110 transition-all">
-                        <Activity className="w-8 h-8" />
-                    </div>
-                    <div>
-                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-2">Status Jaringan</p>
-                        <h4 className="text-3xl font-bold text-accent tracking-tight uppercase">Normal</h4>
+                    <div className="relative z-10">
+                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] mb-3 opacity-60">Node Terpasang</p>
+                        <h4 className="text-5xl font-black text-white tracking-tighter tabular-nums">{olts.length}</h4>
                     </div>
                 </div>
-                <div className="glass p-10 rounded-4xl flex items-center gap-10 shadow-xl border border-(--glass-border) bg-white/2 group hover:border-accent/20 transition-all duration-500">
-                    <div className="w-16 h-16 rounded-3xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10 shadow-inner group-hover:scale-110 transition-all">
-                        <HardDrive className="w-8 h-8" />
+                
+                <div className="glass p-10 rounded-[48px] flex items-center gap-10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 bg-linear-to-br from-white/5 to-transparent group hover:border-emerald-500/40 transition-all duration-700 relative overflow-hidden">
+                    <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+                    <div className="w-20 h-20 rounded-[32px] bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
+                        <Activity className="w-10 h-10" />
                     </div>
-                    <div>
-                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-2">Fabric Inti</p>
-                        <h4 className="text-2xl font-bold text-primary tracking-tight uppercase opacity-80">Serat Hibrida</h4>
+                    <div className="relative z-10">
+                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] mb-3 opacity-60">Status Jaringan</p>
+                        <h4 className="text-3xl font-black text-emerald-400 tracking-tight uppercase">Normal</h4>
+                    </div>
+                </div>
+
+                <div className="glass p-10 rounded-[48px] flex items-center gap-10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 bg-linear-to-br from-white/5 to-transparent group hover:border-accent/40 transition-all duration-700 relative overflow-hidden">
+                    <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-accent/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+                    <div className="w-20 h-20 rounded-[32px] bg-white/5 flex items-center justify-center text-slate-400 border border-white/10 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
+                        <HardDrive className="w-10 h-10" />
+                    </div>
+                    <div className="relative z-10">
+                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] mb-3 opacity-60">Fabric Inti</p>
+                        <h4 className="text-2xl font-black text-white/80 tracking-tight uppercase leading-none">Serat Hibrida</h4>
                     </div>
                 </div>
             </div>
@@ -243,9 +248,9 @@ export default function OLTManagementPage() {
                 </div>
             </div>
 
-            {/* Modal Section */}
+            {/* Modal Form */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300">
+                <div className="fixed inset-0 z-1000 flex items-center justify-center p-4 sm:p-8 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
                     <div className="bg-slate-900 w-full max-w-4xl rounded-4xl border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[95vh] animate-in zoom-in-95 duration-300">
                         <div className="p-10 border-b border-white/5 bg-white/2 flex justify-between items-center">
                             <div className="flex items-center gap-6">

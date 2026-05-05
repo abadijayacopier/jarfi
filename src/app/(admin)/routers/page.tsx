@@ -201,7 +201,7 @@ export default function RoutersPage() {
 
     return (
         <div className="animate-in fade-in duration-500 pb-20 space-y-12">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12 border-b border-(--glass-border) pb-10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-6 border-b border-(--glass-border) pb-10">
                 <div>
                     <h3 className="text-4xl font-bold text-primary flex items-center gap-4 tracking-tight">
                         <Wifi className="w-10 h-10 text-accent" />
@@ -306,43 +306,49 @@ export default function RoutersPage() {
                 </div>
 
                 {/* Mobile Card View */}
-                <div className="md:hidden space-y-6">
+                <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {loading ? (
-                        <div className="p-20 text-center text-slate-500 animate-pulse uppercase text-[10px] font-bold tracking-widest">Sinkronisasi Node...</div>
+                        <div className="col-span-full p-20 text-center text-slate-500 animate-pulse uppercase text-[12px] font-black tracking-[0.3em]">Membangun Matriks...</div>
                     ) : routers.length === 0 ? (
-                        <div className="p-20 text-center text-slate-500 font-bold uppercase text-[10px] tracking-widest opacity-40">Matriks Kosong</div>
+                        <div className="col-span-full p-20 text-center text-slate-500 font-black uppercase text-[12px] tracking-[0.3em] opacity-30">Matriks Node Kosong</div>
                     ) : (
                         routers
                             .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                             .map((router: any) => (
-                                <div key={router.id} className="glass p-8 rounded-4xl space-y-8 shadow-xl border border-(--glass-border) bg-white/2 relative overflow-hidden group">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10">
-                                                <Wifi className="w-6 h-6" />
-                                            </div>
-                                            <div>
-                                                <h4 className="font-bold text-primary text-xl tracking-tight leading-tight">{router.name}</h4>
-                                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Gateway</p>
-                                            </div>
-                                        </div>
-                                        <span className={`px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase tracking-widest border ${router.status === 'ONLINE' ? 'bg-accent/10 text-accent border-accent/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
+                                <div key={router.id} className="glass p-8 rounded-[40px] border border-white/10 bg-white/2 flex flex-col justify-between shadow-2xl group relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-4">
+                                        <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border flex items-center gap-2 ${router.status === 'ONLINE' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
+                                            <div className={`w-2 h-2 rounded-full ${router.status === 'ONLINE' ? 'bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]' : 'bg-red-500'}`}></div>
                                             {router.status}
                                         </span>
                                     </div>
-                                    <div className="bg-slate-950/40 p-6 rounded-3xl border border-white/5 space-y-4">
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Vektor Host</span>
-                                            <span className="text-primary font-mono font-bold text-sm">{router.ip_address}</span>
+                                    
+                                    <div className="flex flex-col items-center text-center mt-6">
+                                        <div className="w-20 h-20 rounded-[28px] bg-white/5 flex items-center justify-center mb-6 shadow-inner border border-white/5 group-hover:scale-110 transition-transform duration-500">
+                                            <Wifi className={`w-10 h-10 ${router.status === 'ONLINE' ? 'text-accent' : 'text-slate-600'}`} />
                                         </div>
-                                        <div className="flex justify-between items-center pt-4 border-t border-white/5">
-                                            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Terautentikasi</span>
-                                            <span className="text-primary font-bold text-xs uppercase tracking-widest">{router.username}</span>
+                                        <h4 className="font-black text-white text-xl tracking-tight leading-none mb-3 uppercase">{router.name}</h4>
+                                        <div className="bg-slate-950/40 px-4 py-2 rounded-xl border border-white/5">
+                                            <p className="text-[12px] font-mono text-accent font-black tracking-widest">{router.ip_address}</p>
                                         </div>
+                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] mt-3 opacity-60">Port: {router.api_port}</p>
                                     </div>
-                                    <div className="flex gap-3">
-                                        <button onClick={() => testConnectionExisting(router)} className="flex-1 py-4 rounded-2xl bg-accent/5 text-accent border border-accent/10 font-bold text-[10px] uppercase tracking-widest">Diagnostik</button>
-                                        <button onClick={() => openEditModal(router)} className="flex-1 py-4 rounded-2xl bg-white/5 text-slate-400 border border-white/5 font-bold text-[10px] uppercase tracking-widest">Ubah</button>
+
+                                    <div className="grid grid-cols-2 gap-4 mt-10 pt-8 border-t border-white/5">
+                                        <button 
+                                            onClick={() => testConnectionExisting(router)} 
+                                            className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-white/5 hover:bg-accent/10 transition-all active:scale-90 border border-white/5 group/btn"
+                                        >
+                                            <Wifi className="w-6 h-6 text-slate-400 group-hover/btn:text-accent" />
+                                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest group-hover/btn:text-accent">Test Link</span>
+                                        </button>
+                                        <button 
+                                            onClick={() => openEditModal(router)} 
+                                            className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-white/5 hover:bg-blue-500/10 transition-all active:scale-90 border border-white/5 group/btn"
+                                        >
+                                            <Edit className="w-6 h-6 text-slate-400 group-hover/btn:text-blue-400" />
+                                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest group-hover/btn:text-blue-400">Edit Node</span>
+                                        </button>
                                     </div>
                                 </div>
                             ))
@@ -377,80 +383,82 @@ export default function RoutersPage() {
 
             {/* Modal Form */}
             {showForm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-slate-900 w-full max-w-2xl p-10 lg:p-12 rounded-4xl shadow-2xl border border-white/10 animate-in zoom-in-95 duration-300 relative overflow-hidden">
+                <div className="fixed inset-0 z-10000 flex items-center justify-center p-4 sm:p-8 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
+                    <div className="bg-slate-900 w-full max-w-2xl max-h-[90vh] rounded-[48px] shadow-[0_0_100px_rgba(0,0,0,0.8)] border border-white/15 flex flex-col relative overflow-hidden animate-in zoom-in-95 duration-500">
                         <div className="absolute -top-40 -right-40 w-96 h-96 bg-accent/5 rounded-full blur-3xl pointer-events-none"></div>
                         
-                        <div className="flex justify-between items-center mb-10 border-b border-white/5 pb-8 relative z-10">
+                        <div className="px-8 py-6 border-b border-white/10 flex justify-between items-center bg-white/5 relative z-10 shrink-0">
                             <div className="flex items-center gap-6">
-                                <div className="w-14 h-14 rounded-2xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10 shadow-inner">
+                                <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center text-accent border border-accent/20 shadow-inner">
                                     {isEditing ? <Edit className="w-6 h-6" /> : <Wifi className="w-6 h-6" />}
                                 </div>
                                 <div>
-                                    <h4 className="text-2xl font-bold text-white tracking-tight">
-                                        {isEditing ? 'Ubah Gateway' : 'Daftarkan Node'}
+                                    <h4 className="text-xl md:text-2xl font-black text-white tracking-tight uppercase">
+                                        {isEditing ? 'Sinkron Gateway' : 'Node Baru'}
                                     </h4>
-                                    <p className="text-[10px] text-slate-500 font-bold tracking-widest uppercase mt-1">Konfigurasi API Infrastruktur</p>
+                                    <p className="text-[9px] text-slate-500 font-black tracking-[0.3em] uppercase mt-1">Matrix Protocol v3.1</p>
                                 </div>
                             </div>
-                            <button onClick={closeModal} className="text-slate-500 hover:text-white transition-all bg-white/5 p-3 rounded-xl active:scale-90">
+                            <button onClick={closeModal} className="text-slate-400 hover:text-white transition-all bg-white/5 w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10 active:scale-90">
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-                            <div className="col-span-2">
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Alias Gateway</label>
-                                <input type="text" name="name" required value={formData.name} onChange={handleFormChange} className="w-full clean-input font-bold text-lg py-5 px-6" placeholder="Identifikasi node..." />
+                        <div className="p-8 md:p-12 space-y-10 overflow-y-auto custom-scrollbar relative z-10 flex-1">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="col-span-1 md:col-span-2">
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Alias Gateway Jaringan</label>
+                                    <input type="text" name="name" required value={formData.name} onChange={handleFormChange} className="w-full clean-input font-black text-lg py-5 px-8 bg-white/5 border-white/10 focus:border-accent/50 transition-all rounded-3xl" placeholder="Contoh: Core-Region-A" />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Matriks Host (IP)</label>
+                                    <input type="text" name="ip_address" required value={formData.ip_address} onChange={handleFormChange} className="w-full clean-input font-mono font-black text-base py-5 px-8 bg-white/5 border-white/10 focus:border-accent/50 transition-all rounded-3xl" placeholder="192.168.1.1" />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Port Protokol API</label>
+                                    <input type="number" name="api_port" required value={formData.api_port} onChange={handleFormChange} className="w-full clean-input font-mono font-black text-base py-5 px-8 bg-white/5 border-white/10 focus:border-accent/50 transition-all rounded-3xl" />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Pengguna Infrastruktur</label>
+                                    <input type="text" name="username" required value={formData.username} onChange={handleFormChange} className="w-full clean-input font-mono font-black text-base py-5 px-8 bg-white/5 border-white/10 focus:border-accent/50 transition-all rounded-3xl" placeholder="admin" />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Token Keamanan</label>
+                                    <input type="password" name="password" value={formData.password} onChange={handleFormChange} className="w-full clean-input font-mono font-black text-base py-5 px-8 bg-white/5 border-white/10 focus:border-accent/50 transition-all rounded-3xl" placeholder="••••••••" />
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Matriks Host (IP)</label>
-                                <input type="text" name="ip_address" required value={formData.ip_address} onChange={handleFormChange} className="w-full clean-input font-mono font-bold text-base py-5 px-6" placeholder="10.0.0.1" />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Port Protokol</label>
-                                <input type="number" name="api_port" required value={formData.api_port} onChange={handleFormChange} className="w-full clean-input font-mono font-bold text-base py-5 px-6" />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Pengguna Terautentikasi</label>
-                                <input type="text" name="username" required value={formData.username} onChange={handleFormChange} className="w-full clean-input font-mono font-bold text-base py-5 px-6" placeholder="admin" />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Token Akses</label>
-                                <input type="password" name="password" value={formData.password} onChange={handleFormChange} className="w-full clean-input font-mono font-bold text-base py-5 px-6" placeholder="••••••••" />
+
+                            <div className="bg-white/5 p-8 rounded-[40px] border border-white/10 space-y-6">
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-black text-white uppercase tracking-widest">Diagnostik Link</span>
+                                        <span className="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-1">Wajib Sebelum Registrasi</span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleTestBeforeSave}
+                                        className={`px-8 py-3.5 rounded-2xl transition-all font-black uppercase tracking-widest text-[9px] flex items-center gap-3 active:scale-95 border ${testSuccess ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-white/10 text-white border-white/10 hover:bg-white/20'}`}
+                                        disabled={!formData.ip_address || !formData.username}
+                                    >
+                                        {testSuccess ? <CheckCircle className="w-4 h-4" /> : <Wifi className="w-4 h-4" />}
+                                        {testSuccess ? 'Terverifikasi' : 'Uji Koneksi'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="mt-12 flex flex-col sm:flex-row justify-between items-center bg-white/1 p-8 rounded-3xl border border-white/5 gap-8 relative z-10">
+                        <div className="px-8 py-8 border-t border-white/10 flex flex-col sm:flex-row justify-end items-center gap-4 bg-white/5 relative z-10 shrink-0">
+                            <button type="button" onClick={closeModal} className="w-full sm:w-auto px-8 py-5 rounded-2xl text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] hover:bg-white/5 transition-all">Batal</button>
                             <button
                                 type="button"
-                                onClick={handleTestBeforeSave}
-                                className={`w-full sm:w-auto px-10 py-4 rounded-2xl transition-all font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 active:scale-95 ${testSuccess ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10'}`}
-                                disabled={!formData.ip_address || !formData.username}
+                                onClick={handleSave}
+                                disabled={!isEditing && !testSuccess}
+                                className={`w-full sm:w-auto px-12 py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] transition-all flex items-center justify-center gap-4 shadow-2xl ${(testSuccess || isEditing) ? 'bg-accent hover:bg-accent/90 text-white active:scale-95' : 'bg-white/5 text-slate-700 cursor-not-allowed'}`}
                             >
-                                {testSuccess ? <CheckCircle className="w-4 h-4" /> : <Wifi className="w-4 h-4" />}
-                                {testSuccess ? 'Link Terverifikasi' : 'Verifikasi Link'}
+                                <Save className="w-5 h-5" />
+                                {isEditing ? 'Update Node' : 'Daftarkan Node'}
                             </button>
-
-                            <div className="flex gap-4 w-full sm:w-auto">
-                                <button type="button" onClick={closeModal} className="flex-1 sm:flex-none px-8 py-4 rounded-2xl text-slate-500 font-bold uppercase tracking-widest text-[10px] hover:bg-white/5">Batal</button>
-                                <button
-                                    type="button"
-                                    onClick={handleSave}
-                                    disabled={!isEditing && !testSuccess}
-                                    className={`flex-1 sm:flex-none px-10 py-4 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-3 ${(testSuccess || isEditing) ? 'bg-accent hover:bg-accent/90 text-white shadow-lg active:scale-95' : 'bg-white/5 text-slate-600 cursor-not-allowed'}`}
-                                >
-                                    <Save className="w-4 h-4" />
-                                    {isEditing ? 'Simpan' : 'Daftarkan'}
-                                </button>
-                            </div>
                         </div>
-
-                        {!testSuccess && !isEditing && (
-                            <div className="text-center text-[9px] text-slate-600 mt-6 font-bold uppercase tracking-widest opacity-40">
-                                Diagnostik link wajib dilakukan sebelum pendaftaran perangkat keras
-                            </div>
-                        )}
                     </div>
                 </div>
             )}

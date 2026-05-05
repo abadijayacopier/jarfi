@@ -163,7 +163,7 @@ export default function InvoicesPage() {
     return (
         <div className="animate-in fade-in duration-500 pb-20 space-y-10">
             {/* Page Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12 border-b border-(--glass-border) pb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-6 border-b border-(--glass-border) pb-8">
                 <div>
                     <h3 className="text-4xl font-bold text-primary flex items-center gap-4 tracking-tight">
                         <FileText className="w-10 h-10 text-accent" />
@@ -392,7 +392,7 @@ export default function InvoicesPage() {
                     <div className="bg-slate-900 w-full max-w-lg p-10 lg:p-12 rounded-4xl shadow-2xl border border-white/10 animate-in zoom-in-95 duration-300 relative overflow-hidden">
                         <div className="absolute -top-32 -right-32 w-80 h-80 bg-accent/5 rounded-full blur-3xl pointer-events-none"></div>
                         
-                        <div className="flex justify-between items-center mb-12 border-b border-white/5 pb-8">
+                        <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-8">
                             <div className="flex items-center gap-5">
                                 <div className="w-14 h-14 rounded-2xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10 shadow-inner">
                                     <Edit className="w-6 h-6" />

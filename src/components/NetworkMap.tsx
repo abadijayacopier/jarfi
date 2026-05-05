@@ -114,8 +114,15 @@ export interface NetworkMapProps {
 function ChangeView({ center, zoom }: { center: [number, number], zoom: number }) {
     const map = useMap();
     useEffect(() => {
-        if (center && !isNaN(center[0]) && !isNaN(center[1])) {
-            map.setView(center, zoom);
+        if (map && center && center.length === 2 && !isNaN(center[0]) && !isNaN(center[1])) {
+            try {
+                // Ensure map is still mounted and has a valid container
+                if (map.getContainer()) {
+                    map.setView(center, zoom, { animate: true });
+                }
+            } catch (err) {
+                console.warn('Map View Update Failed:', err);
+            }
         }
     }, [center, zoom, map]);
     return null;
@@ -227,20 +234,17 @@ export default function NetworkMap({ odps, customers, controls, onLinkUpdate, on
             <ChangeView center={center} zoom={zoom} />
             <MapEvents />
             
-            {mapStyle === 'dark' ? (
-                <TileLayer
-                    attribution='&copy; CARTO'
-                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                />
-            ) : (
-                <TileLayer
-                    attribution='&copy; Google'
-                    url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
-                />
-            )}
+            <TileLayer
+                key={mapStyle}
+                attribution={mapStyle === 'dark' ? '&copy; CARTO' : '&copy; Google'}
+                url={mapStyle === 'dark' 
+                    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" 
+                    : "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+                }
+            />
             
             <Marker position={[-6.2088, 106.8456]} icon={getServerIcon()}>
-                <Popup className="noc-popup">
+                <Popup className="noc-popup animate-in fade-in zoom-in-95 duration-500">
                     <div className="w-[300px] bg-[#0f172a] text-white p-5 rounded-2xl border border-indigo-500/30 shadow-2xl">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="w-10 h-10 bg-indigo-500/20 rounded-xl flex items-center justify-center text-indigo-400 border border-indigo-500/30">
@@ -390,7 +394,7 @@ export default function NetworkMap({ odps, customers, controls, onLinkUpdate, on
                     }}
                 >
                     {!controls.editOdpLines && !controls.editUserLines && !controls.addOdpMode && (
-                        <Popup className="noc-popup">
+                        <Popup className="noc-popup animate-in fade-in zoom-in-95 duration-500 slide-in-from-bottom-2">
                             <div className="w-[280px] bg-[#0f172a] rounded-[20px] overflow-hidden border border-white/5 shadow-2xl">
                                 <div className="px-5 py-3 bg-linear-to-r from-indigo-600 to-indigo-800 flex justify-between items-center">
                                     <div className="flex items-center gap-2">
@@ -506,12 +510,12 @@ export default function NetworkMap({ odps, customers, controls, onLinkUpdate, on
                         }}
                     >
                     {!(controls.editOdpLines || controls.editUserLines) && (
-                        <Popup className="noc-popup">
-                        <div className="w-[260px] bg-[#0f172a] text-white p-5 rounded-[20px] border border-white/5 shadow-2xl">
+                        <Popup className="noc-popup animate-in fade-in zoom-in-95 duration-500 slide-in-from-bottom-2">
+                        <div className="w-[320px] bg-[#0f172a] text-white p-5 rounded-[20px] border border-white/5 shadow-2xl">
                             <div className="flex justify-between items-start mb-4">
-                                <div className="flex flex-col gap-0.5">
-                                    <span className="font-black text-[11px] uppercase tracking-tight">{customer.name}</span>
-                                    <span className="text-[8px] text-slate-500 font-mono tracking-widest uppercase">{customer.pppoe_username}</span>
+                                <div className="flex flex-col gap-0.5 flex-1 min-w-0 mr-2">
+                                    <span className="font-black text-[13px] uppercase leading-tight wrap-break-word">{customer.name}</span>
+                                    <span className="text-[8px] text-slate-500 font-mono tracking-widest uppercase truncate">{customer.pppoe_username}</span>
                                 </div>
                                 <div className="flex flex-col items-end gap-1.5">
                                     <div className={`px-1.5 py-0.5 rounded-md text-[7px] font-black uppercase ${customer.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
@@ -574,8 +578,9 @@ export default function NetworkMap({ odps, customers, controls, onLinkUpdate, on
                                     </button>
                                 </div>
 
-                                <button className="w-full bg-indigo-600 hover:bg-indigo-700 py-3 rounded-xl font-black uppercase text-[9px] tracking-[0.2em] transition-all shadow-lg shadow-indigo-500/20 active:scale-[0.98]">
-                                    Open Dashboard Control
+                                <button className="w-full bg-linear-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 py-4 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] transition-all shadow-xl shadow-indigo-500/20 active:scale-95 border border-white/10 group relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                                    <span className="relative z-10">Buka Matriks Kontrol</span>
                                 </button>
                             </div>
                         </div>

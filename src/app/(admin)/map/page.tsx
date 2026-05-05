@@ -47,7 +47,19 @@ export default function MapPage() {
     const [mapCenter, setMapCenter] = useState<[number, number]>([-6.2088, 106.8456]);
     const [userPos, setUserPos] = useState<[number, number] | null>(null);
     const [mapZoom, setMapZoom] = useState(15);
-    const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [mounted, setMounted] = useState(false);
+    const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+            setIsSidebarVisible(true);
+        }
+    }, []);
     const [mapStyle, setMapStyle] = useState('dark');
     
     // Map Controls State
@@ -75,7 +87,7 @@ export default function MapPage() {
             setOdps(odpData.odps || []);
             setCustomers(custData.customers || []);
         } catch (error) {
-            console.error('Fetch error:', error);
+            console.warn('Fetch error:', error);
         } finally {
             setLoading(false);
         }
@@ -168,22 +180,49 @@ export default function MapPage() {
                 const { latitude, longitude, accuracy } = position.coords;
                 setMapCenter([latitude, longitude]);
                 setUserPos([latitude, longitude]);
-                setMapZoom(18);
+                // Dynamic zoom based on accuracy (better accuracy = deeper zoom)
+                const targetZoom = accuracy < 100 ? 18 : accuracy < 1000 ? 15 : 13;
+                setMapZoom(targetZoom);
                 Swal.close();
                 
-                if (accuracy > 100) {
-                    Swal.fire({ 
-                        icon: 'info', 
-                        title: 'Presisi Rendah', 
-                        text: `Lokasi ditemukan tetapi akurasi rendah (~${Math.round(accuracy)}m). Aktifkan GPS untuk hasil lebih baik.`, 
-                        background: '#0f172a', 
-                        color: '#fff',
-                        timer: 3000
+                if (accuracy > 500) {
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 4000,
+                        timerProgressBar: true,
+                        background: '#0f172a',
+                        color: '#fff'
+                    });
+                    Toast.fire({
+                        icon: 'info',
+                        title: 'Presisi Rendah',
+                        text: `Akurasi ~${Math.round(accuracy/1000)}km (Basis IP).`
                     });
                 }
             },
             (error) => {
-                Swal.fire({ icon: 'error', title: 'Akses Lokasi Ditolak', text: 'Aktifkan izin GPS di pengaturan browser Anda.', background: '#0f172a', color: '#fff' });
+                let msg = 'Gagal mengambil koordinat matriks.';
+                if (error.code === 1) {
+                    msg = 'Izin ditolak. Silakan buka pengaturan browser dan izinkan akses lokasi untuk situs ini.';
+                    if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
+                        msg += '\n\nCatatan: Browser memblokir GPS pada koneksi HTTP tidak aman.';
+                    }
+                } else if (error.code === 2) {
+                    msg = 'Sinyal GPS tidak stabil atau perangkat tidak merespon.';
+                } else if (error.code === 3) {
+                    msg = 'Waktu pencarian habis (Timeout). Pastikan GPS aktif.';
+                }
+                
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Akses Lokasi Bermasalah', 
+                    text: msg, 
+                    background: '#0f172a', 
+                    color: '#fff',
+                    confirmButtonColor: '#6366f1'
+                });
             },
             {
                 enableHighAccuracy: true,
@@ -311,19 +350,19 @@ export default function MapPage() {
 
     return (
         <div className="h-[calc(100vh-140px)] flex flex-col relative overflow-hidden -mx-6 md:-mx-12 -mt-6 bg-[#0f172a]">
-            {/* NOC Header Bar */}
-            <div className="absolute top-6 left-6 z-1000 flex flex-wrap gap-2 animate-in slide-in-from-top duration-500 max-w-[calc(100%-400px)]">
-                <button onClick={() => handleSync('Mikrotik')} className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xl flex items-center gap-2 transition-all border border-indigo-400/20 group">
+            {/* NOC Header Bar - Optimized for Mobile */}
+            <div className="absolute top-4 md:top-6 left-4 md:left-6 z-10 flex overflow-x-auto no-scrollbar gap-1.5 md:gap-2 animate-in slide-in-from-top duration-500 max-w-[calc(100%-32px)] lg:max-w-[calc(100%-400px)] pb-4">
+                <button onClick={() => handleSync('Mikrotik')} className="px-4 py-2.5 bg-indigo-600/90 hover:bg-indigo-600 text-white rounded-xl shadow-xl backdrop-blur-md flex items-center gap-2 transition-all border border-indigo-400/20 group">
                     <RefreshCcw className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500" />
-                    <span className="text-[9px] font-black uppercase tracking-widest">Sync Mikrotik</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest">Sinkron Mikrotik</span>
                 </button>
-                <button onClick={() => handleSync('ACS')} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xl flex items-center gap-2 transition-all border border-emerald-400/20 group">
+                <button onClick={() => handleSync('ACS')} className="px-4 py-2.5 bg-emerald-600/90 hover:bg-emerald-600 text-white rounded-xl shadow-xl backdrop-blur-md flex items-center gap-2 transition-all border border-emerald-400/20 group">
                     <RefreshCcw className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500" />
-                    <span className="text-[9px] font-black uppercase tracking-widest">Sync ACS</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest">Sinkron ACS</span>
                 </button>
-                <button onClick={handleBackup} className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl shadow-xl flex items-center gap-2 transition-all border border-white/10">
+                <button onClick={handleBackup} className="px-4 py-2.5 bg-slate-800/90 hover:bg-slate-800 text-white rounded-xl shadow-xl backdrop-blur-md flex items-center gap-2 transition-all border border-white/10">
                     <Database className="w-3.5 h-3.5" />
-                    <span className="text-[9px] font-black uppercase tracking-widest">Backup</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest">Cadangan</span>
                 </button>
 
                 <div className="h-10 w-px bg-white/5 mx-1 hidden lg:block"></div>
@@ -340,14 +379,14 @@ export default function MapPage() {
                     />
                 </div>
 
-                <div className="flex gap-1.5">
-                    <button className="w-10 h-10 bg-blue-600 hover:bg-blue-500 rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Search className="w-4 h-4" /></button>
-                    <button onClick={() => Swal.fire({ title: 'Pemindaian Keamanan', text: 'Tidak ada kerentanan terdeteksi dalam matriks.', icon: 'success', background: '#0f172a', color: '#fff' })} className="w-10 h-10 bg-amber-500 hover:bg-amber-400 rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Shield className="w-4 h-4" /></button>
-                    <button onClick={toggleFullscreen} className="w-10 h-10 bg-slate-700 hover:bg-slate-600 rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Maximize2 className="w-4 h-4" /></button>
-                    <button onClick={() => setIsSidebarVisible(!isSidebarVisible)} className="w-10 h-10 bg-slate-700 hover:bg-slate-600 rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><LayoutGrid className="w-4 h-4" /></button>
-                    <button onClick={() => toggleControl('addOdpMode')} className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg transition-all ${controls.addOdpMode ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-600 hover:bg-emerald-500'}`}><Plus className="w-4 h-4" /></button>
-                    <button onClick={() => setMapStyle(mapStyle === 'dark' ? 'satellite' : 'dark')} className="w-10 h-10 bg-indigo-600 hover:bg-indigo-500 rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Layers className="w-4 h-4" /></button>
-                    <button onClick={handleLocateMe} className="w-10 h-10 bg-rose-600 hover:bg-rose-500 rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Navigation className="w-4 h-4" /></button>
+                <div className="flex gap-1">
+                    <button className="w-8 h-8 md:w-10 md:h-10 bg-blue-600 hover:bg-blue-500 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Search className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
+                    <button onClick={() => Swal.fire({ title: 'Pemindaian Keamanan', text: 'Tidak ada kerentanan terdeteksi dalam matriks.', icon: 'success', background: '#0f172a', color: '#fff' })} className="w-8 h-8 md:w-10 md:h-10 bg-amber-500 hover:bg-amber-400 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Shield className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
+                    <button onClick={toggleFullscreen} className="w-8 h-8 md:w-10 md:h-10 bg-slate-700 hover:bg-slate-600 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Maximize2 className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
+                    <button onClick={() => setIsSidebarVisible(!isSidebarVisible)} className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all ${isSidebarVisible ? 'bg-indigo-600' : 'bg-slate-700 hover:bg-slate-600'}`}><LayoutGrid className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
+                    <button onClick={() => toggleControl('addOdpMode')} className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all ${controls.addOdpMode ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-600 hover:bg-emerald-500'}`}><Plus className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
+                    <button onClick={() => setMapStyle(mapStyle === 'dark' ? 'satellite' : 'dark')} className="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 hover:bg-indigo-500 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Layers className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
+                    <button onClick={handleLocateMe} className="w-8 h-8 md:w-10 md:h-10 bg-rose-600 hover:bg-rose-500 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Navigation className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
                 </div>
             </div>
 
@@ -369,16 +408,45 @@ export default function MapPage() {
                 />
             </div>
 
+            {/* Map Action Buttons */}
+            <div className="fixed bottom-32 right-6 z-50 flex flex-col gap-4">
+                {!isSidebarVisible && (
+                    <button 
+                        onClick={() => setIsSidebarVisible(true)}
+                        className="w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl shadow-2xl flex items-center justify-center animate-in zoom-in duration-300 border border-white/20 active:scale-95 transition-all group"
+                    >
+                        <Settings2 className="w-6 h-6 group-hover:rotate-90 transition-transform duration-500" />
+                    </button>
+                )}
+                <button 
+                    onClick={fetchData}
+                    className="w-14 h-14 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 rounded-2xl shadow-2xl flex items-center justify-center border border-slate-200 dark:border-white/10 active:scale-95 transition-all group"
+                >
+                    <RefreshCcw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                </button>
+            </div>
+
             {/* NOC Sidebar - Control Panel */}
-            {isSidebarVisible && (
-                <div className="absolute top-6 right-6 z-1000 w-[340px] animate-in slide-in-from-right duration-500 h-[calc(100vh-200px)] pointer-events-none">
-                    <div className="bg-[#0f172a]/90 backdrop-blur-2xl rounded-[32px] shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden border border-white/10 pointer-events-auto h-full flex flex-col">
-                        <div className="px-8 py-6 flex justify-between items-center bg-indigo-600">
-                            <div className="flex items-center gap-3">
-                                <Shield className="w-5 h-5 text-white" />
-                                <span className="text-white font-black uppercase tracking-[0.2em] text-[10px]">Kontrol Matriks</span>
+            {isSidebarVisible && <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-90 lg:hidden" onClick={() => setIsSidebarVisible(false)}></div>}
+            <div className={`fixed lg:absolute bottom-0 lg:bottom-auto lg:top-6 lg:right-6 z-100 lg:w-[340px] w-full lg:h-[calc(100vh-200px)] flex items-end lg:items-start p-0 lg:p-0 pointer-events-none transition-all duration-500 ${isSidebarVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full lg:translate-x-full pointer-events-none'}`}>
+                    <div className="bg-[#0f172a] lg:bg-[#0f172a]/90 backdrop-blur-3xl rounded-t-[48px] lg:rounded-[40px] shadow-[0_-20px_80px_rgba(0,0,0,0.8)] lg:shadow-[0_0_60px_rgba(0,0,0,0.6)] overflow-hidden border-t lg:border border-white/15 w-full h-[75vh] lg:h-full flex flex-col pointer-events-auto transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]">
+                        {/* Drawer Handle for Mobile */}
+                        <div className="lg:hidden w-16 h-1.5 bg-white/10 rounded-full mx-auto mt-4 mb-2 shadow-inner"></div>
+                        
+                        <div className="px-10 py-6 lg:py-8 flex justify-between items-center bg-linear-to-r from-indigo-600/90 to-indigo-700/80 backdrop-blur-xl shrink-0 relative overflow-hidden group">
+                            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                            <div className="flex items-center gap-4 relative z-10">
+                                <div className="p-2 bg-white/10 rounded-xl shadow-inner">
+                                    <Shield className="w-6 h-6 text-white" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-white font-black uppercase tracking-[0.3em] text-[11px] drop-shadow-lg">Matriks Kontrol</span>
+                                    <span className="text-[7px] font-bold text-white/50 uppercase tracking-widest mt-1">Industrial Intelligence v3</span>
+                                </div>
                             </div>
-                            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></div>
+                            <button onClick={() => setIsSidebarVisible(false)} className="w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-all bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 active:scale-90 relative z-10">
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
 
                         <div className="p-8 space-y-8 flex-1 overflow-y-auto custom-scrollbar">
@@ -452,46 +520,43 @@ export default function MapPage() {
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {/* NOC Unified Matrix Dock */}
-            <div className="absolute bottom-10 left-10 right-10 z-1000 flex justify-between items-center pointer-events-none">
-                <div className="bg-[#0f172a]/95 backdrop-blur-3xl px-8 py-4 rounded-[32px] border border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.8)] pointer-events-auto flex items-center gap-10 animate-in slide-in-from-bottom duration-700 max-w-full overflow-x-auto custom-scrollbar no-scrollbar">
+            </div>
+            <div className="absolute bottom-6 md:bottom-10 left-6 md:left-10 right-6 md:right-10 z-20 flex flex-col md:flex-row justify-between items-end md:items-center gap-4 pointer-events-none">
+                <div className="bg-[#0f172a]/90 md:bg-[#0f172a]/95 backdrop-blur-3xl px-6 md:px-8 py-3 md:py-4 rounded-3xl md:rounded-[32px] border border-white/10 md:border-white/5 shadow-2xl pointer-events-auto flex items-center gap-6 md:gap-10 animate-in slide-in-from-bottom duration-700 max-w-full overflow-x-auto no-scrollbar">
                     {/* System Pulse */}
-                    <div className="flex items-center gap-5 border-r border-white/5 pr-10">
+                    <div className="flex items-center gap-4 md:gap-5 border-r border-white/10 pr-6 md:pr-10 shrink-0">
                         <div className="relative">
-                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)]"></div>
+                            <div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)]"></div>
                             <div className="absolute inset-0 rounded-full bg-emerald-500/30 animate-ping"></div>
                         </div>
-                        <div className="flex flex-col min-w-[120px]">
-                            <span className="text-[8px] font-black uppercase text-slate-500 tracking-[0.3em] leading-none mb-1">Aliran Matriks</span>
-                            <span className="text-[11px] font-black text-white uppercase tracking-wider">Pemantauan Aktif</span>
+                        <div className="flex flex-col min-w-[100px] md:min-w-[120px]">
+                            <span className="text-[7px] md:text-[8px] font-black uppercase text-slate-500 tracking-[0.3em] leading-none mb-1">Aliran Matriks</span>
+                            <span className="text-[10px] md:text-[11px] font-black text-white uppercase tracking-wider">Pemantauan Aktif</span>
                         </div>
                     </div>
 
                     {/* Telemetry Stats */}
-                    <div className="flex items-center gap-10">
+                    <div className="flex items-center gap-6 md:gap-10 shrink-0">
                         {[
-                            { label: 'Total ONU', value: customers.length, color: 'text-indigo-400', icon: Monitor },
-                            { label: 'ONU Aktif', value: customers.filter(c => c.status === 'active').length, color: 'text-emerald-400', icon: Zap },
-                            { label: 'Waspada Sinyal', value: customers.filter(c => c.rx < -27).length, color: 'text-amber-400', icon: Signal },
-                            { label: 'Node ODP', value: odps.length, color: 'text-indigo-400', icon: Box }
+                            { label: 'TOT ONU', value: customers.length, color: 'text-indigo-400', icon: Monitor },
+                            { label: 'AKTIF', value: customers.filter(c => c.status === 'active').length, color: 'text-emerald-400', icon: Zap },
+                            { label: 'SINYAL', value: customers.filter(c => c.rx < -27).length, color: 'text-amber-400', icon: Signal },
+                            { label: 'ODP', value: odps.length, color: 'text-indigo-400', icon: Box }
                         ].map((stat, i) => (
-                            <div key={i} className="flex flex-col min-w-[70px]">
-                                <span className="text-[8px] font-black uppercase text-slate-600 tracking-widest mb-1">{stat.label}</span>
+                            <div key={i} className="flex flex-col min-w-[50px] md:min-w-[70px]">
+                                <span className="text-[7px] md:text-[8px] font-black uppercase text-slate-600 tracking-widest mb-1">{stat.label}</span>
                                 <div className="flex items-center gap-2">
-                                    <stat.icon className={`w-3 h-3 ${stat.color} opacity-40`} />
-                                    <span className="text-sm font-black text-white">{stat.value}</span>
+                                    <stat.icon className={`w-2.5 h-2.5 md:w-3 md:h-3 ${stat.color} opacity-40`} />
+                                    <span className="text-xs md:text-sm font-black text-white">{stat.value}</span>
                                 </div>
                             </div>
                         ))}
                     </div>
 
-                    <div className="h-10 w-px bg-white/5"></div>
+                    <div className="hidden lg:block h-8 w-px bg-white/10"></div>
 
                     {/* Infrastructure Overview */}
-                    <div className="flex items-center gap-10">
+                    <div className="hidden lg:flex items-center gap-10 shrink-0">
                          <div className="flex flex-col">
                             <span className="text-[8px] font-black uppercase text-slate-600 tracking-widest mb-1">Pelanggan Global</span>
                             <span className="text-sm font-black text-indigo-400">{customers.length} <span className="text-[8px] text-indigo-400/30 ml-1 tracking-widest">AKTIF</span></span>
@@ -510,16 +575,16 @@ export default function MapPage() {
                 </div>
 
                 {/* Map Action Controls */}
-                <div className="flex gap-3 pointer-events-auto items-center">
-                    <div className="flex flex-col gap-2 p-1.5 bg-[#0f172a]/90 backdrop-blur-2xl rounded-2xl border border-white/5 shadow-2xl">
+                <div className="flex md:flex-row gap-3 pointer-events-auto items-center">
+                    <div className="flex md:flex-col gap-2 p-1.5 bg-[#0f172a]/90 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl">
                         <button onClick={() => setMapZoom(z => Math.min(20, z + 1))} className="w-10 h-10 bg-white/5 hover:bg-indigo-600 rounded-xl flex items-center justify-center text-white transition-all"><Plus className="w-4 h-4" /></button>
                         <button onClick={() => setMapZoom(z => Math.max(1, z - 1))} className="w-10 h-10 bg-white/5 hover:bg-indigo-600 rounded-xl flex items-center justify-center text-white transition-all"><Minus className="w-4 h-4" /></button>
                     </div>
                     <button 
                         onClick={handleLocateMe}
-                        className="w-14 h-14 bg-rose-600 rounded-3xl shadow-[0_15px_40px_rgba(225,29,72,0.3)] flex items-center justify-center text-white hover:bg-rose-500 transition-all hover:-translate-y-1 active:scale-95 border border-rose-400/30"
+                        className="w-12 h-12 md:w-14 md:h-14 bg-rose-600 rounded-3xl shadow-[0_15px_40px_rgba(225,29,72,0.3)] flex items-center justify-center text-white hover:bg-rose-500 transition-all hover:-translate-y-1 active:scale-95 border border-rose-400/30"
                     >
-                        <Navigation className="w-6 h-6" />
+                        <Navigation className="w-5 h-5 md:w-6 md:h-6" />
                     </button>
                 </div>
             </div>

@@ -169,7 +169,7 @@ export default function VouchersPage() {
     return (
         <div className="animate-in fade-in duration-500 pb-20 space-y-12">
             {/* Header Area */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12 border-b border-(--glass-border) pb-10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-6 border-b border-(--glass-border) pb-10">
                 <div>
                     <h3 className="text-4xl font-bold text-primary flex items-center gap-4 tracking-tight">
                         <Wifi className="w-10 h-10 text-accent" />
@@ -361,9 +361,9 @@ export default function VouchersPage() {
                 </div>
 
                 {/* Mobile View */}
-                <div className="md:hidden space-y-6">
+                <div className="md:hidden grid grid-cols-2 gap-4">
                     {loading ? (
-                        <div className="p-20 text-center animate-pulse font-bold text-[10px] text-slate-500 uppercase tracking-widest">Sinkronisasi...</div>
+                        <div className="col-span-2 p-20 text-center animate-pulse font-bold text-[10px] text-slate-500 uppercase tracking-widest">Sinkronisasi...</div>
                     ) : (
                         vouchers
                             .filter((v: any) => 
@@ -373,33 +373,21 @@ export default function VouchersPage() {
                             )
                             .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                             .map((v: any) => (
-                                <div key={v.id} className="glass p-8 rounded-4xl border border-(--glass-border) bg-white/2 space-y-6 shadow-xl group">
+                                <div key={v.id} className="glass p-5 rounded-3xl border border-white/5 bg-white/2 flex flex-col justify-between shadow-lg group aspect-square">
                                     <div className="flex justify-between items-start">
-                                        <div>
-                                            <h4 className="font-mono font-bold text-accent text-3xl tracking-tighter">{v.code}</h4>
-                                            <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-2">Rahasia: <span className="text-primary">{v.password}</span></p>
-                                        </div>
-                                        <span className={`px-4 py-1.5 rounded-xl text-[9px] font-bold uppercase tracking-widest border ${v.status === 'AVAILABLE' ? 'bg-accent/10 text-accent border-accent/20' : 'bg-slate-500/10 text-slate-500 border-slate-500/20'}`}>
-                                            {v.status === 'AVAILABLE' ? 'SIAP' : 'KADALUARSA'}
+                                        <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></div>
+                                        <span className={`px-2 py-0.5 rounded-lg text-[7px] font-black uppercase tracking-tighter border ${v.status === 'AVAILABLE' ? 'bg-accent/10 text-accent border-accent/20' : 'bg-slate-500/10 text-slate-500 border-slate-500/20'}`}>
+                                            {v.status === 'AVAILABLE' ? 'SIAP' : 'OFF'}
                                         </span>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="bg-white/1 p-4 rounded-2xl border border-white/5">
-                                            <p className="text-[9px] uppercase font-bold text-slate-500 mb-1 tracking-widest">Profil</p>
-                                            <p className="text-xs font-bold text-accent uppercase">{v.profile}</p>
-                                        </div>
-                                        <div className="bg-white/1 p-4 rounded-2xl border border-white/5">
-                                            <p className="text-[9px] uppercase font-bold text-slate-500 mb-1 tracking-widest">Nilai</p>
-                                            <p className="text-lg font-bold text-primary tracking-tighter">Rp {parseInt(v.price).toLocaleString('id-ID')}</p>
-                                        </div>
+                                    <div className="text-center">
+                                        <h4 className="font-mono font-black text-accent text-xl tracking-tighter leading-none">{v.code}</h4>
+                                        <p className="text-[7px] font-black text-muted uppercase tracking-widest mt-2">Rp {parseInt(v.price).toLocaleString('id-ID')}</p>
                                     </div>
-                                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                                        <div className="flex items-center gap-3">
-                                            <Settings className="w-4 h-4 text-slate-600" />
-                                            <span className="text-[10px] font-bold text-muted truncate max-w-[150px] uppercase tracking-widest">{v.router_name}</span>
-                                        </div>
-                                        <button onClick={() => handleDelete(v.id)} className="p-3 rounded-xl bg-red-500/5 text-red-500 border border-red-500/10 active:scale-90 transition-all">
-                                            <Trash2 className="w-4 h-4" />
+                                    <div className="flex items-center justify-between pt-3 border-t border-white/5 mt-auto">
+                                        <span className="text-[7px] font-black text-slate-500 truncate uppercase">{v.profile}</span>
+                                        <button onClick={() => handleDelete(v.id)} className="text-red-500 active:scale-90 transition-all">
+                                            <Trash2 className="w-3.5 h-3.5" />
                                         </button>
                                     </div>
                                 </div>

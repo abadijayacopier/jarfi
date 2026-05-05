@@ -161,7 +161,7 @@ export default function SettingsPage() {
     return (
         <div className="animate-in fade-in duration-500 pb-20 space-y-12">
             {/* Page Header */}
-            <div className="mb-12 border-b border-(--glass-border) pb-8">
+            <div className="mb-6 border-b border-(--glass-border) pb-8">
                 <h3 className="text-4xl font-bold text-primary flex items-center gap-4 tracking-tight">
                     <Settings className="w-10 h-10 text-accent" />
                     Matriks Infrastruktur
@@ -170,7 +170,7 @@ export default function SettingsPage() {
             </div>
 
             {/* Tabs Navigation */}
-            <div className="flex gap-3 mb-12 overflow-x-auto pb-4 custom-scrollbar">
+            <div className="flex gap-3 mb-6 overflow-x-auto pb-4 custom-scrollbar">
                 {tabs.map(tab => {
                     const Icon = tab.icon;
                     return (

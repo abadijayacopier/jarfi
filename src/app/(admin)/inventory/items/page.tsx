@@ -232,7 +232,7 @@ export default function InventoryItemsPage() {
 
     return (
         <div className="animate-in fade-in duration-500 pb-20 space-y-12">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12 border-b border-white/5 pb-10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-6 border-b border-white/5 pb-10">
                 <div>
                     <h3 className="text-heading flex items-center gap-5">
                         <Box className="w-10 h-10 text-accent" />
@@ -259,7 +259,7 @@ export default function InventoryItemsPage() {
                             <X className="w-6 h-6 text-muted" />
                         </button>
                         
-                        <div className="flex items-center gap-6 mb-12">
+                        <div className="flex items-center gap-6 mb-6">
                             <div className="w-16 h-16 rounded-3xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10 shadow-inner">
                                 <PlusCircle className="w-8 h-8" />
                             </div>
@@ -374,19 +374,19 @@ export default function InventoryItemsPage() {
                             className="w-full h-14 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl pl-18 pr-6 font-black text-xs uppercase tracking-widest focus:border-accent/50 transition-all shadow-sm outline-none"
                         />
                     </div>
-                    <div className="flex items-center gap-4">
-                        <button onClick={exportToExcel} className="h-14 px-8 bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/10 rounded-2xl flex items-center gap-4 text-emerald-500 transition-all shadow-sm group active:scale-95">
-                            <FileSpreadsheet className="w-5 h-5" />
-                            <span className="text-[11px] font-black uppercase tracking-widest">Excel</span>
+                    <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                        <button onClick={exportToExcel} className="h-12 md:h-14 px-4 md:px-8 bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/10 rounded-2xl flex items-center gap-3 md:gap-4 text-emerald-500 transition-all shadow-sm group active:scale-95 flex-1 md:flex-none justify-center">
+                            <FileSpreadsheet className="w-4 h-4 md:w-5 md:h-5" />
+                            <span className="text-[10px] md:text-[11px] font-black uppercase tracking-widest">Excel</span>
                         </button>
-                        <button onClick={() => window.print()} className="h-14 px-8 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 rounded-2xl flex items-center gap-4 text-rose-500 transition-all shadow-sm group active:scale-95">
-                            <FileDown className="w-5 h-5" />
-                            <span className="text-[11px] font-black uppercase tracking-widest">PDF Report</span>
+                        <button onClick={() => window.print()} className="h-12 md:h-14 px-4 md:px-8 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 rounded-2xl flex items-center gap-3 md:gap-4 text-rose-500 transition-all shadow-sm group active:scale-95 flex-1 md:flex-none justify-center">
+                            <FileDown className="w-4 h-4 md:w-5 md:h-5" />
+                            <span className="text-[10px] md:text-[11px] font-black uppercase tracking-widest">PDF</span>
                         </button>
-                        <div className="h-8 w-px bg-white/5 mx-2"></div>
-                        <button onClick={() => fileInputRef.current?.click()} className="h-14 px-8 bg-accent/5 hover:bg-accent/10 border border-accent/10 rounded-2xl flex items-center gap-4 text-accent transition-all shadow-sm group active:scale-95">
-                            <Upload className="w-5 h-5" />
-                            <span className="text-[11px] font-black uppercase tracking-widest">Import</span>
+                        <div className="hidden md:block h-8 w-px bg-white/5 mx-2"></div>
+                        <button onClick={() => fileInputRef.current?.click()} className="h-12 md:h-14 px-6 md:px-8 bg-accent/5 hover:bg-accent/10 border border-accent/10 rounded-2xl flex items-center gap-3 md:gap-4 text-accent transition-all shadow-sm group active:scale-95 w-full md:w-auto justify-center">
+                            <Upload className="w-4 h-4 md:w-5 md:h-5" />
+                            <span className="text-[10px] md:text-[11px] font-black uppercase tracking-widest">Import CSV</span>
                         </button>
                         <input 
                             type="file" 
