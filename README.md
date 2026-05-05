@@ -88,4 +88,4 @@ Proyek ini dikembangkan untuk kebutuhan internal manajemen ISP. Seluruh hak cipt
 
 ---
 
-**Developed with ❤️ by JARFI Dev Team**
+**Developed with ❤️ by SUPRIYANTO DEV - DONATE VIA DANA 085655620979**
