@@ -34,6 +34,7 @@ export default function CustomersPage() {
     const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid');
     const [showForm, setShowForm] = useState(false);
     const [showDetail, setShowDetail] = useState(false);
+    const [chartReady, setChartReady] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editId, setEditId] = useState<number | null>(null);
@@ -77,10 +78,32 @@ export default function CustomersPage() {
     }, []);
 
     useEffect(() => {
+        if (showDetail) {
+            const timer = setTimeout(() => setChartReady(true), 500);
+            return () => clearTimeout(timer);
+        } else {
+            setChartReady(false);
+        }
+    }, [showDetail]);
+
+    useEffect(() => {
         if (routers.length > 0) {
+            // Initial fetch
             fetchAllTraffic();
-            const trafficTimer = setInterval(fetchAllTraffic, 3000);
-            const oltTimer = setInterval(syncOltData, 60000); 
+            
+            // Background polling: 10s interval, skips if tab is hidden or fetch in progress
+            const trafficTimer = setInterval(() => {
+                if (!document.hidden) {
+                    fetchAllTraffic();
+                }
+            }, 10000);
+
+            const oltTimer = setInterval(() => {
+                if (!document.hidden) {
+                    syncOltData();
+                }
+            }, 60000); 
+
             return () => {
                 clearInterval(trafficTimer);
                 clearInterval(oltTimer);
@@ -217,22 +240,23 @@ export default function CustomersPage() {
                         const trafficArray = Array.isArray(data.traffic) ? data.traffic : [data.traffic];
                         allTraffic.push(...trafficArray);
                         polledRouterIds.add(r.id);
+                    } else {
+                        console.warn(`Router ${r.id} reported error:`, data.error || 'Unknown error');
                     }
                 } catch (e: any) { 
-                    if (e.name !== 'AbortError') console.error(`Router ${r.id} telemetry sync failed:`, e); 
+                    if (e.name !== 'AbortError') console.error(`Router ${r.id} fetch failed:`, e.message); 
                 }
             }));
             
             if (allTraffic.length > 0) {
                 setTrafficData(allTraffic);
+                console.log(`[Telemetry] Found ${allTraffic.length} active sessions across ${polledRouterIds.size} routers.`);
                 
                 // Real-time status sync: Update customer status based on active PPP sessions
                 setCustomers(prev => prev.map(c => {
                     if (!c.pppoe_username) return { ...c, status: 'inactive' };
                     
-                    // Only update status if the router was successfully polled
-                    if (!polledRouterIds.has(c.router_id)) return c; 
-
+                    // Global match: If they exist in ANY polled router's active list, they are active
                     const isActive = allTraffic.some(t => {
                         const tName = String(t.name || '').trim().toLowerCase();
                         const cName = String(c.pppoe_username || '').trim().toLowerCase();
@@ -267,9 +291,17 @@ export default function CustomersPage() {
         }
     };
 
+    const formatSpeed = (bits: number) => {
+        if (!bits || bits < 0) return '0.0 Mbps';
+        if (bits >= 1000000) return (bits / 1000000).toFixed(1) + ' Mbps';
+        if (bits >= 1000) return (bits / 1000).toFixed(1) + ' kbps';
+        return (bits / 1000000).toFixed(2) + ' Mbps'; // Show small values as 0.xx Mbps
+    };
+
     const getTrafficInfo = (pppoeUsername: string) => {
         if (!pppoeUsername || trafficData.length === 0) return null;
-        const found = trafficData.find(t => String(t.name || '').toLowerCase() === String(pppoeUsername || '').toLowerCase());
+        const cName = String(pppoeUsername).trim().toLowerCase();
+        const found = trafficData.find(t => String(t.name || '').trim().toLowerCase() === cName);
         if (!found) return null;
         
         return {
@@ -349,7 +381,7 @@ export default function CustomersPage() {
                     fetchData();
                     Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Node telah dihapus.', background: theme === 'dark' ? '#0f172a' : '#fff', color: theme === 'dark' ? '#fff' : '#1e293b' });
                 }
-            } catch (err) {
+            } catch (err: any) {
                 console.error(err);
             }
         }
@@ -653,14 +685,7 @@ export default function CustomersPage() {
                                             <div className="flex items-center gap-2 text-accent">
                                                 <ArrowDown className="w-4 h-4 animate-bounce" />
                                                 <span className="text-sm font-black tracking-tighter">
-                                                    {(() => {
-                                                        const traffic = getTrafficInfo(c.pppoe_username);
-                                                        if (!traffic) return '0.0 kbps';
-                                                        const rx = traffic.rx;
-                                                        if (rx >= 1000000) return (rx / 1000000).toFixed(1) + ' Mbps';
-                                                        if (rx >= 1000) return (rx / 1000).toFixed(1) + ' kbps';
-                                                        return rx.toFixed(0) + ' bps';
-                                                    })()}
+                                                    {formatSpeed(getTrafficInfo(c.pppoe_username)?.rx || 0)}
                                                 </span>
                                             </div>
                                         </div>
@@ -669,14 +694,7 @@ export default function CustomersPage() {
                                             <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Unggah (TX)</span>
                                             <div className="flex items-center gap-2 text-blue-500">
                                                 <span className="text-sm font-black tracking-tighter">
-                                                    {(() => {
-                                                        const traffic = getTrafficInfo(c.pppoe_username);
-                                                        if (!traffic) return '0.0 kbps';
-                                                        const tx = traffic.tx;
-                                                        if (tx >= 1000000) return (tx / 1000000).toFixed(1) + ' Mbps';
-                                                        if (tx >= 1000) return (tx / 1000).toFixed(1) + ' kbps';
-                                                        return tx.toFixed(0) + ' bps';
-                                                    })()}
+                                                    {formatSpeed(getTrafficInfo(c.pppoe_username)?.tx || 0)}
                                                 </span>
                                                 <ArrowUp className="w-4 h-4" />
                                             </div>
@@ -974,9 +992,11 @@ export default function CustomersPage() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="h-[200px] w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <AreaChart data={chartData}>
+                                <div className="h-[200px] w-full min-h-[200px] flex items-center justify-center">
+                                    {!chartReady && <div className="text-[10px] font-black text-slate-400 animate-pulse uppercase tracking-widest">Menyiapkan Vektor Telemetri...</div>}
+                                    <ResponsiveContainer width="100%" height="100%" debounce={300}>
+                                        {chartReady && (
+                                            <AreaChart data={chartData}>
                                             <defs>
                                                 <linearGradient id="colorDown" x1="0" y1="0" x2="0" y2="1">
                                                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
@@ -996,7 +1016,8 @@ export default function CustomersPage() {
                                             />
                                             <Area type="monotone" dataKey="down" stroke="#10b981" fillOpacity={1} fill="url(#colorDown)" strokeWidth={3} isAnimationActive={false} />
                                             <Area type="monotone" dataKey="up" stroke="#3b82f6" fillOpacity={1} fill="url(#colorUp)" strokeWidth={3} isAnimationActive={false} />
-                                        </AreaChart>
+                                            </AreaChart>
+                                        )}
                                     </ResponsiveContainer>
                                 </div>
                             </div>
