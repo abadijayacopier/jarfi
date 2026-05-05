@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { pool } from '@/lib/db';
 const { RouterOSClient } = require('routeros-client');
 
+// In-memory cache to store last byte counts for speed calculation
+// Format: routerId_interfaceName -> { rx: number, tx: number, time: number }
+const trafficCache = new Map<string, { rx: number, tx: number, time: number }>();
+
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const routerId = searchParams.get('router_id');
@@ -30,90 +34,116 @@ export async function GET(request: Request) {
 
         const conn = await client.connect();
         
-        const [activeUsers, pppoeInterfaces, pppSecrets] = await Promise.all([
+        // Fetch active users and interfaces with full details
+        const [activeUsers, interfaces] = await Promise.all([
             conn.menu('/ppp/active').get(),
-            conn.menu('/interface/pppoe-server').get(),
-            conn.menu('/ppp/secret').get()
+            conn.menu('/interface').get()
         ]);
 
-        const secretProfiles: Record<string, string> = {};
-        pppSecrets.forEach((s: any) => {
-            if (s.name) secretProfiles[s.name] = s.profile || 'default';
-        });
+        const now = Date.now();
+        const trafficData: any[] = [];
+        const statsMap: Record<string, any> = {};
+        
+        // Step 1: Calculate real-time speed and collect totals
+        interfaces.forEach((i: any) => {
+            if (!i.name) return;
 
-        const userToIface: Record<string, string> = {};
-        const rateStats: Record<string, any> = {};
+            const currentRx = parseInt(i.rxByte || i['rx-byte'] || '0');
+            const currentTx = parseInt(i.txByte || i['tx-byte'] || '0');
+            const currentRxPkt = parseInt(i.rxPacket || i['rx-packet'] || '0');
+            const currentTxPkt = parseInt(i.txPacket || i['tx-packet'] || '0');
+            
+            const cacheKey = `${routerId}_${i.name}`;
+            const lastData = trafficCache.get(cacheKey);
 
-        pppoeInterfaces.forEach((i: any) => {
-            if (i.user && i.name) {
-                const uName = String(i.user).toLowerCase();
-                userToIface[uName] = i.name;
-                
-                if (i['tx-bits-per-second'] || i['rx-bits-per-second']) {
-                    rateStats[uName] = {
-                        rxSpeed: parseInt(i['tx-bits-per-second'] || '0'),
-                        txSpeed: parseInt(i['rx-bits-per-second'] || '0')
-                    };
+            let rxSpeed = 0;
+            let txSpeed = 0;
+
+            if (lastData && lastData.rx > 0 && lastData.tx > 0) {
+                const timeDiff = (now - lastData.time) / 1000;
+                if (timeDiff > 0 && timeDiff < 60) {
+                    rxSpeed = Math.max(0, Math.round(((currentTx - lastData.tx) * 8) / timeDiff));
+                    txSpeed = Math.max(0, Math.round(((currentRx - lastData.rx) * 8) / timeDiff));
                 }
             }
-        });
 
-        activeUsers.forEach((u: any) => {
-            const uName = String(u.name).toLowerCase();
-            if (!userToIface[uName]) {
-                userToIface[uName] = `<pppoe-${u.name}>`; 
-            }
-        });
-
-        const missingRates = Object.keys(userToIface).filter(u => !rateStats[u]);
-        if (missingRates.length > 0) {
-            const activeIfaceNames = missingRates.map(u => userToIface[u]);
-            const batchSize = 15; 
+            trafficCache.set(cacheKey, { rx: currentRx, tx: currentTx, time: now });
             
-            for (let i = 0; i < activeIfaceNames.length; i += batchSize) {
-                const batch = activeIfaceNames.slice(i, i + batchSize);
-                try {
-                    const monitorResults = await conn.menu('/interface').exec('monitor-traffic', { 
-                        interface: batch.join(','), 
-                        once: '',
-                        '.proplist': 'name,rx-bits-per-second,tx-bits-per-second,rx-rate,tx-rate'
-                    });
-
-                    (Array.isArray(monitorResults) ? monitorResults : [monitorResults]).forEach((res: any) => {
-                        const ifaceName = res.name;
-                        const matchedUser = Object.keys(userToIface).find(u => {
-                            const storedIface = userToIface[u];
-                            return storedIface === ifaceName || 
-                                   storedIface.replace(/[<>]/g, '') === String(ifaceName).replace(/[<>]/g, '');
-                        });
-                        
-                        if (matchedUser) {
-                            rateStats[matchedUser] = {
-                                rxSpeed: parseInt(res['tx-bits-per-second'] || res['tx-rate'] || '0'),
-                                txSpeed: parseInt(res['rx-bits-per-second'] || res['rx-rate'] || '0')
-                            };
-                        }
-                    });
-                } catch (batchErr) {}
-            }
-        }
-
-        const trafficData = activeUsers.map((user: any) => {
-            const uName = String(user.name || '').toLowerCase();
-            const stats = rateStats[uName] || { rxSpeed: 0, txSpeed: 0 };
-            return {
-                name: user.name || '',
-                address: user.address || user['caller-id'] || '-',
-                uptime: user.uptime || '0s',
-                encoding: user.encoding || '-',
-                service: user.service || 'pppoe',
-                rxSpeed: stats.rxSpeed,
-                txSpeed: stats.txSpeed,
-                rxBytes: 0,
-                txBytes: 0,
-                profile: secretProfiles[user.name] || '?'
+            statsMap[i.name] = { 
+                rx: rxSpeed, 
+                tx: txSpeed, 
+                rxTotal: currentRx, 
+                txTotal: currentTx,
+                rxPkt: currentRxPkt,
+                txPkt: currentTxPkt,
+                mtu: i.mtu || i.actualMtu || 1480,
+                lastUp: i.lastLinkUpTime || i['last-link-up-time'] || '-'
             };
         });
+
+        // Helper to format bytes
+        const formatBytes = (bytes: number) => {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        };
+
+        // Step 2: Map active users to calculated stats
+        activeUsers.forEach((u: any) => {
+            let ifaceName = u.interface;
+            if (!ifaceName) {
+                const pattern = `<pppoe-${u.name}>`;
+                const foundIface = interfaces.find((i: any) => 
+                    i.name === pattern || i.name === u.name || i.name === `pppoe-${u.name}`
+                );
+                if (foundIface) ifaceName = foundIface.name;
+            }
+
+            const stats = statsMap[ifaceName] || { rx: 0, tx: 0, rxTotal: 0, txTotal: 0, rxPkt: 0, txPkt: 0, mtu: 1480, lastUp: '-' };
+            
+            const uptimeStr = String(u.uptime || '0s');
+            let totalSeconds = 0;
+            const matches = {
+                w: uptimeStr.match(/(\d+)w/),
+                d: uptimeStr.match(/(\d+)d/),
+                h: uptimeStr.match(/(\d+)h/),
+                m: uptimeStr.match(/(\d+)m/),
+                s: uptimeStr.match(/(\d+)s/)
+            };
+            if (matches.w) totalSeconds += parseInt(matches.w[1]) * 604800;
+            if (matches.d) totalSeconds += parseInt(matches.d[1]) * 86400;
+            if (matches.h) totalSeconds += parseInt(matches.h[1]) * 3600;
+            if (matches.m) totalSeconds += parseInt(matches.m[1]) * 60;
+            if (matches.s) totalSeconds += parseInt(matches.s[1]);
+
+            const connectedAt = new Date(now - (totalSeconds * 1000));
+            
+            trafficData.push({
+                name: String(u.name).trim(),
+                address: u.address || '-',
+                callerId: u.callerId || u['caller-id'] || '-',
+                uptime: uptimeStr,
+                uptimeSeconds: totalSeconds,
+                connectedAt: connectedAt.toISOString(),
+                rxSpeed: stats.rx,
+                txSpeed: stats.tx,
+                rxTotal: formatBytes(stats.rxTotal),
+                txTotal: formatBytes(stats.txTotal),
+                rxPkt: stats.rxPkt,
+                txPkt: stats.txPkt,
+                mtu: stats.mtu,
+                lastUp: stats.lastUp,
+                status: 'active'
+            });
+        });
+
+        // Periodic debug log (only first 3 active users with traffic)
+        const activeWithTraffic = trafficData.filter(t => t.rxSpeed > 1000).slice(0, 3);
+        if (activeWithTraffic.length > 0) {
+            console.log(`[Router ${routerId}] Active traffic:`, activeWithTraffic.map(t => `${t.name}: ${(t.rxSpeed/1000000).toFixed(2)} Mbps`));
+        }
 
         await client.close();
         return NextResponse.json({ traffic: trafficData });

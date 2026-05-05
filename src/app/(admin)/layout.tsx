@@ -107,7 +107,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             {/* Top Navigation Bar */}
             <header className="fixed top-0 left-0 right-0 z-50 w-full px-6 py-4">
-                <div className="mx-auto max-w-[1920px]">
+                <div className="w-full">
                     <div className="glass rounded-[40px] h-24 flex items-center px-10 justify-between shadow-2xl border border-white/10 dark:border-white/5 relative">
 
                         <div className="flex items-center gap-10 relative z-10">
@@ -217,7 +217,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </header>
 
             {/* Main Content Area */}
-            <main className="flex-1 flex flex-col pt-32 px-6 md:px-12 pb-24 md:pb-8 relative max-w-[1920px] mx-auto w-full">
+            <main className="flex-1 flex flex-col pt-32 px-6 md:px-12 pb-24 md:pb-8 relative w-full">
                 <div className="flex-1 min-h-0">
                     {children}
                 </div>

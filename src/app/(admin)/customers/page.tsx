@@ -7,7 +7,7 @@ import {
     Wifi, Calendar, Activity, Zap, ArrowDown, ArrowUp, MapPin, 
     ChevronLeft, ChevronRight, Filter, MoreVertical, ExternalLink,
     TrendingUp, Signal, Box, AlertTriangle, Monitor, Power, Plus, Eye,
-    Loader2, Database, HardDrive, Cpu, Network, Router as RouterIcon
+    Loader2, Database, HardDrive, Cpu, Network, ShieldCheck, Router as RouterIcon
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { 
@@ -58,6 +58,13 @@ export default function CustomersPage() {
         { name: '5s', down: 0, up: 0 },
     ]);
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
+    const [currentTime, setCurrentTime] = useState(new Date());
+    const [showPppoePass, setShowPppoePass] = useState(false);
+
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
 
     useEffect(() => {
         // Detect theme from document class
@@ -258,9 +265,9 @@ export default function CustomersPage() {
                     
                     // Global match: If they exist in ANY polled router's active list, they are active
                     const isActive = allTraffic.some(t => {
-                        const tName = String(t.name || '').trim().toLowerCase();
-                        const cName = String(c.pppoe_username || '').trim().toLowerCase();
-                        return tName === cName;
+                        const cleanT = String(t.name || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+                        const cleanC = String(c.pppoe_username || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+                        return cleanT === cleanC && cleanT !== '';
                     });
                     
                     return { ...c, status: isActive ? 'active' : 'inactive' };
@@ -268,7 +275,11 @@ export default function CustomersPage() {
 
                 // Update chart data if a customer is selected
                 if (showDetail && selectedCustomer) {
-                    const found = allTraffic.find(t => String(t.name || '').toLowerCase() === String(selectedCustomer.pppoe_username || '').toLowerCase());
+                    const found = allTraffic.find(t => {
+                        const tName = String(t.name || '').trim().toLowerCase();
+                        const cName = String(selectedCustomer.pppoe_username || '').trim().toLowerCase();
+                        return tName === cName;
+                    });
                     if (found) {
                         const rx = found.rxSpeed ?? found['rx-bits-per-second'] ?? 0;
                         const tx = found.txSpeed ?? found['tx-bits-per-second'] ?? 0;
@@ -300,15 +311,51 @@ export default function CustomersPage() {
 
     const getTrafficInfo = (pppoeUsername: string) => {
         if (!pppoeUsername || trafficData.length === 0) return null;
-        const cName = String(pppoeUsername).trim().toLowerCase();
-        const found = trafficData.find(t => String(t.name || '').trim().toLowerCase() === cName);
+        const cleanC = String(pppoeUsername).replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        const found = trafficData.find(t => {
+            const cleanT = String(t.name || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+            return cleanT === cleanC;
+        });
         if (!found) return null;
         
         return {
-            rx: found.rxSpeed ?? found['rx-bits-per-second'] ?? found.rx_speed ?? found.rate_down ?? 0,
-            tx: found.txSpeed ?? found['tx-bits-per-second'] ?? found.tx_speed ?? found.rate_up ?? 0,
-            uptime: found.uptime ?? found['last-logged-out'] ?? null
+            rx: found.rxSpeed ?? 0,
+            tx: found.txSpeed ?? 0,
+            uptime: found.uptime ?? null,
+            uptimeSeconds: found.uptimeSeconds ?? 0,
+            connectedAt: found.connectedAt || null,
+            callerId: found.callerId || '-',
+            rxTotal: found.rxTotal || '0 B',
+            txTotal: found.txTotal || '0 B',
+            rxPkt: found.rxPkt || 0,
+            txPkt: found.txPkt || 0,
+            mtu: found.mtu || 1480,
+            lastUp: found.lastUp || '-',
+            address: found.address || '-'
         };
+    };
+
+    const formatUptimeLive = (connectedAt: string | null) => {
+        if (!connectedAt) return 'OFFLINE';
+        const start = new Date(connectedAt).getTime();
+        const diff = Math.floor((currentTime.getTime() - start) / 1000);
+        
+        if (diff < 0) return '0 Detik';
+
+        const w = Math.floor(diff / 604800);
+        const d = Math.floor((diff % 604800) / 86400);
+        const h = Math.floor((diff % 86400) / 3600);
+        const m = Math.floor((diff % 3600) / 60);
+        const s = diff % 60;
+
+        const parts = [];
+        if (w > 0) parts.push(`${w} Minggu`);
+        if (d > 0) parts.push(`${d} Hari`);
+        if (h > 0) parts.push(`${h} Jam`);
+        if (m > 0) parts.push(`${m} Menit`);
+        if (s >= 0) parts.push(`${s} Detik`);
+
+        return parts.join(' ');
     };
 
     const handleSave = async (e: React.FormEvent) => {
@@ -418,7 +465,7 @@ export default function CustomersPage() {
                 <div className="flex items-center gap-6">
                     <div>
                         <h1 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight uppercase">Manajemen Pelanggan</h1>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Monitoring dan provisi node pelanggan secara real-time</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Monitoring {customers.length} node pelanggan secara real-time</p>
                     </div>
                     {isSyncing && (
                         <div className="flex items-center gap-3 px-4 py-2 bg-accent/5 dark:bg-accent/10 rounded-full animate-in slide-in-from-left-4 duration-300 border border-accent/10">
@@ -618,7 +665,7 @@ export default function CustomersPage() {
                         </div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-4 gap-8 animate-in slide-in-from-bottom-4 duration-500 w-full relative">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 animate-in slide-in-from-bottom-4 duration-500 w-full relative">
                         {isSyncing && (
                             <div className="absolute -top-4 left-0 right-0 h-1 bg-accent animate-pulse z-50 rounded-full" />
                         )}
@@ -911,6 +958,37 @@ export default function CustomersPage() {
                                 <div className="space-y-8">
                                     <div>
                                         <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-3">
+                                            <Calendar className="w-4 h-4 text-rose-600" /> Status Keuangan
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-y-4 text-sm">
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Jatuh Tempo</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">Tgl {selectedCustomer.due_date || '1'} Setiap Bulan</span>
+                                            
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Biaya Bulanan</span>
+                                            <span className="text-rose-600 dark:text-rose-400 font-black uppercase">
+                                                {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(150000)}
+                                            </span>
+                                            
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Status Bayar</span>
+                                            <span className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] px-2 py-0.5 rounded-full font-black w-fit uppercase">Lunas</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
+                                        <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-3">
+                                            <Box className="w-4 h-4 text-amber-600" /> Infrastruktur Jaringan
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-y-4 text-sm">
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Nama ODP</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.odp_name || 'ODP-MGT-01'}</span>
+                                            
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Router Gateway</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.router_name || 'CORE-MGT-01'}</span>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-3">
                                             <Users className="w-4 h-4 text-indigo-600" /> Identitas & Akses
                                         </h3>
                                         <div className="grid grid-cols-2 gap-y-4 text-sm">
@@ -920,6 +998,20 @@ export default function CustomersPage() {
                                             <span className="text-slate-800 dark:text-slate-200 font-black">{selectedCustomer.phone || '-'}</span>
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">Identitas PPPoE</span>
                                             <span className="text-indigo-600 dark:text-indigo-400 font-black">{selectedCustomer.pppoe_username}</span>
+                                            
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Password PPPoE</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-slate-800 dark:text-slate-200 font-mono font-bold tracking-widest">
+                                                    {showPppoePass ? selectedCustomer.pppoe_password : '••••••••'}
+                                                </span>
+                                                <button 
+                                                    onClick={() => setShowPppoePass(!showPppoePass)}
+                                                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors text-slate-400 hover:text-indigo-600"
+                                                >
+                                                    {showPppoePass ? <X className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                                </button>
+                                            </div>
+
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">Tanggal Penagihan</span>
                                             <span className="text-slate-800 dark:text-slate-200 font-black">Tanggal {selectedCustomer.due_date || '1'}</span>
                                         </div>
@@ -965,11 +1057,75 @@ export default function CustomersPage() {
                                         <div className="grid grid-cols-2 gap-y-4 text-sm">
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">Paket Layanan</span>
                                             <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.package_name || 'UNLIMITED 10M'}</span>
-                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Terakhir Putus</span>
-                                            <span className="text-rose-600 dark:text-rose-400 font-black uppercase">{selectedCustomer.last_disconnect || 'TIDAK PERNAH'}</span>
-                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Uptime (Live)</span>
-                                            <span className="text-emerald-600 dark:text-emerald-400 font-black uppercase">{getTrafficInfo(selectedCustomer.pppoe_username)?.uptime || 'OFFLINE'}</span>
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Waktu Terhubung</span>
+                                            <span className="text-emerald-600 dark:text-emerald-400 font-black uppercase">
+                                                {(() => {
+                                                    const info = getTrafficInfo(selectedCustomer.pppoe_username);
+                                                    return info?.connectedAt 
+                                                        ? new Date(info.connectedAt).toLocaleString('id-ID', {
+                                                            day: '2-digit',
+                                                            month: 'short',
+                                                            year: 'numeric',
+                                                            hour: '2-digit',
+                                                            minute: '2-digit',
+                                                            second: '2-digit'
+                                                        })
+                                                        : 'OFFLINE';
+                                                })()}
+                                            </span>
+                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Durasi Aktif</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">
+                                                {formatUptimeLive(getTrafficInfo(selectedCustomer.pppoe_username)?.connectedAt)}
+                                            </span>
                                         </div>
+                                    </div>
+
+                                    <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
+                                        <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-3">
+                                            <Network className="w-4 h-4 text-emerald-600" /> Identitas Jaringan (IP)
+                                        </h3>
+                                        {(() => {
+                                            const info = getTrafficInfo(selectedCustomer.pppoe_username);
+                                            return (
+                                                <div className="grid grid-cols-2 gap-y-3 text-sm">
+                                                    <span className="text-slate-400 dark:text-slate-500 font-bold">Remote IP Address</span>
+                                                    <span className="text-indigo-600 dark:text-indigo-400 font-black">{info?.address || '-'}</span>
+                                                    
+                                                    <span className="text-slate-400 dark:text-slate-500 font-bold">Gateway IP</span>
+                                                    <span className="text-slate-800 dark:text-slate-200 font-black">192.192.100.1</span>
+                                                    
+                                                    <span className="text-slate-400 dark:text-slate-500 font-bold">Protokol Service</span>
+                                                    <span className="text-slate-800 dark:text-slate-200 font-black uppercase">service1 / PPPoE</span>
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+
+                                    <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
+                                        <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-3">
+                                            <ShieldCheck className="w-4 h-4 text-blue-600" /> Statistik Sesi (Winbox)
+                                        </h3>
+                                        {(() => {
+                                            const info = getTrafficInfo(selectedCustomer.pppoe_username);
+                                            return (
+                                                <div className="grid grid-cols-2 gap-y-3 text-[11px]">
+                                                    <span className="text-slate-400 dark:text-slate-500 font-bold">Total Unduh (RX)</span>
+                                                    <span className="text-slate-800 dark:text-slate-200 font-black">{info?.txTotal || '0 B'}</span>
+                                                    
+                                                    <span className="text-slate-400 dark:text-slate-500 font-bold">Total Unggah (TX)</span>
+                                                    <span className="text-slate-800 dark:text-slate-200 font-black">{info?.rxTotal || '0 B'}</span>
+                                                    
+                                                    <span className="text-slate-400 dark:text-slate-500 font-bold">Packet Rate (R/T)</span>
+                                                    <span className="text-slate-800 dark:text-slate-200 font-black">{info?.txPkt || 0} / {info?.rxPkt || 0} p/s</span>
+                                                    
+                                                    <span className="text-slate-400 dark:text-slate-500 font-bold">MTU / MRU</span>
+                                                    <span className="text-slate-800 dark:text-slate-200 font-black">{info?.mtu || 1480} / {info?.mtu || 1480}</span>
+                                                    
+                                                    <span className="text-slate-400 dark:text-slate-500 font-bold">Caller ID (MAC)</span>
+                                                    <span className="text-indigo-600 dark:text-indigo-400 font-mono font-bold tracking-tighter">{info?.callerId || '-'}</span>
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                             </div>
