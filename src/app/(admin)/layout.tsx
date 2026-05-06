@@ -286,61 +286,54 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             </button>
                         </div>
 
-                        <div className="p-8 space-y-8 overflow-y-auto custom-scrollbar max-h-[75vh]">
-                            <div className="space-y-10">
+                        <div className="flex-1 overflow-y-auto p-6 sm:p-10 space-y-12 custom-scrollbar">
                                 {navItems
                                     .filter(item => !['Dasbor', 'Pemetaan', 'Pelanggan', 'Laporan', 'Dashboard', 'Pusat Laporan'].includes(item.label))
                                     .map((item, idx) => {
-                                        const hasSubItems = !!item.subItems;
-                                        const isDirectLink = !!item.href;
+                                        const hasSubItems = item.subItems && item.subItems.length > 0;
                                         const filteredSubItems = item.subItems?.filter(sub => !['Pemetaan & ODP'].includes(sub.label));
-                                        if (hasSubItems && filteredSubItems?.length === 0) return null;
-
-                                        const isActive = isDirectLink ? pathname === item.href : filteredSubItems?.some(s => s.href === pathname);
 
                                         return (
                                             <div key={idx} className="space-y-6">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="h-px flex-1 bg-linear-to-r from-transparent to-white/10"></div>
-                                                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] whitespace-nowrap">{item.label}</h4>
-                                                    <div className="h-px flex-1 bg-linear-to-l from-transparent to-white/10"></div>
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-accent"></div>
+                                                    <h5 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">{item.label}</h5>
                                                 </div>
 
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     {!hasSubItems ? (
                                                         <Link
-                                                            href={item.href!}
-                                                            className={`group relative flex items-center gap-5 p-5 rounded-[32px] transition-all border overflow-hidden cursor-pointer active:scale-95 ${isActive ? 'bg-accent/20 border-accent/40 text-white shadow-[0_20px_40px_rgba(99,102,241,0.2)]' : 'bg-white/2 border-white/5 text-slate-400 hover:bg-white/5'}`}
+                                                            href={item.href || '/dashboard'}
+                                                            onClick={() => setActiveDropdown(null)}
+                                                            className="flex items-center gap-5 p-6 rounded-[32px] bg-white/5 border border-white/5 hover:bg-accent/10 hover:border-accent/30 transition-all group active:scale-95"
                                                         >
-                                                            {isActive && <div className="absolute inset-0 bg-linear-to-r from-accent/10 to-transparent pointer-events-none"></div>}
-                                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-500 ${isActive ? 'bg-accent text-white scale-110' : 'bg-white/5 text-slate-500 group-hover:text-accent group-hover:scale-105'}`}>
+                                                            <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent border border-accent/20 group-hover:scale-110 transition-all">
                                                                 <item.icon className="w-6 h-6" />
                                                             </div>
-                                                            <div className="flex flex-col text-left">
-                                                                <span className="text-[13px] font-black uppercase tracking-wider">{item.label}</span>
-                                                                <span className="text-[8px] opacity-40 font-bold uppercase mt-1 tracking-widest">Entry Access</span>
+                                                            <div className="flex-1">
+                                                                <p className="font-black text-white text-sm tracking-tight uppercase">{item.label}</p>
+                                                                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Direct Access</p>
                                                             </div>
+                                                            <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-accent group-hover:translate-x-1 transition-all" />
                                                         </Link>
                                                     ) : (
-                                                        filteredSubItems?.map((sub, sIdx) => {
-                                                            const isSubActive = pathname === sub.href;
-                                                            return (
-                                                                <Link
-                                                                    key={sIdx}
-                                                                    href={sub.href}
-                                                                    className={`group relative flex items-center gap-5 p-5 rounded-[32px] transition-all border overflow-hidden cursor-pointer active:scale-95 ${isSubActive ? 'bg-accent/20 border-accent/40 text-white shadow-[0_20px_40px_rgba(99,102,241,0.2)]' : 'bg-white/2 border-white/5 text-slate-400 hover:bg-white/5'}`}
-                                                                >
-                                                                    {isSubActive && <div className="absolute inset-0 bg-linear-to-r from-accent/10 to-transparent pointer-events-none"></div>}
-                                                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-500 ${isSubActive ? 'bg-accent text-white scale-110' : 'bg-white/5 text-slate-500 group-hover:text-accent group-hover:scale-105'}`}>
-                                                                        <sub.icon className="w-6 h-6" />
-                                                                    </div>
-                                                                    <div className="flex flex-col text-left">
-                                                                        <span className="text-[12px] font-black uppercase tracking-wider">{sub.label}</span>
-                                                                        <span className="text-[8px] opacity-40 font-bold uppercase mt-1 tracking-widest">Sub-Matrix Portal</span>
-                                                                    </div>
-                                                                </Link>
-                                                            );
-                                                        })
+                                                        filteredSubItems?.map((sub, sIdx) => (
+                                                            <Link
+                                                                key={sIdx}
+                                                                href={sub.href || '/dashboard'}
+                                                                onClick={() => setActiveDropdown(null)}
+                                                                className="flex items-center gap-5 p-6 rounded-[32px] bg-white/5 border border-white/5 hover:bg-accent/10 hover:border-accent/30 transition-all group active:scale-95"
+                                                            >
+                                                                <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent border border-accent/20 group-hover:scale-110 transition-all">
+                                                                    <sub.icon className="w-6 h-6" />
+                                                                </div>
+                                                                <div className="flex-1 text-left">
+                                                                    <p className="font-black text-white text-sm tracking-tight uppercase">{sub.label}</p>
+                                                                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Modul Layanan</p>
+                                                                </div>
+                                                                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-accent group-hover:translate-x-1 transition-all" />
+                                                            </Link>
+                                                        ))
                                                     )}
                                                 </div>
                                             </div>
@@ -375,7 +368,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     </div>
                                     Terminate All Sessions
                                 </button>
-                            </div>
                         </div>
                     </div>
                 </div>

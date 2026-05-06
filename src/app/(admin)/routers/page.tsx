@@ -358,105 +358,124 @@ export default function RoutersPage() {
                 {/* Pagination Controls */}
                 {!loading && routers.length > itemsPerPage && (
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-8 pt-10 px-4">
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                            Identifikasi Matriks: <span className="text-primary font-bold">{routers.length} Node</span>
+                        <p className="text-[10px] font-black text-muted uppercase tracking-[0.3em]">
+                            Matrix Identified: <span className="text-primary dark:text-white">{routers.length} Node</span>
                         </p>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-4">
                             <button 
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="px-6 py-3.5 rounded-xl glass border border-white/5 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-primary disabled:opacity-20 transition-all active:scale-95"
+                                className="px-8 py-4 rounded-2xl bg-surface dark:bg-white/5 border border-glass-border dark:border-white/10 text-[10px] font-black uppercase tracking-widest text-muted hover:text-primary dark:hover:text-white disabled:opacity-20 transition-all active:scale-95 shadow-xl"
                             >
                                 Sebelumnya
                             </button>
                             <button 
                                 onClick={() => setCurrentPage(p => p + 1)}
                                 disabled={currentPage >= Math.ceil(routers.length / itemsPerPage)}
-                                className="px-6 py-3.5 rounded-xl glass border border-white/5 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-primary disabled:opacity-20 transition-all active:scale-95"
+                                className="px-8 py-4 rounded-2xl bg-surface dark:bg-white/5 border border-glass-border dark:border-white/10 text-[10px] font-black uppercase tracking-widest text-muted hover:text-primary dark:hover:text-white disabled:opacity-20 transition-all active:scale-95 shadow-xl"
                             >
-                                Node Selanjutnya
+                                Selanjutnya
                             </button>
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* Modal Form */}
+            {/* Modal Form - Pro Max Ultra */}
             {showForm && (
-                <div className="fixed inset-0 z-10000 flex items-center justify-center p-4 sm:p-8 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
-                    <div className="bg-slate-900 w-full max-w-2xl max-h-[90vh] rounded-[48px] shadow-[0_0_100px_rgba(0,0,0,0.8)] border border-white/15 flex flex-col relative overflow-hidden animate-in zoom-in-95 duration-500">
-                        <div className="absolute -top-40 -right-40 w-96 h-96 bg-accent/5 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 sm:p-10 bg-slate-950/95 backdrop-blur-2xl animate-in fade-in duration-500">
+                    <div className="bg-surface dark:bg-[#0f172a] w-full max-w-4xl rounded-[64px] border border-glass-border dark:border-white/15 shadow-[0_60px_120px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[90vh] relative animate-in zoom-in-95 duration-500">
+                        <div className="absolute top-0 left-0 right-0 h-2 bg-linear-to-r from-transparent via-accent to-transparent"></div>
                         
-                        <div className="px-8 py-6 border-b border-white/10 flex justify-between items-center bg-white/5 relative z-10 shrink-0">
-                            <div className="flex items-center gap-6">
-                                <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center text-accent border border-accent/20 shadow-inner">
-                                    {isEditing ? <Edit className="w-6 h-6" /> : <Wifi className="w-6 h-6" />}
+                        <div className="p-12 border-b border-glass-border dark:border-white/10 flex justify-between items-center bg-linear-to-b from-white/5 to-transparent">
+                            <div className="flex items-center gap-8">
+                                <div className="w-20 h-20 rounded-[32px] bg-accent/10 flex items-center justify-center text-accent border border-accent/20 shadow-inner">
+                                    {isEditing ? <Edit className="w-10 h-10" /> : <PlusCircle className="w-10 h-10" />}
                                 </div>
                                 <div>
-                                    <h4 className="text-xl md:text-2xl font-black text-white tracking-tight uppercase">
-                                        {isEditing ? 'Sinkron Gateway' : 'Node Baru'}
-                                    </h4>
-                                    <p className="text-[9px] text-slate-500 font-black tracking-[0.3em] uppercase mt-1">Matrix Protocol v3.1</p>
+                                    <h3 className="text-3xl font-black text-primary dark:text-white tracking-tighter uppercase leading-none mb-3">
+                                        {isEditing ? 'Ubah Matriks Gateway' : 'Inisialisasi Node Gateway'}
+                                    </h3>
+                                    <p className="text-accent text-[11px] font-black uppercase tracking-[0.4em] opacity-80 underline underline-offset-8 decoration-accent/30">MikroTik RouterOS Layer</p>
                                 </div>
                             </div>
-                            <button onClick={closeModal} className="text-slate-400 hover:text-white transition-all bg-white/5 w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10 active:scale-90">
-                                <X className="w-6 h-6" />
+                            <button onClick={closeModal} className="w-16 h-16 bg-white/5 hover:bg-white/10 rounded-[28px] text-primary dark:text-white transition-all flex items-center justify-center border border-glass-border dark:border-white/10 shadow-2xl active:scale-95">
+                                <X className="w-8 h-8" />
                             </button>
                         </div>
 
-                        <div className="p-8 md:p-12 space-y-10 overflow-y-auto custom-scrollbar relative z-10 flex-1">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="col-span-1 md:col-span-2">
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Alias Gateway Jaringan</label>
-                                    <input type="text" name="name" required value={formData.name} onChange={handleFormChange} className="w-full clean-input font-black text-lg py-5 px-8 bg-white/5 border-white/10 focus:border-accent/50 transition-all rounded-3xl" placeholder="Contoh: Core-Region-A" />
+                        <div className="p-12 space-y-12 overflow-y-auto custom-scrollbar flex-1">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                <div className="col-span-1 md:col-span-2 space-y-5">
+                                    <label className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-muted ml-2">
+                                        <div className="w-2 h-2 rounded-full bg-accent"></div>
+                                        Alias Gateway Jaringan
+                                    </label>
+                                    <input type="text" name="name" required value={formData.name} onChange={handleFormChange} className="w-full bg-input dark:bg-white/5 border border-input-border dark:border-white/10 rounded-[32px] py-6 px-10 text-2xl font-black text-primary dark:text-white focus:outline-none focus:border-accent/50 focus:bg-white/10 transition-all shadow-inner" placeholder="Contoh: Core-Region-A" />
                                 </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Matriks Host (IP)</label>
-                                    <input type="text" name="ip_address" required value={formData.ip_address} onChange={handleFormChange} className="w-full clean-input font-mono font-black text-base py-5 px-8 bg-white/5 border-white/10 focus:border-accent/50 transition-all rounded-3xl" placeholder="192.168.1.1" />
+                                <div className="space-y-5">
+                                    <label className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-muted ml-2">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                        Matriks Host (IP)
+                                    </label>
+                                    <div className="relative group">
+                                        <input type="text" name="ip_address" required value={formData.ip_address} onChange={handleFormChange} className="w-full bg-input dark:bg-white/5 border border-input-border dark:border-white/10 rounded-[32px] py-6 pl-16 pr-10 font-mono font-black text-2xl text-primary dark:text-white focus:outline-none focus:border-accent/50 transition-all shadow-inner" placeholder="192.168.1.1" />
+                                        <Wifi className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-accent/40 group-focus-within:text-accent transition-all" />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Port Protokol API</label>
-                                    <input type="number" name="api_port" required value={formData.api_port} onChange={handleFormChange} className="w-full clean-input font-mono font-black text-base py-5 px-8 bg-white/5 border-white/10 focus:border-accent/50 transition-all rounded-3xl" />
+                                <div className="space-y-5">
+                                    <label className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-muted ml-2">
+                                        <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                                        Port Protokol API
+                                    </label>
+                                    <input type="number" name="api_port" required value={formData.api_port} onChange={handleFormChange} className="w-full bg-input dark:bg-white/5 border border-input-border dark:border-white/10 rounded-[32px] py-6 px-10 font-mono font-black text-xl text-primary dark:text-white focus:outline-none focus:border-accent/50 transition-all shadow-inner" />
                                 </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Pengguna Infrastruktur</label>
-                                    <input type="text" name="username" required value={formData.username} onChange={handleFormChange} className="w-full clean-input font-mono font-black text-base py-5 px-8 bg-white/5 border-white/10 focus:border-accent/50 transition-all rounded-3xl" placeholder="admin" />
+                                <div className="space-y-5">
+                                    <label className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-muted ml-2">
+                                        <div className="w-2 h-2 rounded-full bg-accent"></div>
+                                        Pengguna Infrastruktur
+                                    </label>
+                                    <input type="text" name="username" required value={formData.username} onChange={handleFormChange} className="w-full bg-input dark:bg-white/5 border border-input-border dark:border-white/10 rounded-[32px] py-6 px-10 font-mono font-black text-xl text-primary dark:text-white focus:outline-none focus:border-accent/50 transition-all shadow-inner" placeholder="admin" />
                                 </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Token Keamanan</label>
-                                    <input type="password" name="password" value={formData.password} onChange={handleFormChange} className="w-full clean-input font-mono font-black text-base py-5 px-8 bg-white/5 border-white/10 focus:border-accent/50 transition-all rounded-3xl" placeholder="••••••••" />
+                                <div className="space-y-5">
+                                    <label className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-muted ml-2">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                        Token Keamanan
+                                    </label>
+                                    <input type="password" name="password" value={formData.password} onChange={handleFormChange} className="w-full bg-input dark:bg-white/5 border border-input-border dark:border-white/10 rounded-[32px] py-6 px-10 font-mono font-black text-xl text-primary dark:text-white focus:outline-none focus:border-accent/50 transition-all shadow-inner" placeholder="••••••••" />
                                 </div>
                             </div>
 
-                            <div className="bg-white/5 p-8 rounded-[40px] border border-white/10 space-y-6">
-                                <div className="flex items-center justify-between gap-4">
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-black text-white uppercase tracking-widest">Diagnostik Link</span>
-                                        <span className="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-1">Wajib Sebelum Registrasi</span>
+                            <div className="bg-surface dark:bg-white/2 p-10 rounded-[48px] border border-glass-border dark:border-white/5 space-y-8 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl"></div>
+                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 relative z-10">
+                                    <div className="flex flex-col gap-2">
+                                        <span className="text-[12px] font-black text-primary dark:text-white uppercase tracking-[0.3em]">Diagnostik Link Hardware</span>
+                                        <span className="text-[10px] text-muted font-bold uppercase tracking-widest">Wajib Sebelum Registrasi Node Baru</span>
                                     </div>
                                     <button
                                         type="button"
                                         onClick={handleTestBeforeSave}
-                                        className={`px-8 py-3.5 rounded-2xl transition-all font-black uppercase tracking-widest text-[9px] flex items-center gap-3 active:scale-95 border ${testSuccess ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-white/10 text-white border-white/10 hover:bg-white/20'}`}
+                                        className={`w-full md:w-auto px-10 py-5 rounded-[28px] transition-all font-black uppercase tracking-[0.2em] text-[11px] flex items-center justify-center gap-4 active:scale-95 border shadow-2xl ${testSuccess ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30' : 'bg-white/5 text-primary dark:text-white border-glass-border dark:border-white/10 hover:bg-white/10'}`}
                                         disabled={!formData.ip_address || !formData.username}
                                     >
-                                        {testSuccess ? <CheckCircle className="w-4 h-4" /> : <Wifi className="w-4 h-4" />}
-                                        {testSuccess ? 'Terverifikasi' : 'Uji Koneksi'}
+                                        {testSuccess ? <CheckCircle className="w-6 h-6" /> : <Wifi className="w-6 h-6" />}
+                                        {testSuccess ? 'Matriks Terverifikasi' : 'Inisialisasi Uji Koneksi'}
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="px-8 py-8 border-t border-white/10 flex flex-col sm:flex-row justify-end items-center gap-4 bg-white/5 relative z-10 shrink-0">
-                            <button type="button" onClick={closeModal} className="w-full sm:w-auto px-8 py-5 rounded-2xl text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] hover:bg-white/5 transition-all">Batal</button>
+                        <div className="p-12 border-t border-glass-border dark:border-white/10 flex flex-col sm:flex-row justify-end items-center gap-6 bg-linear-to-t from-white/5 to-transparent relative z-10 shrink-0">
+                            <button type="button" onClick={closeModal} className="w-full sm:w-auto px-10 py-6 rounded-3xl text-muted font-black uppercase tracking-[0.4em] text-[11px] hover:bg-white/5 transition-all active:scale-95">Batalkan</button>
                             <button
                                 type="button"
                                 onClick={handleSave}
                                 disabled={!isEditing && !testSuccess}
-                                className={`w-full sm:w-auto px-12 py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] transition-all flex items-center justify-center gap-4 shadow-2xl ${(testSuccess || isEditing) ? 'bg-accent hover:bg-accent/90 text-white active:scale-95' : 'bg-white/5 text-slate-700 cursor-not-allowed'}`}
+                                className={`w-full sm:w-auto px-16 py-6 rounded-3xl font-black uppercase tracking-[0.4em] text-[11px] transition-all flex items-center justify-center gap-5 shadow-[0_30px_60px_rgba(16,185,129,0.3)] border border-white/20 ${(testSuccess || isEditing) ? 'bg-linear-to-r from-accent to-emerald-700 hover:from-accent hover:to-emerald-600 text-white active:scale-95' : 'bg-white/5 text-slate-700 cursor-not-allowed border-white/5'}`}
                             >
-                                <Save className="w-5 h-5" />
-                                {isEditing ? 'Update Node' : 'Daftarkan Node'}
+                                <Save className="w-6 h-6" />
+                                {isEditing ? 'Perbarui Node Gateway' : 'Daftarkan Node Sekarang'}
                             </button>
                         </div>
                     </div>

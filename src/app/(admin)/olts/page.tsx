@@ -82,15 +82,25 @@ export default function OLTManagementPage() {
     );
 
     return (
-        <div className="animate-in fade-in duration-500 pb-20 space-y-8">
+        <div className="animate-in fade-in duration-700 pb-24 space-y-12">
+            {/* Ambient background ornament */}
+            <div className="fixed top-1/4 -right-20 w-96 h-96 bg-accent/5 rounded-full blur-[120px] pointer-events-none z-0"></div>
+            
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-6 border-b border-(--glass-border) pb-10">
-                <div className="space-y-2">
-                    <h3 className="text-4xl font-bold text-primary flex items-center gap-5 tracking-tight">
-                        <Zap className="w-10 h-10 text-accent fill-accent/5" />
+            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-10 mb-16 border-b border-glass-border dark:border-white/5 pb-12">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-1 bg-accent rounded-full"></div>
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-accent">Infrastruktur Inti v4.0</span>
+                    </div>
+                    <h3 className="text-4xl md:text-5xl font-black text-primary flex items-center gap-6 tracking-tighter">
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-accent rounded-2xl blur-lg opacity-20"></div>
+                            <Zap className="w-12 h-12 text-accent relative z-10" />
+                        </div>
                         Matriks OLT
                     </h3>
-                    <p className="text-muted font-medium text-lg">Manajemen Core Fiber & Inteligensia Distribusi.</p>
+                    <p className="text-sm font-bold text-muted uppercase tracking-widest opacity-60">Manajemen Core Fiber & Inteligensia Distribusi</p>
                 </div>
                 <button 
                     onClick={() => {
@@ -98,264 +108,385 @@ export default function OLTManagementPage() {
                         setCurrentOlt({ name: '', ip_address: '', username: 'admin', password: '', telnet_port: 23, snmp_community: 'public', type: 'EPON' });
                         setShowModal(true);
                     }}
-                    className="bg-accent hover:bg-accent/90 text-white font-bold py-3.5 px-8 rounded-2xl transition-all shadow-lg active:scale-95 flex items-center gap-3 uppercase tracking-widest text-[10px]"
+                    className="w-full md:w-auto bg-linear-to-r from-accent to-emerald-600 hover:from-emerald-500 hover:to-emerald-600 text-white font-black py-5 px-10 rounded-2xl transition-all shadow-[0_20px_40px_rgba(16,185,129,0.3)] active:scale-95 flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-[11px] border border-white/10"
                 >
-                    <Plus className="w-4 h-4" /> Daftarkan Node
+                    <Plus className="w-5 h-5" /> Daftarkan Node Baru
                 </button>
             </div>
 
-            {/* Stats Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-                <div className="glass p-10 rounded-[48px] flex items-center gap-10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 bg-linear-to-br from-white/5 to-transparent group hover:border-accent/40 transition-all duration-700 relative overflow-hidden">
+            {/* Stats Summary - Pro Max Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+                <div className="group bg-surface dark:bg-[#0f172a]/80 backdrop-blur-3xl p-10 rounded-[48px] border border-glass-border dark:border-white/5 hover:border-accent/40 transition-all duration-700 relative overflow-hidden">
                     <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-accent/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                    <div className="w-20 h-20 rounded-[32px] bg-accent/10 flex items-center justify-center text-accent border border-accent/20 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
-                        <Server className="w-10 h-10" />
-                    </div>
-                    <div className="relative z-10">
-                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] mb-3 opacity-60">Node Terpasang</p>
-                        <h4 className="text-5xl font-black text-white tracking-tighter tabular-nums">{olts.length}</h4>
+                    <div className="flex items-center gap-8">
+                        <div className="w-20 h-20 rounded-[32px] bg-accent/10 flex items-center justify-center text-accent border border-accent/20 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
+                            <Server className="w-10 h-10" />
+                        </div>
+                        <div className="relative z-10">
+                            <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mb-2 opacity-60">Node Terpasang</p>
+                            <h4 className="text-5xl font-black text-primary dark:text-white tracking-tighter tabular-nums leading-none">{olts.length}</h4>
+                        </div>
                     </div>
                 </div>
                 
-                <div className="glass p-10 rounded-[48px] flex items-center gap-10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 bg-linear-to-br from-white/5 to-transparent group hover:border-emerald-500/40 transition-all duration-700 relative overflow-hidden">
+                <div className="group bg-surface dark:bg-[#0f172a]/80 backdrop-blur-3xl p-10 rounded-[48px] border border-glass-border dark:border-white/5 hover:border-emerald-500/40 transition-all duration-700 relative overflow-hidden">
                     <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                    <div className="w-20 h-20 rounded-[32px] bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
-                        <Activity className="w-10 h-10" />
-                    </div>
-                    <div className="relative z-10">
-                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] mb-3 opacity-60">Status Jaringan</p>
-                        <h4 className="text-3xl font-black text-emerald-400 tracking-tight uppercase">Normal</h4>
+                    <div className="flex items-center gap-8">
+                        <div className="w-20 h-20 rounded-[32px] bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
+                            <Activity className="w-10 h-10" />
+                        </div>
+                        <div className="relative z-10">
+                            <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mb-2 opacity-60">Status Jaringan</p>
+                            <h4 className="text-3xl font-black text-emerald-500 tracking-tight uppercase leading-none">Normal</h4>
+                        </div>
                     </div>
                 </div>
 
-                <div className="glass p-10 rounded-[48px] flex items-center gap-10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 bg-linear-to-br from-white/5 to-transparent group hover:border-accent/40 transition-all duration-700 relative overflow-hidden">
-                    <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-accent/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                    <div className="w-20 h-20 rounded-[32px] bg-white/5 flex items-center justify-center text-slate-400 border border-white/10 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
-                        <HardDrive className="w-10 h-10" />
-                    </div>
-                    <div className="relative z-10">
-                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] mb-3 opacity-60">Fabric Inti</p>
-                        <h4 className="text-2xl font-black text-white/80 tracking-tight uppercase leading-none">Serat Hibrida</h4>
+                <div className="group bg-surface dark:bg-[#0f172a]/80 backdrop-blur-3xl p-10 rounded-[48px] border border-glass-border dark:border-white/5 hover:border-indigo-500/40 transition-all duration-700 relative overflow-hidden">
+                    <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+                    <div className="flex items-center gap-8">
+                        <div className="w-20 h-20 rounded-[32px] bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
+                            <Cpu className="w-10 h-10" />
+                        </div>
+                        <div className="relative z-10">
+                            <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mb-2 opacity-60">Arsitektur Fabric</p>
+                            <h4 className="text-2xl font-black text-primary dark:text-white/80 tracking-tight uppercase leading-none">GPON/EPON Multi</h4>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* List Section */}
-            <div className="glass rounded-4xl overflow-hidden shadow-xl bg-white/2 border border-(--glass-border)">
-                <div className="p-10 border-b border-(--glass-border) flex flex-col md:flex-row justify-between items-center gap-8 bg-white/2">
-                    <div>
-                        <h4 className="text-2xl font-bold text-primary tracking-tight">Inventaris Inti</h4>
-                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Terminal Infrastruktur</p>
+            <div className="space-y-8 relative z-10">
+                <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-8 px-2">
+                    <div className="space-y-1">
+                        <h4 className="text-2xl font-black text-primary dark:text-white uppercase tracking-tighter">Terminal Infrastruktur</h4>
+                        <div className="flex items-center gap-3">
+                            <div className="w-3 h-3 rounded-full bg-accent animate-pulse"></div>
+                            <p className="text-[10px] font-black text-muted uppercase tracking-[0.4em]">Hardware Link Synchronized</p>
+                        </div>
                     </div>
-                    <div className="relative w-full md:w-[400px]">
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                    <div className="relative w-full md:w-[450px] group">
+                        <div className="absolute inset-0 bg-accent/5 rounded-3xl blur-xl group-focus-within:bg-accent/10 transition-all"></div>
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-muted group-focus-within:text-accent transition-colors" />
                         <input 
                             type="text" 
                             placeholder="Saring identitas node..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="clean-input w-full py-4 pl-14 pr-6 text-sm font-bold"
+                            className="w-full bg-surface dark:bg-white/5 border border-glass-border dark:border-white/10 rounded-[32px] py-5 pl-16 pr-8 text-sm font-black text-primary dark:text-white focus:outline-none focus:border-accent/40 transition-all placeholder:text-muted placeholder:uppercase placeholder:tracking-widest backdrop-blur-xl shadow-2xl"
                         />
                     </div>
                 </div>
 
-                <div className="overflow-x-auto min-h-[400px] custom-scrollbar">
-                    <table className="w-full border-collapse">
-                        <thead>
-                            <tr className="bg-white/1 text-[9px] font-bold text-slate-500 uppercase tracking-widest border-b border-white/5">
-                                <th className="px-10 py-8 text-left">Matriks Node</th>
-                                <th className="px-10 py-8 text-left">ID Jaringan</th>
-                                <th className="px-10 py-8 text-left">Vektor Akses</th>
-                                <th className="px-10 py-8 text-left">Status Link</th>
-                                <th className="px-10 py-8 text-right">Orkestrasi</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {filteredOlts.length === 0 ? (
-                                <tr>
-                                    <td colSpan={5} className="p-32 text-center text-slate-500 uppercase font-bold text-[10px] tracking-widest opacity-40">
-                                        Tidak ada node infrastruktur aktif yang teridentifikasi.
-                                    </td>
+                {/* Mobile Grid View (Large Cards) */}
+                <div className="grid grid-cols-1 md:hidden gap-8">
+                    {loading ? (
+                        <div className="py-20 flex flex-col items-center justify-center gap-6 animate-pulse">
+                            <RefreshCw className="w-12 h-12 text-accent animate-spin" />
+                            <span className="text-[11px] font-black text-muted uppercase tracking-[0.5em]">Scanning Fiber Matrix...</span>
+                        </div>
+                    ) : filteredOlts.length === 0 ? (
+                        <div className="py-20 flex flex-col items-center justify-center gap-6 bg-white/2 rounded-[48px] border border-dashed border-glass-border dark:border-white/10">
+                            <Server className="w-12 h-12 text-muted opacity-20" />
+                            <span className="text-[10px] font-black text-muted uppercase tracking-[0.5em]">Node Tidak Terdeteksi</span>
+                        </div>
+                    ) : (
+                        filteredOlts.map((olt) => (
+                            <div key={olt.id} className="group relative bg-surface dark:bg-[#0f172a]/80 backdrop-blur-3xl p-10 rounded-[48px] border border-glass-border dark:border-white/5 hover:border-accent/40 transition-all duration-500 shadow-2xl active:scale-95 overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+                                
+                                <div className="flex justify-between items-start mb-10">
+                                    <div className="w-20 h-20 rounded-[28px] bg-linear-to-br from-white/5 to-white/2 border border-glass-border dark:border-white/10 flex items-center justify-center text-accent shadow-2xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                                        <Server className="w-10 h-10" />
+                                    </div>
+                                    <div className="flex flex-col items-end gap-3">
+                                        <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-2.5">
+                                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                                            <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Normal</span>
+                                        </div>
+                                        <div className="px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
+                                            <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">{olt.type} Node</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3 mb-10">
+                                    <h4 className="text-3xl font-black text-primary dark:text-white tracking-tighter uppercase leading-none">{olt.name}</h4>
+                                    <p className="text-[10px] font-black text-accent uppercase tracking-[0.3em] underline underline-offset-8 decoration-accent/30">{olt.ip_address}</p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 py-8 border-y border-glass-border dark:border-white/5 mb-10">
+                                    <div className="space-y-1.5">
+                                        <p className="text-[9px] font-black text-muted uppercase tracking-widest">Prinsipal</p>
+                                        <p className="text-sm font-bold text-primary dark:text-white flex items-center gap-2">
+                                            <Shield className="w-3.5 h-3.5 text-accent/50" /> {olt.username}
+                                        </p>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <p className="text-[9px] font-black text-muted uppercase tracking-widest">SNMP Comm</p>
+                                        <p className="text-sm font-mono font-bold text-primary dark:text-white">{olt.snmp_community}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-4">
+                                    <Link 
+                                        href={`/olts/${olt.id}`}
+                                        className="flex-1 py-5 rounded-3xl bg-white/5 hover:bg-white/10 text-primary dark:text-white border border-glass-border dark:border-white/10 flex items-center justify-center gap-3 transition-all active:scale-95"
+                                    >
+                                        <ExternalLink className="w-5 h-5" />
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Panel</span>
+                                    </Link>
+                                    <button 
+                                        onClick={() => {
+                                            setEditMode(true);
+                                            setCurrentOlt(olt);
+                                            setShowModal(true);
+                                        }}
+                                        className="w-16 h-16 rounded-3xl bg-white/5 hover:bg-accent/10 hover:text-accent border border-glass-border dark:border-white/10 flex items-center justify-center transition-all active:scale-95"
+                                    >
+                                        <Edit3 className="w-5 h-5" />
+                                    </button>
+                                    <button 
+                                        onClick={() => handleDelete(olt.id)}
+                                        className="w-16 h-16 rounded-3xl bg-red-500/5 hover:bg-red-500/10 text-red-500 border border-red-500/10 flex items-center justify-center transition-all active:scale-95"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden md:block bg-surface dark:bg-[#0f172a]/80 backdrop-blur-3xl rounded-[48px] border border-glass-border dark:border-white/5 shadow-2xl overflow-hidden">
+                    <div className="overflow-x-auto custom-scrollbar">
+                        <table className="w-full text-left border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr className="bg-white/2 text-[10px] font-black text-muted uppercase tracking-[0.4em] border-b border-glass-border dark:border-white/5">
+                                    <th className="px-10 py-10">Node Perangkat Keras</th>
+                                    <th className="px-10 py-10">Vektor Jaringan</th>
+                                    <th className="px-10 py-10">Profil Autentikasi</th>
+                                    <th className="px-10 py-10">Status Link</th>
+                                    <th className="px-10 py-10 text-right">Orkestrasi</th>
                                 </tr>
-                            ) : (
-                                filteredOlts.map((olt) => (
-                                    <tr key={olt.id} className="hover:bg-white/2 transition-all group">
-                                        <td className="px-10 py-8">
-                                            <div className="flex items-center gap-6">
-                                                <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-accent border border-white/5 shadow-inner group-hover:scale-110 transition-all">
-                                                    <Server className="w-7 h-7" />
-                                                </div>
-                                                <div>
-                                                    <p className="font-bold text-primary text-xl tracking-tight leading-tight">{olt.name}</p>
-                                                    <div className="flex items-center gap-2 mt-2">
-                                                        <span className="text-[9px] font-bold uppercase tracking-widest text-accent px-3 py-1 bg-accent/5 rounded-lg border border-accent/10">{olt.type} Fabric</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-10 py-8">
-                                            <div className="flex items-center gap-3 font-mono font-bold text-sm text-primary/70">
-                                                <Globe className="w-3.5 h-3.5 text-accent/30" />
-                                                {olt.ip_address}
-                                            </div>
-                                            <p className="text-[10px] text-slate-600 font-bold uppercase tracking-widest mt-1 opacity-40">VLAN 1 Protocol</p>
-                                        </td>
-                                        <td className="px-10 py-8">
-                                            <div className="space-y-3">
-                                                <div className="text-[10px] text-muted font-bold flex items-center gap-3 uppercase tracking-widest">
-                                                    <Shield className="w-4 h-4 text-accent/50" /> {olt.username}
-                                                </div>
-                                                <div className="text-[9px] text-slate-600 font-mono font-bold uppercase tracking-widest bg-white/2 px-3 py-1 rounded-lg border border-white/5 w-fit">SNMP: {olt.snmp_community}</div>
-                                            </div>
-                                        </td>
-                                        <td className="px-10 py-8">
-                                            <div className="flex items-center gap-4 px-4 py-2 bg-accent/5 border border-accent/10 rounded-xl w-fit">
-                                                <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.4)]"></div>
-                                                <span className="text-[9px] font-bold text-accent uppercase tracking-widest">Normal</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-10 py-8 text-right">
-                                            <div className="flex justify-end gap-3 opacity-40 group-hover:opacity-100 transition-opacity">
-                                                <Link 
-                                                    href={`/olts/${olt.id}`}
-                                                    className="p-3 bg-white/2 text-slate-400 hover:bg-accent/10 hover:text-accent rounded-xl border border-white/5 transition-all"
-                                                >
-                                                    <ExternalLink className="w-4 h-4" />
-                                                </Link>
-                                                <button 
-                                                    onClick={() => {
-                                                        setEditMode(true);
-                                                        setCurrentOlt(olt);
-                                                        setShowModal(true);
-                                                    }}
-                                                    className="p-3 bg-white/2 text-slate-400 hover:bg-accent/10 hover:text-accent rounded-xl border border-white/5 transition-all"
-                                                >
-                                                    <Edit3 className="w-4 h-4" />
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleDelete(olt.id)}
-                                                    className="p-3 bg-white/2 text-slate-400 hover:bg-red-500/10 hover:text-red-500 rounded-xl border border-white/5 transition-all"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
+                            </thead>
+                            <tbody className="divide-y divide-glass-border dark:divide-white/5">
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan={5} className="py-40 text-center">
+                                            <div className="w-10 h-10 border-4 border-accent/20 border-t-accent rounded-full animate-spin mx-auto mb-6 opacity-40"></div>
+                                            <span className="text-[11px] font-black text-muted uppercase tracking-[0.5em]">Sinkronisasi Gateway...</span>
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                ) : olts.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="py-40 text-center text-slate-500 font-black uppercase tracking-widest opacity-40 text-[10px]">Tidak ada node gateway yang terdaftar.</td>
+                                    </tr>
+                                ) : (
+                                    filteredOlts.map((olt) => (
+                                        <tr key={olt.id} className="hover:bg-white/2 transition-all group">
+                                            <td className="px-10 py-10">
+                                                <div className="flex items-center gap-6">
+                                                    <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-accent border border-white/5 shadow-inner group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                                                        <Cpu className="w-8 h-8" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-black text-primary dark:text-white text-xl tracking-tighter leading-none mb-2 uppercase">{olt.name}</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[9px] font-black uppercase tracking-widest text-accent px-3 py-1 bg-accent/10 rounded-lg border border-accent/20">{olt.type} Fabric</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-10 py-10">
+                                                <div className="flex items-center gap-3 font-mono font-black text-sm text-primary/80 dark:text-white/80">
+                                                    <Globe className="w-4 h-4 text-accent/40" />
+                                                    {olt.ip_address}
+                                                </div>
+                                                <p className="text-[9px] text-muted font-black uppercase tracking-widest mt-2 opacity-40">Core Protocol v1</p>
+                                            </td>
+                                            <td className="px-10 py-10">
+                                                <div className="space-y-3">
+                                                    <div className="text-[10px] text-primary dark:text-white font-black flex items-center gap-3 uppercase tracking-widest">
+                                                        <Shield className="w-4 h-4 text-accent/50" /> {olt.username}
+                                                    </div>
+                                                    <div className="text-[9px] text-muted font-mono font-black uppercase tracking-widest bg-white/5 px-3 py-1 rounded-lg border border-white/5 w-fit">SNMP: {olt.snmp_community}</div>
+                                                </div>
+                                            </td>
+                                            <td className="px-10 py-10">
+                                                <div className="flex items-center gap-4 px-5 py-2.5 bg-accent/5 border border-accent/20 rounded-2xl w-fit">
+                                                    <div className="w-2.5 h-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_12px_rgba(16,185,129,0.5)]"></div>
+                                                    <span className="text-[10px] font-black text-accent uppercase tracking-[0.2em]">Normal</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-10 py-10 text-right">
+                                                <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                                                    <Link 
+                                                        href={`/olts/${olt.id}`}
+                                                        className="p-4 bg-white/5 text-muted hover:bg-accent/10 hover:text-accent rounded-2xl border border-white/5 transition-all shadow-xl"
+                                                    >
+                                                        <ExternalLink className="w-5 h-5" />
+                                                    </Link>
+                                                    <button 
+                                                        onClick={() => {
+                                                            setEditMode(true);
+                                                            setCurrentOlt(olt);
+                                                            setShowModal(true);
+                                                        }}
+                                                        className="p-4 bg-white/5 text-muted hover:bg-accent/10 hover:text-accent rounded-2xl border border-white/5 transition-all shadow-xl"
+                                                    >
+                                                        <Edit3 className="w-5 h-5" />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleDelete(olt.id)}
+                                                        className="p-4 bg-white/5 text-muted hover:bg-red-500/10 hover:text-red-500 rounded-2xl border border-white/5 transition-all shadow-xl"
+                                                    >
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            {/* Modal Form */}
+            {/* Modal Form - Pro Max Ultra */}
             {showModal && (
-                <div className="fixed inset-0 z-1000 flex items-center justify-center p-4 sm:p-8 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
-                    <div className="bg-slate-900 w-full max-w-4xl rounded-4xl border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[95vh] animate-in zoom-in-95 duration-300">
-                        <div className="p-10 border-b border-white/5 bg-white/2 flex justify-between items-center">
-                            <div className="flex items-center gap-6">
-                                <div className="p-5 rounded-2xl bg-accent/5 text-accent border border-accent/10">
-                                    {editMode ? <Edit3 className="w-8 h-8" /> : <Plus className="w-8 h-8" />}
+                <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 sm:p-10 bg-slate-950/95 backdrop-blur-2xl animate-in fade-in duration-500">
+                    <div className="bg-surface dark:bg-[#0f172a] w-full max-w-4xl rounded-[64px] border border-glass-border dark:border-white/15 shadow-[0_60px_120px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[90vh] relative animate-in zoom-in-95 duration-500">
+                        <div className="absolute top-0 left-0 right-0 h-2 bg-linear-to-r from-transparent via-accent to-transparent"></div>
+                        
+                        <div className="p-12 border-b border-glass-border dark:border-white/10 flex justify-between items-center bg-linear-to-b from-white/5 to-transparent">
+                            <div className="flex items-center gap-8">
+                                <div className="w-20 h-20 rounded-[32px] bg-accent/10 flex items-center justify-center text-accent border border-accent/20 shadow-inner">
+                                    {editMode ? <Edit3 className="w-10 h-10" /> : <Plus className="w-10 h-10" />}
                                 </div>
                                 <div>
-                                    <h3 className="text-2xl font-bold text-white tracking-tight">
-                                        {editMode ? 'Ubah Vektor Perangkat Keras' : 'Daftarkan Node OLT'}
+                                    <h3 className="text-3xl font-black text-primary dark:text-white tracking-tighter uppercase leading-none mb-3">
+                                        {editMode ? 'Ubah Matriks Node' : 'Inisialisasi Node OLT'}
                                     </h3>
-                                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-2 ml-1">Suite Konfigurasi Antarmuka Perangkat Keras</p>
+                                    <p className="text-accent text-[11px] font-black uppercase tracking-[0.4em] opacity-80 underline underline-offset-8 decoration-accent/30">Hardware Interface Layer</p>
                                 </div>
                             </div>
-                            <button onClick={() => setShowModal(false)} className="text-slate-500 hover:text-white transition-colors p-3 bg-white/5 rounded-xl">
-                                <X className="w-7 h-7" />
+                            <button onClick={() => setShowModal(false)} className="w-16 h-16 bg-white/5 hover:bg-white/10 rounded-[28px] text-primary dark:text-white transition-all flex items-center justify-center border border-glass-border dark:border-white/10 shadow-2xl active:scale-95">
+                                <X className="w-8 h-8" />
                             </button>
                         </div>
                         
-                        <form onSubmit={handleSave} className="p-10 space-y-10 bg-slate-900/50 overflow-y-auto custom-scrollbar">
-                            <div className="grid grid-cols-2 gap-10">
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Alias Node</label>
+                        <form onSubmit={handleSave} className="p-12 space-y-12 overflow-y-auto custom-scrollbar flex-1">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                <div className="space-y-5">
+                                    <label className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-muted ml-2">
+                                        <div className="w-2 h-2 rounded-full bg-accent"></div>
+                                        Alias Node (Infrastruktur)
+                                    </label>
                                     <input 
                                         type="text" required
                                         value={currentOlt.name}
                                         onChange={e => setCurrentOlt({...currentOlt, name: e.target.value})}
-                                        className="w-full clean-input text-lg font-bold py-5 px-8"
+                                        className="w-full bg-input dark:bg-white/5 border border-input-border dark:border-white/10 rounded-[32px] py-6 px-10 text-2xl font-black text-primary dark:text-white focus:outline-none focus:border-accent/50 focus:bg-white/10 transition-all shadow-inner"
                                         placeholder="OLT-CORE-UTAMA"
                                     />
                                 </div>
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Arsitektur Fabric</label>
-                                    <div className="relative">
+                                <div className="space-y-5">
+                                    <label className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-muted ml-2">
+                                        <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                                        Arsitektur Fabric
+                                    </label>
+                                    <div className="relative group">
                                         <select 
                                             value={currentOlt.type}
                                             onChange={e => setCurrentOlt({...currentOlt, type: e.target.value})}
-                                            className="w-full clean-input appearance-none text-xs font-bold uppercase tracking-widest py-5 px-8 cursor-pointer"
+                                            className="w-full bg-input dark:bg-white/5 border border-input-border dark:border-white/10 rounded-[32px] py-6 px-10 appearance-none text-xs font-black uppercase tracking-[0.4em] text-accent cursor-pointer focus:outline-none focus:border-accent/50 transition-all shadow-inner"
                                         >
                                             <option value="EPON">EPON (1.25G)</option>
                                             <option value="GPON">GPON (2.5G)</option>
                                         </select>
-                                        <Server className="absolute right-8 top-1/2 -translate-y-1/2 w-5 h-5 text-accent/50 pointer-events-none" />
+                                        <Server className="absolute right-10 top-1/2 -translate-y-1/2 w-6 h-6 text-accent/40 group-focus-within:text-accent transition-all" />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-10">
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Matriks IP Host</label>
-                                    <input 
-                                        type="text" required
-                                        value={currentOlt.ip_address}
-                                        onChange={e => setCurrentOlt({...currentOlt, ip_address: e.target.value})}
-                                        className="w-full clean-input font-mono font-bold text-lg py-5 px-8"
-                                        placeholder="192.168.x.x"
-                                    />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                <div className="space-y-5">
+                                    <label className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-muted ml-2">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                        Matriks IP Host
+                                    </label>
+                                    <div className="relative group">
+                                        <input 
+                                            type="text" required
+                                            value={currentOlt.ip_address}
+                                            onChange={e => setCurrentOlt({...currentOlt, ip_address: e.target.value})}
+                                            className="w-full bg-input dark:bg-white/5 border border-input-border dark:border-white/10 rounded-[32px] py-6 pl-16 pr-10 font-mono font-black text-2xl text-primary dark:text-white focus:outline-none focus:border-accent/50 transition-all shadow-inner"
+                                            placeholder="192.168.x.x"
+                                        />
+                                        <Globe className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-accent/40 group-focus-within:text-accent transition-all" />
+                                    </div>
                                 </div>
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Komunitas SNMP</label>
+                                <div className="space-y-5">
+                                    <label className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-muted ml-2">
+                                        <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                                        Komunitas SNMP
+                                    </label>
                                     <input 
                                         type="text" 
                                         value={currentOlt.snmp_community}
                                         onChange={e => setCurrentOlt({...currentOlt, snmp_community: e.target.value})}
-                                        className="w-full clean-input text-lg font-bold py-5 px-8"
+                                        className="w-full bg-input dark:bg-white/5 border border-input-border dark:border-white/10 rounded-[32px] py-6 px-10 text-xl font-black text-primary dark:text-white focus:outline-none focus:border-accent/50 transition-all shadow-inner"
                                         placeholder="public"
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-10">
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Prinsipal Otentikasi</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                <div className="space-y-5">
+                                    <label className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-muted ml-2">
+                                        <div className="w-2 h-2 rounded-full bg-accent"></div>
+                                        Prinsipal Otentikasi
+                                    </label>
                                     <input 
                                         type="text" 
                                         value={currentOlt.username}
                                         onChange={e => setCurrentOlt({...currentOlt, username: e.target.value})}
-                                        className="w-full clean-input text-lg font-bold py-5 px-8"
+                                        className="w-full bg-input dark:bg-white/5 border border-input-border dark:border-white/10 rounded-[32px] py-6 px-10 text-xl font-black text-primary dark:text-white focus:outline-none focus:border-accent/50 transition-all shadow-inner"
                                     />
                                 </div>
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Token Keamanan</label>
+                                <div className="space-y-5">
+                                    <label className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-muted ml-2">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                        Token Keamanan
+                                    </label>
                                     <input 
                                         type="password" 
                                         value={currentOlt.password}
                                         onChange={e => setCurrentOlt({...currentOlt, password: e.target.value})}
-                                        className="w-full clean-input text-lg font-bold py-5 px-8"
+                                        className="w-full bg-input dark:bg-white/5 border border-input-border dark:border-white/10 rounded-[32px] py-6 px-10 text-xl font-black text-primary dark:text-white focus:outline-none focus:border-accent/50 transition-all shadow-inner"
                                         placeholder="••••••••"
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex gap-8 pt-10 border-t border-white/5">
+                            <div className="flex flex-col sm:flex-row gap-6 pt-12 border-t border-glass-border dark:border-white/10">
                                 <button 
                                     type="button" 
                                     onClick={() => setShowModal(false)}
-                                    className="flex-1 py-4 rounded-3xl bg-white/5 text-slate-500 font-bold uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all"
+                                    className="flex-1 py-6 rounded-[32px] bg-white/5 hover:bg-white/10 text-muted font-black uppercase tracking-[0.4em] text-[11px] transition-all border border-glass-border dark:border-white/5 active:scale-95 shadow-xl"
                                 >
-                                    Batal
+                                    Batalkan Operasi
                                 </button>
                                 <button 
                                     type="submit" 
-                                    className="flex-[1.5] py-4 rounded-3xl bg-accent hover:bg-accent/90 text-white font-bold uppercase tracking-widest text-[10px] shadow-xl transition-all active:scale-95 flex items-center justify-center gap-4"
+                                    className="flex-2 py-6 rounded-[32px] bg-linear-to-r from-accent to-emerald-700 hover:from-accent hover:to-emerald-600 text-white font-black uppercase tracking-[0.4em] text-[11px] shadow-[0_30px_60px_rgba(16,185,129,0.3)] transition-all active:scale-95 flex items-center justify-center gap-5 border border-white/20"
                                 >
-                                    <Save className="w-5 h-5" />
-                                    Simpan Integrasi Perangkat Keras
+                                    <Save className="w-6 h-6" />
+                                    Simpan Konfigurasi Node Hardware
                                 </button>
                             </div>
                         </form>
