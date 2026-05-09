@@ -12,6 +12,7 @@ import {
 
 // Force refresh for Turbopack stale state
 import ThemeToggle from '@/components/ThemeToggle';
+import Swal from 'sweetalert2';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -19,7 +20,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const [currentTime, setCurrentTime] = useState<Date | null>(null);
     const [mounted, setMounted] = useState(false);
     const [settings, setSettings] = useState<any>(null);
+    const [user, setUser] = useState<any>(null);
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+    const [updateAvailable, setUpdateAvailable] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const navItems = [
@@ -53,6 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             ]
         },
         { href: '/reports', label: 'Pusat Laporan', icon: FileText },
+        { href: '/users', label: 'Kelola User', icon: Users },
         { href: '/settings', label: 'Pengaturan', icon: Settings },
     ];
 
@@ -62,6 +66,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         fetch('/api/settings').then(res => res.json()).then(data => {
             if (data.settings) setSettings(data.settings);
+        });
+
+        fetch('/api/auth/me').then(res => res.json()).then(data => {
+            if (data.user) setUser(data.user);
         });
 
         const handleClickOutside = (event: MouseEvent) => {
@@ -107,6 +115,67 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         return false;
     };
 
+    useEffect(() => {
+        // Listen for Electron Update Events
+        if (typeof window !== 'undefined' && (window as any).electronAPI) {
+            const api = (window as any).electronAPI;
+            
+            api.onUpdateAvailable(() => {
+                setUpdateAvailable(true);
+                Swal.fire({
+                    title: 'Update Tersedia!',
+                    text: 'Versi baru sedang diunduh secara otomatis...',
+                    icon: 'info',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 5000,
+                    background: '#1a1d21',
+                    color: '#fff'
+                });
+            });
+
+            api.onUpdateDownloaded(() => {
+                Swal.fire({
+                    title: 'Update Siap!',
+                    text: 'Versi terbaru sudah diunduh. Restart sekarang untuk update?',
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonText: 'Restart Sekarang',
+                    cancelButtonText: 'Nanti Saja',
+                    background: '#1a1d21',
+                    color: '#fff'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        api.restartApp();
+                    }
+                });
+            });
+        }
+    }, []);
+
+    const handleLogout = async () => {
+        const result = await fetch('/api/auth/logout', { method: 'POST' });
+        if (result.ok) {
+            router.push('/login');
+        }
+    };
+
+    const filteredNavItems = navItems.filter(item => {
+        if (!user) return true; // Show all while loading or if not set
+        if (user.role === 'SUPERADMIN') return true;
+        
+        if (user.role === 'TEKNISI') {
+            return ['Dashboard', 'Infrastruktur', 'Pelanggan', 'Pusat Laporan'].includes(item.label);
+        }
+        
+        if (user.role === 'KASIR') {
+            return ['Dashboard', 'Keuangan', 'Pelanggan'].includes(item.label);
+        }
+        
+        return true;
+    });
+
     return (
         <div className="flex flex-col min-h-screen bg-(--background) text-(--foreground) overflow-x-hidden font-sans relative transition-colors duration-500">
             {/* Ambient Background Elements */}
@@ -133,13 +202,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     <h1 className="text-lg font-bold tracking-tight text-primary uppercase leading-none">
                                         {settings?.company_name || 'Sahabat Network'}
                                     </h1>
-                                    <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-muted mt-1 opacity-60">Pusat Kontrol</span>
+                                    <span className="text-[8px] font-bold text-accent uppercase tracking-widest mt-1.5 opacity-80">ISP Management System v0.1.0 by Supriyanto</span>
                                 </div>
                             </Link>
 
                             {/* Desktop Nav Items */}
                             <nav className="hidden xl:flex items-center gap-1 px-2 py-1.5 bg-slate-500/5 rounded-2xl border border-white/5" ref={dropdownRef}>
-                                {navItems.map((item, idx) => {
+                                {filteredNavItems.map((item, idx) => {
                                     const Icon = item.icon;
                                     const isActive = isActiveLink(item.href, item.subItems);
                                     const hasSubItems = !!item.subItems;
@@ -200,22 +269,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             </div>
 
                             <div className="flex items-center gap-2">
-                                <button className="w-10 h-10 rounded-2xl flex items-center justify-center text-muted hover:text-accent hover:bg-white/5 transition-all relative">
+                                <button className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative ${updateAvailable ? 'text-accent bg-accent/10 animate-bounce' : 'text-muted hover:text-accent hover:bg-white/5'}`}>
                                     <Bell className="w-5 h-5" />
-                                    <div className="absolute top-3 right-3 w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+                                    {updateAvailable && <div className="absolute top-3 right-3 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></div>}
+                                    {!updateAvailable && <div className="absolute top-3 right-3 w-1.5 h-1.5 bg-red-500 rounded-full"></div>}
                                 </button>
                                 <ThemeToggle />
                                 <div className="h-8 w-px bg-white/10 mx-1 hidden sm:block"></div>
-                                <div className="flex items-center gap-4 pl-4 group cursor-pointer border-l border-white/10">
+                                <div className="flex items-center gap-4 pl-4 group cursor-pointer border-l border-white/10" onClick={handleLogout} title="Klik untuk Logout">
                                     <div className="text-right hidden sm:block">
-                                        <p className="text-value leading-none uppercase">Administrator</p>
+                                        <p className="text-value leading-none uppercase">{user?.name || 'Loading...'}</p>
                                         <div className="text-label text-accent opacity-100 mt-1.5 flex items-center justify-end gap-2">
                                             <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></div>
-                                            Online
+                                            {user?.role || '...'}
                                         </div>
                                     </div>
                                     <div className="w-12 h-12 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center font-black text-accent shadow-sm group-hover:border-accent/40 transition-all text-sm">
-                                        AD
+                                        {(user?.name || 'AD').substring(0, 2).toUpperCase()}
                                     </div>
                                 </div>
                             </div>
@@ -279,7 +349,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_10px_rgba(99,102,241,0.8)]"></div>
                                     <span className="text-[12px] font-black text-white uppercase tracking-[0.4em] drop-shadow-lg">Matriks Navigasi</span>
                                 </div>
-                                <span className="text-[8px] font-bold text-accent uppercase tracking-widest mt-1.5 opacity-80">Jarfi Industrial Intelligence v3.0</span>
+                                <span className="text-[8px] font-bold text-accent uppercase tracking-widest mt-1.5 opacity-80">ISP Management System v0.1.0 by Supriyanto</span>
                             </div>
                             <button onClick={() => setActiveDropdown(null)} className="w-12 h-12 rounded-[20px] bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-all border border-white/10 shadow-inner group active:scale-90">
                                 <CloseIcon className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
@@ -287,87 +357,90 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-6 sm:p-10 space-y-12 custom-scrollbar">
-                                {navItems
-                                    .filter(item => !['Dasbor', 'Pemetaan', 'Pelanggan', 'Laporan', 'Dashboard', 'Pusat Laporan'].includes(item.label))
-                                    .map((item, idx) => {
-                                        const hasSubItems = item.subItems && item.subItems.length > 0;
-                                        const filteredSubItems = item.subItems?.filter(sub => !['Pemetaan & ODP'].includes(sub.label));
+                            {filteredNavItems
+                                .filter(item => !['Dasbor', 'Pemetaan', 'Pelanggan', 'Laporan', 'Dashboard', 'Pusat Laporan'].includes(item.label))
+                                .map((item, idx) => {
+                                    const hasSubItems = item.subItems && item.subItems.length > 0;
+                                    const filteredSubItems = item.subItems?.filter(sub => !['Pemetaan & ODP'].includes(sub.label));
 
-                                        return (
-                                            <div key={idx} className="space-y-6">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-accent"></div>
-                                                    <h5 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">{item.label}</h5>
-                                                </div>
+                                    return (
+                                        <div key={idx} className="space-y-6">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-accent"></div>
+                                                <h5 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">{item.label}</h5>
+                                            </div>
 
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                    {!hasSubItems ? (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                {!hasSubItems ? (
+                                                    <Link
+                                                        href={item.href || '/dashboard'}
+                                                        onClick={() => setActiveDropdown(null)}
+                                                        className="flex items-center gap-5 p-6 rounded-[32px] bg-white/5 border border-white/5 hover:bg-accent/10 hover:border-accent/30 transition-all group active:scale-95"
+                                                    >
+                                                        <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent border border-accent/20 group-hover:scale-110 transition-all">
+                                                            <item.icon className="w-6 h-6" />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <p className="font-black text-white text-sm tracking-tight uppercase">{item.label}</p>
+                                                            <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Direct Access</p>
+                                                        </div>
+                                                        <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-accent group-hover:translate-x-1 transition-all" />
+                                                    </Link>
+                                                ) : (
+                                                    filteredSubItems?.map((sub, sIdx) => (
                                                         <Link
-                                                            href={item.href || '/dashboard'}
+                                                            key={sIdx}
+                                                            href={sub.href || '/dashboard'}
                                                             onClick={() => setActiveDropdown(null)}
                                                             className="flex items-center gap-5 p-6 rounded-[32px] bg-white/5 border border-white/5 hover:bg-accent/10 hover:border-accent/30 transition-all group active:scale-95"
                                                         >
                                                             <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent border border-accent/20 group-hover:scale-110 transition-all">
-                                                                <item.icon className="w-6 h-6" />
+                                                                <sub.icon className="w-6 h-6" />
                                                             </div>
-                                                            <div className="flex-1">
-                                                                <p className="font-black text-white text-sm tracking-tight uppercase">{item.label}</p>
-                                                                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Direct Access</p>
+                                                            <div className="flex-1 text-left">
+                                                                <p className="font-black text-white text-sm tracking-tight uppercase">{sub.label}</p>
+                                                                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Modul Layanan</p>
                                                             </div>
                                                             <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-accent group-hover:translate-x-1 transition-all" />
                                                         </Link>
-                                                    ) : (
-                                                        filteredSubItems?.map((sub, sIdx) => (
-                                                            <Link
-                                                                key={sIdx}
-                                                                href={sub.href || '/dashboard'}
-                                                                onClick={() => setActiveDropdown(null)}
-                                                                className="flex items-center gap-5 p-6 rounded-[32px] bg-white/5 border border-white/5 hover:bg-accent/10 hover:border-accent/30 transition-all group active:scale-95"
-                                                            >
-                                                                <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent border border-accent/20 group-hover:scale-110 transition-all">
-                                                                    <sub.icon className="w-6 h-6" />
-                                                                </div>
-                                                                <div className="flex-1 text-left">
-                                                                    <p className="font-black text-white text-sm tracking-tight uppercase">{sub.label}</p>
-                                                                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Modul Layanan</p>
-                                                                </div>
-                                                                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-accent group-hover:translate-x-1 transition-all" />
-                                                            </Link>
-                                                        ))
-                                                    )}
-                                                </div>
+                                                    ))
+                                                )}
                                             </div>
-                                        );
-                                    })}
+                                        </div>
+                                    );
+                                })}
+                        </div>
+
+                        <div className="mt-12 pt-10 border-t border-white/10 space-y-8 p-6 sm:p-10">
+                            <div className="group relative flex items-center justify-between bg-white/2 p-6 rounded-[40px] border border-white/5 hover:bg-white/5 transition-all duration-500">
+                                <div className="flex items-center gap-6">
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-accent rounded-2xl blur-md opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                                        <div className="relative w-16 h-16 rounded-2xl bg-linear-to-br from-accent/30 to-emerald-500/30 flex items-center justify-center font-black text-[18px] text-white border border-white/20 shadow-2xl">
+                                            {(user?.name || 'AD').substring(0, 2).toUpperCase()}
+                                        </div>
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="text-[14px] font-black text-white uppercase leading-none tracking-widest">{user?.name || 'Administrator'}</p>
+                                        <div className="flex items-center gap-2 mt-2.5">
+                                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]"></div>
+                                            <p className="text-[9px] font-black text-accent uppercase tracking-[0.3em]">{user?.role || 'SECURE ACCESS'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <ThemeToggle />
                             </div>
 
-                            <div className="mt-12 pt-10 border-t border-white/10 space-y-8">
-                                <div className="group relative flex items-center justify-between bg-white/2 p-6 rounded-[40px] border border-white/5 hover:bg-white/5 transition-all duration-500">
-                                    <div className="flex items-center gap-6">
-                                        <div className="relative">
-                                            <div className="absolute inset-0 bg-accent rounded-2xl blur-md opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                                            <div className="relative w-16 h-16 rounded-2xl bg-linear-to-br from-accent/30 to-emerald-500/30 flex items-center justify-center font-black text-[18px] text-white border border-white/20 shadow-2xl">
-                                                AD
-                                            </div>
-                                        </div>
-                                        <div className="text-left">
-                                            <p className="text-[14px] font-black text-white uppercase leading-none tracking-widest">Administrator</p>
-                                            <div className="flex items-center gap-2 mt-2.5">
-                                                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]"></div>
-                                                <p className="text-[9px] font-black text-accent uppercase tracking-[0.3em]">Neural Link Secure</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <ThemeToggle />
+                            <button
+                                onClick={handleLogout}
+                                className="w-full flex items-center justify-center gap-6 text-red-400 font-black uppercase text-[11px] tracking-[0.4em] py-7 bg-red-500/5 hover:bg-red-500/10 rounded-[40px] border border-red-500/10 active:scale-95 transition-all shadow-2xl group relative overflow-hidden"
+                            >
+                                <div className="absolute inset-0 bg-linear-to-r from-red-500/0 via-red-500/5 to-red-500/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                                <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20 transition-all border border-red-500/20 shadow-inner">
+                                    <LogOut className="w-6 h-6" />
                                 </div>
-                                
-                                <button className="w-full flex items-center justify-center gap-6 text-red-400 font-black uppercase text-[11px] tracking-[0.4em] py-7 bg-red-500/5 hover:bg-red-500/10 rounded-[40px] border border-red-500/10 active:scale-95 transition-all shadow-2xl group relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-linear-to-r from-red-500/0 via-red-500/5 to-red-500/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                                    <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20 transition-all border border-red-500/20 shadow-inner">
-                                        <LogOut className="w-6 h-6" />
-                                    </div>
-                                    Terminate All Sessions
-                                </button>
+                                Terminate Session (Logout)
+                            </button>
                         </div>
                     </div>
                 </div>

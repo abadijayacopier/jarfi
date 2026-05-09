@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARFI Setup</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f1113;
+            color: white;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            -webkit-app-region: drag;
+        }
+        .container {
+            background: rgba(26, 29, 33, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: 30px;
+            width: 80%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            -webkit-app-region: no-drag;
+        }
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: #2563eb;
+            margin: 0 auto 20px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+        }
+        h1 { font-size: 24px; margin-bottom: 10px; }
+        p { color: #9ca3af; font-size: 14px; margin-bottom: 30px; }
+        .input-group { text-align: left; margin-bottom: 25px; }
+        label { display: block; font-size: 12px; font-weight: bold; color: #6b7280; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        input {
+            width: 100%;
+            background: #0f1113;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: all 0.3s;
+        }
+        input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 10px rgba(37, 99, 235, 0.2); }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #2563eb;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover { background: #1d4ed8; transform: translateY(-2px); }
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="close-btn" id="closeBtn">&times;</div>
+    <div class="container">
+        <div class="logo">JF</div>
+        <h1>Setup Server</h1>
+        <p>Silakan masukkan Alamat IP Publik atau Domain server pusat Anda.</p>
+        
+        <div class="input-group">
+            <label>Domain / IP Server</label>
+            <input type="text" id="serverUrl" placeholder="contoh: 103.123.xx.xx:3000" />
+        </div>
+
+        <button id="saveBtn">Simpan & Hubungkan</button>
+        
+        <p style="margin-top: 30px; font-size: 10px;">
+            ISP Management System v0.1.0 by Supriyanto<br/>
+            &copy; <span id="copyright-year"></span> JARFI Industrial Network
+        </p>
+    </div>
+
+    <script>
+        document.getElementById('copyright-year').textContent = new Date().getFullYear();
+        const saveBtn = document.getElementById('saveBtn');
+        const closeBtn = document.getElementById('closeBtn');
+        const urlInput = document.getElementById('serverUrl');
+
+        saveBtn.addEventListener('click', () => {
+            const url = urlInput.value;
+            if (url) {
+                window.electronAPI.saveSettings(url);
+            } else {
+                alert('Silakan masukkan alamat IP terlebih dahulu');
+            }
+        });
+
+        closeBtn.addEventListener('click', () => {
+            window.electronAPI.closeSettings();
+        });
+    </script>
+</body>
+</html>

@@ -2,14 +2,20 @@
   "name": "jarfi",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "electron-dev": "electron .",
+    "electron-pack": "electron-builder build --win --publish never"
   },
   "dependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^3.0.3",
     "dotenv": "^17.3.1",
+    "jose": "^6.2.3",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.8.0",
     "mysql2": "^3.20.0",
@@ -28,9 +34,27 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "electron": "^42.0.1",
+    "electron-builder": "^26.8.1",
+    "electron-serve": "^3.0.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "build": {
+    "appId": "com.jarfi.noc",
+    "productName": "JARFI NOC",
+    "win": {
+      "target": "portable",
+      "icon": "public/favicon.ico"
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "public/**/*"
+    ]
   }
 }
