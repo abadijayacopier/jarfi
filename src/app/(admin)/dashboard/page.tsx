@@ -95,19 +95,19 @@ export default function Dashboard() {
                             <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.5)]"></div>
                             <span className="text-[10px] font-black text-accent uppercase tracking-[0.3em]">Ikhtisar Operasi NOC</span>
                         </div>
-                        <h2 className="text-4xl md:text-6xl xl:text-7xl font-black text-primary tracking-tight leading-[0.9] uppercase">
+                        <h2 className="text-4xl md:text-6xl xl:text-8xl font-black text-slate-900 dark:text-white tracking-tight leading-[0.85] uppercase">
                             Inteligensi <br />
-                            <span className="text-accent text-gradient">Jaringan.</span>
+                            <span className="text-emerald-500 bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500">Jaringan.</span>
                         </h2>
                     </div>
                     <div className="flex flex-col items-start lg:items-end gap-2 relative z-10 w-full lg:w-auto">
-                        <span className="text-label">Estimasi Pendapatan Bulanan</span>
-                        <div className="text-3xl md:text-5xl font-black tracking-tighter text-primary tabular-nums">
+                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Estimasi Pendapatan Bulanan</span>
+                        <div className="text-3xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white tabular-nums drop-shadow-2xl">
                             {loading ? '...' : `Rp ${parseInt(stats.expectedRevenue as any).toLocaleString('id-ID')}`}
                         </div>
-                        <div className="flex items-center gap-2 mt-4 px-4 py-2 bg-accent/10 rounded-xl border border-accent/20 backdrop-blur-md">
-                            <TrendingUp className="w-3.5 h-3.5 text-accent" />
-                            <span className="text-label text-accent opacity-100">Pertumbuhan Terverifikasi</span>
+                        <div className="flex items-center gap-2 mt-4 px-4 py-2 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full border border-emerald-500/20 backdrop-blur-xl shadow-lg shadow-emerald-500/5">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></div>
+                            <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Aliran Kas Terverifikasi</span>
                         </div>
                     </div>
                 </div>
@@ -167,8 +167,8 @@ export default function Dashboard() {
             </div>
 
             {/* Traffic Analytics Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                <div className="lg:col-span-2 p-6 sm:p-10 rounded-[40px] relative overflow-hidden group min-h-[450px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 shadow-2xl">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 p-8 sm:p-12 rounded-[3rem] relative overflow-hidden group min-h-[500px] bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/5 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.08)] dark:shadow-none">
                     <div className="absolute -right-20 -top-20 w-[400px] h-[400px] bg-accent/5 rounded-full blur-[100px] group-hover:bg-accent/8 transition-all duration-1000"></div>
                     
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-6 relative z-10">
@@ -176,14 +176,14 @@ export default function Dashboard() {
                             <h3 className="text-2xl font-black text-primary tracking-tighter uppercase">Throughput Jaringan</h3>
                             <p className="text-[10px] text-muted font-bold uppercase tracking-[0.2em] mt-1 opacity-60">Matriks Real-time NOC</p>
                         </div>
-                        <div className="flex gap-6 p-3 bg-black/5 dark:bg-white/5 rounded-2xl border border-white/5">
-                            <div className="flex items-center gap-2">
-                                <div className="w-2.5 h-2.5 rounded-full bg-accent shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div>
-                                <span className="text-[9px] font-black text-muted uppercase tracking-widest">Unggah</span>
+                        <div className="flex gap-4 p-2 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-white/5 rounded-xl shadow-sm border border-slate-100 dark:border-white/5">
+                                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]"></div>
+                                <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">Unggah</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]"></div>
-                                <span className="text-[9px] font-black text-muted uppercase tracking-widest">Unduh</span>
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-white/5 rounded-xl shadow-sm border border-slate-100 dark:border-white/5">
+                                <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.5)]"></div>
+                                <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">Unduh</span>
                             </div>
                         </div>
                     </div>

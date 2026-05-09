@@ -5,7 +5,7 @@ import Swal from 'sweetalert2';
 import { 
     RefreshCw, X, DownloadCloud, Edit, Trash2, ShieldAlert, Search, Users, 
     Wifi, Calendar, Activity, Zap, ArrowDown, ArrowUp, MapPin, 
-    ChevronLeft, ChevronRight, Filter, MoreVertical, ExternalLink,
+    ChevronLeft, ChevronRight, Filter, MoreVertical, ExternalLink, Navigation,
     TrendingUp, Signal, Box, AlertTriangle, Monitor, Power, Plus, Eye,
     Loader2, Database, HardDrive, Cpu, Network, ShieldCheck, Router as RouterIcon
 } from 'lucide-react';
@@ -37,6 +37,7 @@ export default function CustomersPage() {
     const [chartReady, setChartReady] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [isDetecting, setIsDetecting] = useState(false);
     const [editId, setEditId] = useState<number | null>(null);
     const [formData, setFormData] = useState({ 
         user_id: '', name: '', phone: '', router_id: '', package_id: '', 
@@ -101,6 +102,23 @@ export default function CustomersPage() {
         }
     }, [showDetail]);
 
+    // Handle deep linking from Map
+    useEffect(() => {
+        if (mounted && customers.length > 0) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            if (id) {
+                const customer = customers.find(c => c.id == id);
+                if (customer) {
+                    setSelectedCustomer(customer);
+                    setShowDetail(true);
+                    // Clear the param without refreshing to keep URL clean
+                    window.history.replaceState({}, '', '/customers');
+                }
+            }
+        }
+    }, [mounted, customers]);
+
     useEffect(() => {
         if (routers.length > 0) {
             // Initial fetch
@@ -126,6 +144,51 @@ export default function CustomersPage() {
             };
         }
     }, [routers]);
+
+    const handleAutoDetect = async (customerId: any) => {
+        setIsDetecting(true);
+        try {
+            const res = await fetch('/api/automation/detect-subscriber', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ customerId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Router Terdeteksi!',
+                    text: `Pelanggan ditemukan pada Router ID: ${data.router_id}. Database telah diperbarui secara otomatis.`,
+                    background: '#0f172a',
+                    color: '#fff'
+                });
+                // Refresh customer data
+                const updatedRows = customers.map(c => c.id === customerId ? { ...c, router_id: data.router_id, mikrotik_mac: data.mac } : c);
+                setCustomers(updatedRows);
+                if (selectedCustomer?.id === customerId) {
+                    setSelectedCustomer({ ...selectedCustomer, router_id: data.router_id, mikrotik_mac: data.mac });
+                }
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Mendeteksi',
+                    text: data.error || 'Pelanggan tidak ditemukan di router manapun yang aktif.',
+                    background: '#0f172a',
+                    color: '#fff'
+                });
+            }
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Kesalahan Sistem',
+                text: 'Terjadi kegagalan saat menghubungkan ke mesin automasi.',
+                background: '#0f172a',
+                color: '#fff'
+            });
+        } finally {
+            setIsDetecting(false);
+        }
+    };
 
     const fetchData = async (firstLoad = false) => {
         if (firstLoad) setLoading(true);
@@ -699,35 +762,38 @@ export default function CustomersPage() {
                                     <Signal className="w-full h-full text-accent" />
                                 </div>
                                 
-                                <div className="flex justify-between items-start relative z-10">
-                                    <div className="flex items-center gap-4 md:gap-5">
-                                        <div className="w-16 h-16 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 border border-indigo-500/10 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-inner">
+                                <div className="flex justify-between items-start gap-4 relative z-10 overflow-hidden">
+                                    <div className="flex items-center gap-4 md:gap-5 flex-1 min-w-0">
+                                        <div className="w-16 h-16 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex-shrink-0 flex items-center justify-center text-indigo-600 border border-indigo-500/10 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-inner">
                                             <Users className="w-8 h-8 md:w-7 md:h-7" />
                                         </div>
-                                        <div className="max-w-[140px] md:max-w-[140px]">
-                                            <h3 className="text-sm md:text-sm font-black text-primary uppercase truncate group-hover:text-accent transition-colors tracking-tight leading-tight">{c.name}</h3>
-                                            <p className="text-[10px] md:text-[10px] font-bold text-muted uppercase tracking-widest mt-1.5 md:mt-2 opacity-50">{c.user_id || 'ID PELANGGAN'}</p>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-sm md:text-sm font-black text-primary uppercase truncate group-hover:text-accent transition-colors tracking-tight leading-tight" title={c.name}>{c.name}</h3>
+                                            <p className="text-[10px] md:text-[10px] font-bold text-muted uppercase tracking-widest mt-1.5 md:mt-2 opacity-50 truncate">{c.user_id || 'ID PELANGGAN'}</p>
                                         </div>
                                     </div>
-                                    <div className={`px-3 py-1.5 md:px-3 md:py-1 rounded-lg md:rounded-lg text-[10px] md:text-[10px] font-black uppercase tracking-widest relative z-10 shadow-sm ${c.status.toUpperCase() === 'ACTIVE' || c.status.toUpperCase() === 'TERHUBUNG' ? 'bg-emerald-500 text-white animate-pulse' : 'bg-rose-500 text-white'}`}>
+                                    <div className={`shrink-0 whitespace-nowrap px-3 py-1.5 md:px-3 md:py-1 rounded-lg md:rounded-lg text-[10px] md:text-[10px] font-black uppercase tracking-widest relative z-10 shadow-sm ${c.status.toUpperCase() === 'ACTIVE' || c.status.toUpperCase() === 'TERHUBUNG' ? 'bg-emerald-500 text-white animate-pulse' : 'bg-rose-500 text-white'}`}>
                                         {c.status}
                                     </div>
                                 </div>
 
                                 <div className="space-y-2 md:space-y-6 relative z-10">
                                     <div className="space-y-1 md:space-y-3">
-                                        <div className="flex justify-between items-end">
+                                        <div className="flex justify-between items-end px-1">
                                             <div className="flex items-center gap-1.5 md:gap-3">
-                                                <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${c.rx < -27 ? 'bg-red-500 animate-pulse' : 'bg-accent animate-pulse'}`} />
+                                                <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${c.rx < -27 ? 'bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.5)]' : c.rx < -24 ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
                                                 <div className="flex flex-col">
                                                     <span className="text-[9px] md:text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Sinyal</span>
                                                 </div>
                                             </div>
-                                            <span className={`text-sm md:text-base font-black tracking-tighter ${c.rx < -27 ? 'text-rose-600' : 'text-slate-800 dark:text-white'}`}>{c.rx?.toFixed(1) || '-22.5'} <span className="text-[9px] md:text-[10px] text-muted-foreground ml-0.5 tracking-normal font-normal">dBm</span></span>
+                                            <span className={`text-sm md:text-base font-black tracking-tighter ${c.rx < -27 ? 'text-rose-500' : c.rx < -24 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                                                {c.rx?.toFixed(1) || '-22.5'} 
+                                                <span className="text-[9px] md:text-[10px] opacity-60 ml-1 tracking-normal font-bold">dBm</span>
+                                            </span>
                                         </div>
                                         <div className="h-1 md:h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                                             <div 
-                                                className={`h-full transition-all duration-1000 ${c.rx < -27 ? 'bg-rose-500' : 'bg-accent'}`}
+                                                className={`h-full transition-all duration-1000 ${c.rx < -27 ? 'bg-rose-500' : c.rx < -24 ? 'bg-amber-500' : 'bg-emerald-500'}`}
                                                 style={{ width: `${Math.min(100, Math.max(0, (c.rx + 40) * 4))}%` }}
                                             />
                                         </div>
@@ -929,7 +995,7 @@ export default function CustomersPage() {
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Ringkasan Inteligensi Node</h2>
-                                    <p className="text-slate-500 dark:text-slate-400 text-xs font-bold tracking-widest uppercase">ID: {selectedCustomer.user_id || 'TIDAK DIKENAL'}</p>
+                                    <p className="text-slate-500 dark:border-slate-400 text-xs font-bold tracking-widest uppercase">ID: {selectedCustomer.user_id || 'TIDAK DIKENAL'}</p>
                                 </div>
                             </div>
                             <button onClick={() => setShowDetail(false)} className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
@@ -1003,8 +1069,17 @@ export default function CustomersPage() {
                                             <span className="text-slate-800 dark:text-slate-200 font-black">{selectedCustomer.name}</span>
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">Nomor Telepon</span>
                                             <span className="text-slate-800 dark:text-slate-200 font-black">{selectedCustomer.phone || '-'}</span>
-                                            <span className="text-slate-400 dark:text-slate-500 font-bold">Identitas PPPoE</span>
-                                            <span className="text-indigo-600 dark:text-indigo-400 font-black">{selectedCustomer.pppoe_username}</span>
+                                             <span className="text-slate-400 dark:text-slate-500 font-bold">Identitas PPPoE</span>
+                                             <div className="flex items-center gap-3">
+                                                <span className="text-indigo-600 dark:text-indigo-400 font-black">{selectedCustomer.pppoe_username}</span>
+                                                <button 
+                                                    onClick={() => handleAutoDetect(selectedCustomer.id)}
+                                                    disabled={isDetecting}
+                                                    className={`px-2 py-0.5 rounded-md border text-[8px] font-black uppercase tracking-widest transition-all ${isDetecting ? 'bg-slate-800 border-slate-700 text-slate-500 animate-pulse' : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white'}`}
+                                                >
+                                                    {isDetecting ? 'Scanning...' : 'Detect Router'}
+                                                </button>
+                                             </div>
                                             
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">Password PPPoE</span>
                                             <div className="flex items-center gap-2">
@@ -1133,6 +1208,50 @@ export default function CustomersPage() {
                                                 </div>
                                             );
                                         })()}
+                                    </div>
+
+                                    {/* GIS Navigation Section */}
+                                    <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
+                                        <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-3">
+                                            <Navigation className="w-4 h-4 text-emerald-600" /> Geolokasi & Navigasi
+                                        </h3>
+                                        <div className="space-y-4">
+                                            <div className="w-full h-[180px] bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 relative group">
+                                                {selectedCustomer.latitude && selectedCustomer.longitude ? (
+                                                    <iframe 
+                                                        width="100%" 
+                                                        height="100%" 
+                                                        frameBorder="0" 
+                                                        style={{ border: 0, filter: theme === 'dark' ? 'invert(90%) hue-rotate(180deg)' : 'none' }} 
+                                                        src={`https://maps.google.com/maps?q=${selectedCustomer.latitude},${selectedCustomer.longitude}&z=18&output=embed`}
+                                                        allowFullScreen
+                                                        className="grayscale-[0.5] contrast-[1.2] brightness-[0.8]"
+                                                    ></iframe>
+                                                ) : (
+                                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400">
+                                                        <MapPin className="w-8 h-8 mb-2 opacity-20" />
+                                                        <p className="text-[10px] font-black uppercase tracking-widest">Koordinat Belum Diatur</p>
+                                                    </div>
+                                                )}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            </div>
+                                            
+                                            <div className="flex gap-3">
+                                                <div className="flex-1 p-3 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-100 dark:border-slate-800">
+                                                    <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Koordinat Presisi</p>
+                                                    <p className="text-[10px] font-black text-slate-600 dark:text-slate-400 truncate">{selectedCustomer.latitude || '-'}, {selectedCustomer.longitude || '-'}</p>
+                                                </div>
+                                                <a 
+                                                    href={`https://www.google.com/maps?q=${selectedCustomer.latitude},${selectedCustomer.longitude}`} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-600/20 active:scale-95"
+                                                >
+                                                    <Navigation className="w-4 h-4" />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">Navigasi</span>
+                                                </a>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

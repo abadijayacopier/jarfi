@@ -13,7 +13,10 @@ export async function GET() {
             { name: 'onu_id', type: 'VARCHAR(50)' },
             { name: 'onu_mac', type: 'VARCHAR(50)' },
             { name: 'payment_status', type: 'ENUM(\'paid\', \'unpaid\') DEFAULT \'unpaid\'' },
-            { name: 'last_disconnect', type: 'DATETIME' }
+            { name: 'last_disconnect', type: 'DATETIME' },
+            { name: 'odp_id', type: 'INT' },
+            { name: 'latitude', type: 'VARCHAR(50)' },
+            { name: 'longitude', type: 'VARCHAR(50)' }
         ];
 
         for (const col of columns) {
@@ -80,20 +83,21 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
     try {
         const body = await req.json();
-        const { id, user_id, name, phone, package_id, pppoe_password } = body;
+        const { id, user_id, name, phone, package_id, pppoe_password, latitude, longitude, odp_id } = body;
 
         const [customers]: any = await pool.query('SELECT c.*, p.name as package_name, r.id as router_id, r.ip_address, r.username, r.password as r_password, r.api_port FROM Customers c LEFT JOIN Packages p ON c.package_id = p.id LEFT JOIN Routers r ON c.router_id = r.id WHERE c.id = ?', [id]);
         if (customers.length === 0) return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
 
         const customer = customers[0];
-        let newProfile = customer.package_name;
-        if (package_id && package_id !== customer.package_id) {
-            const [pkgs]: any = await pool.query('SELECT name FROM Packages WHERE id = ?', [package_id]);
-            if (pkgs.length > 0) newProfile = pkgs[0].name;
-        }
 
-        if (customer.router_id) {
+        // Only handle Mikrotik update if router and credentials exist
+        if (customer.router_id && (pppoe_password || package_id)) {
             try {
+                let newProfile = customer.package_name;
+                if (package_id && package_id !== customer.package_id) {
+                    const [pkgs]: any = await pool.query('SELECT name FROM Packages WHERE id = ?', [package_id]);
+                    if (pkgs.length > 0) newProfile = pkgs[0].name;
+                }
                 const mk = new MikrotikService({ host: customer.ip_address, user: customer.username, password: customer.r_password, port: customer.api_port });
                 await mk.updateSecret(customer.pppoe_username, pppoe_password, newProfile);
             } catch (e: any) {
@@ -101,11 +105,30 @@ export async function PUT(req: Request) {
             }
         }
 
-        let updateQuery = `UPDATE Customers SET package_id = ? ${pppoe_password ? ', pppoe_password = ?' : ''} WHERE id = ?`;
-        let params: any[] = pppoe_password ? [package_id, pppoe_password, id] : [package_id, id];
-        await pool.query(updateQuery, params);
+        // Build dynamic SQL for Customers update
+        let updates: string[] = [];
+        let params: any[] = [];
 
-        await pool.query('UPDATE Users SET name = ?, phone = ? WHERE id = ?', [name, phone, user_id]);
+        if (package_id !== undefined) { updates.push('package_id = ?'); params.push(package_id); }
+        if (pppoe_password !== undefined) { updates.push('pppoe_password = ?'); params.push(pppoe_password); }
+        if (latitude !== undefined) { updates.push('latitude = ?'); params.push(latitude); }
+        if (longitude !== undefined) { updates.push('longitude = ?'); params.push(longitude); }
+        if (odp_id !== undefined) { updates.push('odp_id = ?'); params.push(odp_id); }
+
+        if (updates.length > 0) {
+            params.push(id);
+            await pool.query(`UPDATE Customers SET ${updates.join(', ')} WHERE id = ?`, params);
+        }
+
+        // Update User info if name or phone is provided
+        if (user_id && (name || phone)) {
+            let userUpdates: string[] = [];
+            let userParams: any[] = [];
+            if (name) { userUpdates.push('name = ?'); userParams.push(name); }
+            if (phone) { userUpdates.push('phone = ?'); userParams.push(phone); }
+            userParams.push(user_id);
+            await pool.query(`UPDATE Users SET ${userUpdates.join(', ')} WHERE id = ?`, userParams);
+        }
 
         return NextResponse.json({ success: true, message: 'Updated successfully' });
     } catch (e: any) {

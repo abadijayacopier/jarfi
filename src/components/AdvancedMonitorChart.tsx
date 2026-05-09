@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer
 } from 'recharts';
 
@@ -35,14 +35,33 @@ export default function AdvancedMonitorChart({
     if (!mounted) return <div className="w-full h-full bg-white/5 rounded-3xl animate-pulse" />;
 
     return (
-        <div className="w-full h-full min-h-[300px] relative">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255, 255, 255, 0.05)" />
+        <div className="w-full h-full min-h-[350px] relative mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                        <linearGradient id="colorRx" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="colorTx" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid 
+                        strokeDasharray="4 4" 
+                        vertical={false} 
+                        stroke="currentColor" 
+                        className="text-slate-200 dark:text-slate-800 opacity-50" 
+                    />
                     <XAxis dataKey="time" hide />
                     <YAxis
-                        width={45}
-                        tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: '800' }}
+                        tick={{ fill: 'currentColor', fontSize: 10, fontWeight: '800' }}
+                        className="text-slate-400 dark:text-slate-600"
                         axisLine={false}
                         tickLine={false}
                         tickFormatter={formatValue}
@@ -50,48 +69,53 @@ export default function AdvancedMonitorChart({
                     />
                     <Tooltip
                         contentStyle={{
-                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                            backdropFilter: 'blur(12px)',
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            backdropFilter: 'blur(20px)',
                             border: '1px solid rgba(255, 255, 255, 0.1)',
-                            borderRadius: '20px',
-                            padding: '15px'
+                            borderRadius: '24px',
+                            padding: '20px',
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
                         }}
-                        itemStyle={{ fontSize: '11px', fontWeight: '900', textTransform: 'uppercase' }}
+                        itemStyle={{ fontSize: '12px', fontWeight: '900', textTransform: 'uppercase', marginBottom: '4px' }}
                         labelStyle={{ display: 'none' }}
                         formatter={(val: any) => [formatValue(val)]}
                     />
                     {isBandwidth ? (
                         <>
-                            <Line
+                            <Area
                                 type="monotone"
                                 dataKey="rx"
                                 stroke="#10b981"
                                 strokeWidth={4}
-                                dot={false}
-                                activeDot={{ r: 6, strokeWidth: 0, fill: '#10b981' }}
-                                animationDuration={500}
+                                fillOpacity={1}
+                                fill="url(#colorRx)"
+                                activeDot={{ r: 8, strokeWidth: 0, fill: '#10b981' }}
+                                animationDuration={1000}
                             />
-                            <Line
+                            <Area
                                 type="monotone"
                                 dataKey="tx"
                                 stroke="#3b82f6"
                                 strokeWidth={4}
-                                dot={false}
-                                activeDot={{ r: 6, strokeWidth: 0, fill: '#3b82f6' }}
-                                animationDuration={500}
+                                fillOpacity={1}
+                                fill="url(#colorTx)"
+                                activeDot={{ r: 8, strokeWidth: 0, fill: '#3b82f6' }}
+                                animationDuration={1000}
                             />
                         </>
                     ) : (
-                        <Line
+                        <Area
                             type="monotone"
                             dataKey="value"
                             stroke="#f59e0b"
                             strokeWidth={4}
-                            dot={false}
-                            animationDuration={500}
+                            fillOpacity={1}
+                            fill="url(#colorValue)"
+                            activeDot={{ r: 8, strokeWidth: 0, fill: '#f59e0b' }}
+                            animationDuration={1000}
                         />
                     )}
-                </LineChart>
+                </AreaChart>
             </ResponsiveContainer>
         </div>
     );

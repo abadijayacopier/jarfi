@@ -3,6 +3,11 @@ import { pool } from '@/lib/db';
 
 export async function GET() {
     try {
+        // Ensure topology columns exist
+        try {
+            await pool.query('ALTER TABLE ODPs ADD COLUMN parent_id INT');
+        } catch (e) { /* Column likely exists */ }
+
         const [rows]: any = await pool.query(`
             SELECT o.*, (SELECT COUNT(*) FROM Customers WHERE odp_id = o.id) as used_ports
             FROM ODPs o

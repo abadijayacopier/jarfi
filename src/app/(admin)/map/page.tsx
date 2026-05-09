@@ -7,7 +7,7 @@ import {
     Map as MapIcon, Plus, Info, Layers, Crosshair, Box, Search, 
     Loader2, Navigation, ChevronLeft, ChevronRight, Zap, X, 
     Signal, Activity, LayoutGrid, Settings2, Eye, EyeOff, MousePointer2, PlusCircle,
-    RefreshCcw, Database, Shield, Layout, Bell, Globe, Maximize2, Monitor, Minus
+    RefreshCcw, Database, Shield, Layout, Bell, Globe, Maximize2, Monitor, Minus, Users
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
@@ -27,7 +27,9 @@ interface Odp {
     name: string;
     latitude: number;
     longitude: number;
-    capacity?: number;
+    capacity: number;
+    used_ports?: number;
+    parent_id?: string;
 }
 
 interface Customer {
@@ -38,6 +40,7 @@ interface Customer {
     longitude: number;
     status: 'active' | 'inactive';
     rx: number;
+    odp_id?: string;
 }
 
 export default function MapPage() {
@@ -50,6 +53,7 @@ export default function MapPage() {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         setMounted(true);
@@ -71,7 +75,9 @@ export default function MapPage() {
         showOltOdp: true,
         editOdpLines: false,
         editUserLines: false,
-        addOdpMode: false
+        addOdpMode: false,
+        addCustomerMode: false,
+        addPoleMode: false
     });
 
     const [selectedRegion, setSelectedRegion] = useState('1');
@@ -158,6 +164,38 @@ export default function MapPage() {
                 document.exitFullscreen();
             }
         }
+    };
+
+    const handleSearch = () => {
+        if (!searchQuery) return;
+        
+        // 1. Check for coordinates
+        const coordMatch = searchQuery.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
+        if (coordMatch) {
+            setMapCenter([parseFloat(coordMatch[1]), parseFloat(coordMatch[2])]);
+            setMapZoom(18);
+            return;
+        }
+
+        // 2. Search ODPs
+        const foundOdp = odps.find(o => o.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        if (foundOdp) {
+            setMapCenter([foundOdp.latitude, foundOdp.longitude]);
+            setMapZoom(18);
+            Swal.fire({ icon: 'info', title: 'ODP Ditemukan', text: foundOdp.name, timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
+            return;
+        }
+
+        // 3. Search Customers
+        const foundCust = customers.find(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.pppoe_username.toLowerCase().includes(searchQuery.toLowerCase()));
+        if (foundCust && foundCust.latitude && foundCust.longitude) {
+            setMapCenter([foundCust.latitude, foundCust.longitude]);
+            setMapZoom(18);
+            Swal.fire({ icon: 'info', title: 'Pelanggan Ditemukan', text: foundCust.name, timer: 1500, showConfirmButton: false, background: '#0f172a', color: '#fff' });
+            return;
+        }
+
+        Swal.fire({ icon: 'error', title: 'Tidak Ditemukan', text: 'Nama perangkat atau pelanggan tidak terdaftar.', background: '#0f172a', color: '#fff' });
     };
 
     const handleLocateMe = () => {
@@ -291,57 +329,168 @@ export default function MapPage() {
         }
     };
 
-    const handleAddOdp = async (lat: number, lng: number) => {
-        if (!controls.addOdpMode) return;
-
-        const { value: formValues } = await Swal.fire({
-            title: 'Node ODP Baru',
-            html:
-                '<input id="swal-input1" class="swal2-input bg-slate-800 text-white border-slate-700" placeholder="Nama ODP">' +
-                '<input id="swal-input2" class="swal2-input bg-slate-800 text-white border-slate-700" placeholder="Kapasitas" type="number">',
-            focusConfirm: false,
-            background: '#0f172a',
-            color: '#fff',
-            showCancelButton: true,
-            cancelButtonText: 'Batal',
-            preConfirm: () => {
-                return [
-                    (document.getElementById('swal-input1') as HTMLInputElement).value,
-                    (document.getElementById('swal-input2') as HTMLInputElement).value
-                ]
-            }
-        });
-
-        if (formValues && formValues[0]) {
+    const handleMapClick = async (lat: number, lng: number) => {
+        if (controls.addPoleMode) {
             try {
                 const res = await fetch('/api/odps', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        name: formValues[0],
+                        name: `TIANG-${Math.floor(Math.random() * 1000)}`,
                         latitude: lat,
                         longitude: lng,
-                        capacity: formValues[1] || 8
+                        capacity: 0 // Pole has no ports
                     })
                 });
                 if (res.ok) {
-                    Swal.fire({ icon: 'success', title: 'ODP Terdaftar', background: '#0f172a', color: '#fff' });
-                    setControls(prev => ({ ...prev, addOdpMode: false }));
+                    setControls(prev => ({ ...prev, addPoleMode: false }));
                     fetchData();
                 }
             } catch (err) {
-                Swal.fire({ icon: 'error', title: 'Pendaftaran Gagal', background: '#0f172a', color: '#fff' });
+                console.error(err);
+            }
+            return;
+        }
+        if (controls.addOdpMode) {
+            const { value: formValues } = await Swal.fire({
+                title: 'Node ODP Baru',
+                html:
+                    '<input id="swal-input1" class="swal2-input bg-slate-800 text-white border-slate-700" placeholder="Nama ODP">' +
+                    '<input id="swal-input2" class="swal2-input bg-slate-800 text-white border-slate-700" placeholder="Kapasitas" type="number">',
+                focusConfirm: false,
+                background: '#0f172a',
+                color: '#fff',
+                showCancelButton: true,
+                cancelButtonText: 'Batal',
+                preConfirm: () => {
+                    return [
+                        (document.getElementById('swal-input1') as HTMLInputElement).value,
+                        (document.getElementById('swal-input2') as HTMLInputElement).value
+                    ]
+                }
+            });
+
+            if (formValues && formValues[0]) {
+                try {
+                    const res = await fetch('/api/odps', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: formValues[0],
+                            latitude: lat,
+                            longitude: lng,
+                            capacity: formValues[1] || 8
+                        })
+                    });
+                    if (res.ok) {
+                        Swal.fire({ icon: 'success', title: 'ODP Terdaftar', background: '#0f172a', color: '#fff' });
+                        setControls(prev => ({ ...prev, addOdpMode: false }));
+                        fetchData();
+                    }
+                } catch (err) {
+                    Swal.fire({ icon: 'error', title: 'Pendaftaran Gagal', background: '#0f172a', color: '#fff' });
+                }
+            }
+        } else if (controls.addCustomerMode) {
+            // Filter customers who don't have valid coordinates yet
+            const unmappedCustomers = customers.filter(c => !c.latitude || !c.longitude || (c.latitude === 0 && c.longitude === 0));
+            
+            const { value: formValues } = await Swal.fire({
+                title: 'Daftar/Tempatkan Pelanggan',
+                html: `
+                    <div class="space-y-4 text-left">
+                        <div>
+                            <label class="text-[10px] font-black uppercase text-slate-500 mb-2 block">Pilih dari Daftar PPPoE (Mikrotik)</label>
+                            <select id="cust-select" class="swal2-input bg-slate-800 text-white border-slate-700 m-0 w-full">
+                                <option value="new">-- Daftar Pelanggan Baru (Prospek) --</option>
+                                ${unmappedCustomers.map(c => `<option value="${c.id}">${c.name} (${c.pppoe_username})</option>`).join('')}
+                            </select>
+                        </div>
+                        <div id="new-cust-fields">
+                            <label class="text-[10px] font-black uppercase text-slate-500 mb-2 block">Atau Input Data Manual</label>
+                            <input id="cust-input1" class="swal2-input bg-slate-800 text-white border-slate-700 m-0 mb-2 w-full" placeholder="Nama Lengkap">
+                            <input id="cust-input2" class="swal2-input bg-slate-800 text-white border-slate-700 m-0 mb-2 w-full" placeholder="PPPoE Username">
+                            <input id="cust-input3" class="swal2-input bg-slate-800 text-white border-slate-700 m-0 w-full" placeholder="No. WhatsApp">
+                        </div>
+                    </div>
+                `,
+                didOpen: () => {
+                    const select = document.getElementById('cust-select') as HTMLSelectElement;
+                    const fields = document.getElementById('new-cust-fields');
+                    select.addEventListener('change', () => {
+                        if (fields) fields.style.display = select.value === 'new' ? 'block' : 'none';
+                    });
+                },
+                focusConfirm: false,
+                background: '#0f172a',
+                color: '#fff',
+                showCancelButton: true,
+                cancelButtonText: 'Batal',
+                preConfirm: () => {
+                    const selectValue = (document.getElementById('cust-select') as HTMLSelectElement).value;
+                    if (selectValue !== 'new') {
+                        return { type: 'update', id: selectValue };
+                    }
+                    return {
+                        type: 'create',
+                        name: (document.getElementById('cust-input1') as HTMLInputElement).value,
+                        username: (document.getElementById('cust-input2') as HTMLInputElement).value,
+                        whatsapp: (document.getElementById('cust-input3') as HTMLInputElement).value
+                    };
+                }
+            });
+
+            if (formValues) {
+                try {
+                    let res;
+                    if (formValues.type === 'update') {
+                        // Update existing customer location
+                        res = await fetch('/api/customers', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                id: formValues.id,
+                                latitude: lat,
+                                longitude: lng
+                            })
+                        });
+                    } else if (formValues.name) {
+                        // Create new customer
+                        res = await fetch('/api/customers', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                name: formValues.name,
+                                pppoe_username: formValues.username,
+                                whatsapp: formValues.whatsapp,
+                                latitude: lat,
+                                longitude: lng,
+                                status: 'active'
+                            })
+                        });
+                    }
+
+                    if (res && res.ok) {
+                        Swal.fire({ icon: 'success', title: 'Pelanggan Terdaftar', background: '#0f172a', color: '#fff' });
+                        setControls(prev => ({ ...prev, addCustomerMode: false }));
+                        fetchData();
+                    }
+                } catch (err) {
+                    Swal.fire({ icon: 'error', title: 'Operasi Gagal', background: '#0f172a', color: '#fff' });
+                }
             }
         }
     };
 
     const toggleControl = (key: keyof typeof controls) => {
-        if (['editOdpLines', 'editUserLines', 'addOdpMode'].includes(key)) {
+        if (['editOdpLines', 'editUserLines', 'addOdpMode', 'addCustomerMode'].includes(key)) {
             setControls(prev => ({
                 ...prev,
                 editOdpLines: key === 'editOdpLines' ? !prev.editOdpLines : false,
                 editUserLines: key === 'editUserLines' ? !prev.editUserLines : false,
                 addOdpMode: key === 'addOdpMode' ? !prev.addOdpMode : false,
+                addCustomerMode: key === 'addCustomerMode' ? !prev.addCustomerMode : false,
+                addPoleMode: key === 'addPoleMode' ? !prev.addPoleMode : false,
             }));
         } else {
             setControls(prev => ({ ...prev, [key]: !prev[key] }));
@@ -374,17 +523,21 @@ export default function MapPage() {
                     </button>
                     <input 
                         type="text" 
-                        placeholder="Cari Lat, Lng atau Nama..." 
+                        placeholder="Cari Perangkat atau Pelanggan..." 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         className="bg-transparent pl-4 pr-4 py-1.5 text-white text-[10px] font-bold tracking-widest focus:outline-none w-[200px]"
                     />
                 </div>
 
                 <div className="flex gap-1">
-                    <button className="w-8 h-8 md:w-10 md:h-10 bg-blue-600 hover:bg-blue-500 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Search className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
+                    <button onClick={handleSearch} className="w-8 h-8 md:w-10 md:h-10 bg-blue-600 hover:bg-blue-500 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Search className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
                     <button onClick={() => Swal.fire({ title: 'Pemindaian Keamanan', text: 'Tidak ada kerentanan terdeteksi dalam matriks.', icon: 'success', background: '#0f172a', color: '#fff' })} className="w-8 h-8 md:w-10 md:h-10 bg-amber-500 hover:bg-amber-400 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Shield className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
                     <button onClick={toggleFullscreen} className="w-8 h-8 md:w-10 md:h-10 bg-slate-700 hover:bg-slate-600 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Maximize2 className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
                     <button onClick={() => setIsSidebarVisible(!isSidebarVisible)} className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all ${isSidebarVisible ? 'bg-indigo-600' : 'bg-slate-700 hover:bg-slate-600'}`}><LayoutGrid className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
-                    <button onClick={() => toggleControl('addOdpMode')} className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all ${controls.addOdpMode ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-600 hover:bg-emerald-500'}`}><Plus className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
+                    <button onClick={() => toggleControl('addOdpMode')} className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all ${controls.addOdpMode ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-600 hover:bg-emerald-500'}`} title="Pasang ODP"><Plus className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
+                    <button onClick={() => toggleControl('addPoleMode')} className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all ${controls.addPoleMode ? 'bg-slate-400 animate-pulse' : 'bg-slate-600 hover:bg-slate-500'}`} title="Pasang Tiang"><Monitor className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
                     <button onClick={() => setMapStyle(mapStyle === 'dark' ? 'satellite' : 'dark')} className="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 hover:bg-indigo-500 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Layers className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
                     <button onClick={handleLocateMe} className="w-8 h-8 md:w-10 md:h-10 bg-rose-600 hover:bg-rose-500 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Navigation className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
                 </div>
@@ -397,7 +550,7 @@ export default function MapPage() {
                     controls={controls}
                     onLinkUpdate={handleLinkUpdate}
                     onDeleteOdp={handleDeleteOdp}
-                    onMapClick={handleAddOdp}
+                    onMapClick={handleMapClick}
                     onNodeMove={(id, type, lat, lng) => {
                         console.log('Node moved:', id, type, lat, lng);
                     }}
@@ -467,13 +620,63 @@ export default function MapPage() {
 
                             <div className="space-y-4">
                                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Vektor Infrastruktur</label>
-                                <button 
-                                    onClick={() => toggleControl('addOdpMode')}
-                                    className={`w-full py-5 rounded-2xl flex items-center justify-center gap-4 transition-all font-black uppercase tracking-[0.2em] text-[9px] ${controls.addOdpMode ? 'bg-emerald-500 text-white shadow-[0_0_30px_rgba(16,185,129,0.3)]' : 'bg-white/5 text-white hover:bg-white/10 border border-white/5'}`}
-                                >
-                                    <PlusCircle className="w-4 h-4" />
-                                    {controls.addOdpMode ? 'Penempatan Aktif...' : 'Pasang Node ODP Baru'}
-                                </button>
+                                <div className="grid grid-cols-1 gap-4">
+                                    <button 
+                                        onClick={() => toggleControl('addOdpMode')}
+                                        className={`w-full py-6 rounded-3xl flex items-center justify-center gap-5 transition-all font-black uppercase tracking-[0.3em] text-[10px] relative overflow-hidden group shadow-2xl ${
+                                            controls.addOdpMode 
+                                            ? 'bg-emerald-500 text-white shadow-[0_0_40px_rgba(16,185,129,0.4)] border-emerald-400' 
+                                            : 'bg-slate-900/50 text-slate-400 hover:text-white border border-white/5 hover:bg-white/5'
+                                        }`}
+                                    >
+                                        {controls.addOdpMode && (
+                                            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
+                                        )}
+                                        <div className={`p-2 rounded-xl ${controls.addOdpMode ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'} transition-all`}>
+                                            <PlusCircle className={`w-5 h-5 ${controls.addOdpMode ? 'animate-bounce' : ''}`} />
+                                        </div>
+                                        <span className="relative z-10">{controls.addOdpMode ? 'Penempatan Node Aktif' : 'Pasang Node ODP Baru'}</span>
+                                    </button>
+
+                                    <button 
+                                        onClick={() => toggleControl('addPoleMode')}
+                                        className={`w-full py-6 rounded-3xl flex items-center justify-center gap-5 transition-all font-black uppercase tracking-[0.3em] text-[10px] relative overflow-hidden group shadow-2xl ${
+                                            controls.addPoleMode 
+                                            ? 'bg-slate-400 text-slate-900 shadow-[0_0_40px_rgba(148,163,184,0.4)] border-slate-300' 
+                                            : 'bg-slate-900/50 text-slate-400 hover:text-white border border-white/5 hover:bg-white/5'
+                                        }`}
+                                    >
+                                        {controls.addPoleMode && (
+                                            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
+                                        )}
+                                        <div className={`p-2 rounded-xl ${controls.addPoleMode ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'} transition-all`}>
+                                            <Monitor className={`w-5 h-5 ${controls.addPoleMode ? 'animate-bounce' : ''}`} />
+                                        </div>
+                                        <span className="relative z-10">{controls.addPoleMode ? 'Penempatan Tiang Aktif' : 'Pasang Node Tiang Baru'}</span>
+                                    </button>
+
+                                    <button 
+                                        onClick={() => toggleControl('addCustomerMode')}
+                                        className={`w-full py-6 rounded-3xl flex items-center justify-center gap-5 transition-all font-black uppercase tracking-[0.3em] text-[10px] relative overflow-hidden group shadow-2xl ${
+                                            controls.addCustomerMode 
+                                            ? 'bg-indigo-500 text-white shadow-[0_0_40px_rgba(99,102,241,0.4)] border-indigo-400' 
+                                            : 'bg-slate-900/50 text-slate-400 hover:text-white border border-white/5 hover:bg-white/5'
+                                        }`}
+                                    >
+                                        {controls.addCustomerMode && (
+                                            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
+                                        )}
+                                        <div className={`p-2 rounded-xl ${controls.addCustomerMode ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'} transition-all`}>
+                                            <Users className={`w-5 h-5 ${controls.addCustomerMode ? 'animate-bounce' : ''}`} />
+                                        </div>
+                                        <span className="relative z-10">{controls.addCustomerMode ? 'Pilih Lokasi Pelanggan' : 'Daftar Pelanggan Baru'}</span>
+                                    </button>
+                                </div>
+                                {controls.addOdpMode && (
+                                    <p className="text-[8px] font-bold text-emerald-500/80 uppercase tracking-widest text-center animate-pulse">
+                                        Klik pada area peta untuk menempatkan titik ODP
+                                    </p>
+                                )}
                             </div>
 
                             <div className="space-y-6">
@@ -577,7 +780,7 @@ export default function MapPage() {
                 {/* Map Action Controls */}
                 <div className="flex md:flex-row gap-3 pointer-events-auto items-center">
                     <div className="flex md:flex-col gap-2 p-1.5 bg-[#0f172a]/90 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl">
-                        <button onClick={() => setMapZoom(z => Math.min(20, z + 1))} className="w-10 h-10 bg-white/5 hover:bg-indigo-600 rounded-xl flex items-center justify-center text-white transition-all"><Plus className="w-4 h-4" /></button>
+                        <button onClick={() => setMapZoom(z => Math.min(22, z + 1))} className="w-10 h-10 bg-white/5 hover:bg-indigo-600 rounded-xl flex items-center justify-center text-white transition-all"><Plus className="w-4 h-4" /></button>
                         <button onClick={() => setMapZoom(z => Math.max(1, z - 1))} className="w-10 h-10 bg-white/5 hover:bg-indigo-600 rounded-xl flex items-center justify-center text-white transition-all"><Minus className="w-4 h-4" /></button>
                     </div>
                     <button 

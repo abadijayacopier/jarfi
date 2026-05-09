@@ -9,6 +9,14 @@ import {
 import Swal from 'sweetalert2';
 import Link from 'next/link';
 
+import { 
+    ResponsiveContainer, AreaChart, Area
+} from 'recharts';
+
+const mockSparkline = [
+    { v: 40 }, { v: 45 }, { v: 42 }, { v: 48 }, { v: 46 }, { v: 52 }, { v: 50 }
+];
+
 export default function OLTManagementPage() {
     const [olts, setOlts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -118,39 +126,66 @@ export default function OLTManagementPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
                 <div className="group bg-surface dark:bg-[#0f172a]/80 backdrop-blur-3xl p-10 rounded-[48px] border border-glass-border dark:border-white/5 hover:border-accent/40 transition-all duration-700 relative overflow-hidden">
                     <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-accent/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                    <div className="flex items-center gap-8">
-                        <div className="w-20 h-20 rounded-[32px] bg-accent/10 flex items-center justify-center text-accent border border-accent/20 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
-                            <Server className="w-10 h-10" />
+                    <div className="flex items-center justify-between gap-8">
+                        <div className="flex items-center gap-8">
+                            <div className="w-20 h-20 rounded-[32px] bg-accent/10 flex items-center justify-center text-accent border border-accent/20 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
+                                <Server className="w-10 h-10" />
+                            </div>
+                            <div className="relative z-10">
+                                <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mb-2 opacity-60">Node Terpasang</p>
+                                <h4 className="text-5xl font-black text-primary dark:text-white tracking-tighter tabular-nums leading-none">{olts.length}</h4>
+                            </div>
                         </div>
-                        <div className="relative z-10">
-                            <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mb-2 opacity-60">Node Terpasang</p>
-                            <h4 className="text-5xl font-black text-primary dark:text-white tracking-tighter tabular-nums leading-none">{olts.length}</h4>
+                        <div className="w-24 h-14 opacity-20 group-hover:opacity-100 transition-all duration-700">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={mockSparkline}>
+                                    <Area type="monotone" dataKey="v" stroke="#6366f1" fill="#6366f1" fillOpacity={0.1} strokeWidth={2} isAnimationActive={false} />
+                                </AreaChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
                 </div>
                 
                 <div className="group bg-surface dark:bg-[#0f172a]/80 backdrop-blur-3xl p-10 rounded-[48px] border border-glass-border dark:border-white/5 hover:border-emerald-500/40 transition-all duration-700 relative overflow-hidden">
                     <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                    <div className="flex items-center gap-8">
-                        <div className="w-20 h-20 rounded-[32px] bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
-                            <Activity className="w-10 h-10" />
+                    <div className="flex items-center justify-between gap-8">
+                        <div className="flex items-center gap-8">
+                            <div className="w-20 h-20 rounded-[32px] bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
+                                <Activity className="w-10 h-10" />
+                            </div>
+                            <div className="relative z-10">
+                                <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mb-2 opacity-60">Status Jaringan</p>
+                                <h4 className="text-3xl font-black text-emerald-500 tracking-tight uppercase leading-none">Normal</h4>
+                            </div>
                         </div>
-                        <div className="relative z-10">
-                            <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mb-2 opacity-60">Status Jaringan</p>
-                            <h4 className="text-3xl font-black text-emerald-500 tracking-tight uppercase leading-none">Normal</h4>
+                        <div className="w-24 h-14 opacity-20 group-hover:opacity-100 transition-all duration-700">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={mockSparkline}>
+                                    <Area type="monotone" dataKey="v" stroke="#10b981" fill="#10b981" fillOpacity={0.1} strokeWidth={2} isAnimationActive={false} />
+                                </AreaChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
                 </div>
 
                 <div className="group bg-surface dark:bg-[#0f172a]/80 backdrop-blur-3xl p-10 rounded-[48px] border border-glass-border dark:border-white/5 hover:border-indigo-500/40 transition-all duration-700 relative overflow-hidden">
                     <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                    <div className="flex items-center gap-8">
-                        <div className="w-20 h-20 rounded-[32px] bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
-                            <Cpu className="w-10 h-10" />
+                    <div className="flex items-center justify-between gap-8">
+                        <div className="flex items-center gap-8">
+                            <div className="w-20 h-20 rounded-[32px] bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
+                                <Cpu className="w-10 h-10" />
+                            </div>
+                            <div className="relative z-10">
+                                <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mb-2 opacity-60">Arsitektur Fabric</p>
+                                <h4 className="text-2xl font-black text-primary dark:text-white/80 tracking-tight uppercase leading-none">GPON/EPON</h4>
+                            </div>
                         </div>
-                        <div className="relative z-10">
-                            <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mb-2 opacity-60">Arsitektur Fabric</p>
-                            <h4 className="text-2xl font-black text-primary dark:text-white/80 tracking-tight uppercase leading-none">GPON/EPON Multi</h4>
+                        <div className="w-24 h-14 opacity-20 group-hover:opacity-100 transition-all duration-700">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={mockSparkline}>
+                                    <Area type="monotone" dataKey="v" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.1} strokeWidth={2} isAnimationActive={false} />
+                                </AreaChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
                 </div>
