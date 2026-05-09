@@ -3,7 +3,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const mysql = require('mysql2/promise');
 require('dotenv').config({ path: '.env.local' });
 
-const VERSION = "1.1.2-SMART";
+const VERSION = "2.0.0-PRO-MAX";
 
 console.log(`\n=========================================`);
 console.log(`🚀 DUNIA WIFI AI BOT v${VERSION}`);
@@ -56,42 +56,47 @@ async function startBot() {
 
     bot.on('message', async (msg) => {
         const chatId = msg.chat.id;
-        const text = msg.text?.toLowerCase();
+        const text = msg.text?.toLowerCase() || "";
         if (!text) return;
 
-        console.log(`📩 [ID: ${chatId}] ${msg.from.first_name}: ${text}`);
+        // Bersihkan teks dari awalan '/' jika ada
+        const cleanText = text.startsWith('/') ? text.substring(1) : text;
+        console.log(`📩 [ID: ${chatId}] ${msg.from.first_name}: ${text} (Clean: ${cleanText})`);
+        
         bot.sendChatAction(chatId, 'typing');
 
         try {
-            // Data Jaringan
-            const [cust] = await pool.query('SELECT COUNT(*) as count FROM Customers');
-            const [act] = await pool.query("SELECT COUNT(*) as count FROM Customers WHERE status = 'ACTIVE'");
-            const [routers] = await pool.query('SELECT name, ip_address, status FROM Routers');
-            
-            // --- SMART KEYWORDS ---
-            const greetings = ['halo', 'hi', 'hai', 'pagi', 'siang', 'malam', 'p', 'assalamualaikum'];
+            // --- LOGIKA SMART KEYWORD (SEBELUM DB AGAR CEPAT) ---
+            const greetings = ['halo', 'hi', 'hai', 'pagi', 'siang', 'malam', 'p', 'assalamualaikum', 'start'];
             const statusCmds = ['status', 'jaringan', 'router', 'cek', 'pelanggan', 'user', 'online', 'kabar'];
             const mikrotikCmds = ['mikrotik', 'winbox', 'routeros', 'ros', 'rb', 'routerboard', 'cpu', 'ram', 'uptime'];
             const serviceCmds = ['pppoe', 'hotspot', 'voucher', 'paket', 'isolasi', 'pelunasan'];
             const billingCmds = ['omset', 'duit', 'uang', 'bayar', 'tagihan', 'trafik', 'beban', 'bandwidth'];
             const introCmds = ['siapa', 'namamu', 'bantuan', 'menu', 'help'];
 
-            if (greetings.some(k => text.includes(k))) {
-                await bot.sendMessage(chatId, `Halo Bos ${msg.from.first_name}! 👋 JarfiMgt siap membantu. Mau cek apa hari ini?\n\nKetik *status* untuk cek jaringan atau *omset* untuk cek bisnis.`);
-                return;
+            // 1. Sapaan
+            if (greetings.some(k => cleanText.includes(k))) {
+                return bot.sendMessage(chatId, `Halo Bos ${msg.from.first_name}! 👋 JarfiMgt siap membantu. Mau cek apa hari ini?\n\nKetik *status* untuk cek jaringan atau *omset* untuk cek bisnis.`);
             }
 
-            if (mikrotikCmds.some(k => text.includes(k))) {
-                await bot.sendMessage(chatId, `📡 *STATUS HARDWARE & CORE*\n\nRouter MikroTik terpantau *ONLINE*. Resource CPU & RAM masih sangat lega untuk melayani pelanggan. Uptime stabil Bos! ✅\n\nKetik *status* untuk lihat daftar router.`);
-                return;
+            // 2. Data MikroTik
+            if (mikrotikCmds.some(k => cleanText.includes(k))) {
+                const [routers] = await pool.query('SELECT name FROM Routers');
+                return bot.sendMessage(chatId, `📡 *STATUS HARDWARE & CORE*\n\nRouter MikroTik terpantau *ONLINE*. Resource CPU & RAM masih sangat lega untuk melayani pelanggan. Uptime stabil Bos! ✅\n\nTerhubung ke *${routers.length} Router*.`);
             }
 
-            if (serviceCmds.some(k => text.includes(k))) {
-                await bot.sendMessage(chatId, `🛠️ *LAYANAN DUNIA WIFI*\n\nLayanan *PPPoE & Hotspot* berjalan normal. Pelanggan aktif saat ini: *${act[0].count} User*.\n\nUntuk buat Voucher baru atau Isolasi pelanggan, silakan akses Menu Layanan di Dashboard Utama ya Bos! 🚀`);
-                return;
+            // 3. Layanan
+            if (serviceCmds.some(k => cleanText.includes(k))) {
+                const [act] = await pool.query("SELECT COUNT(*) as count FROM Customers WHERE status = 'ACTIVE'");
+                return bot.sendMessage(chatId, `🛠️ *LAYANAN DUNIA WIFI*\n\nLayanan *PPPoE & Hotspot* berjalan normal. Pelanggan aktif saat ini: *${act[0].count} User*.\n\nUntuk buat Voucher baru atau Isolasi pelanggan, silakan akses Menu Layanan di Dashboard Utama ya Bos! 🚀`);
             }
 
-            if (statusCmds.some(k => text.includes(k))) {
+            // 4. Status Jaringan
+            if (statusCmds.some(k => cleanText.includes(k))) {
+                const [cust] = await pool.query('SELECT COUNT(*) as count FROM Customers');
+                const [act] = await pool.query("SELECT COUNT(*) as count FROM Customers WHERE status = 'ACTIVE'");
+                const [routers] = await pool.query('SELECT name, ip_address, status FROM Routers');
+                
                 let report = `📊 *LAPORAN DUNIA WIFI*\n\n`;
                 report += `👥 *Pelanggan:* ${cust[0].count} total (${act[0].count} aktif)\n`;
                 report += `🌐 *Status Router:* \n`;
@@ -99,25 +104,24 @@ async function startBot() {
                     const icon = r.status === 'ONLINE' ? '✅' : '❌';
                     report += `${icon} ${r.name} (${r.ip_address})\n`;
                 });
-                await bot.sendMessage(chatId, report, { parse_mode: 'Markdown' });
-                return;
+                return bot.sendMessage(chatId, report, { parse_mode: 'Markdown' });
             }
 
-            if (billingCmds.some(k => text.includes(k))) {
-                await bot.sendMessage(chatId, `📉 *INFO OPERASIONAL & BISNIS*\n\nSaat ini ada *${routers.length} Router* terpantau.\nTotal Pelanggan: *${cust[0].count}*.\n\nUntuk laporan omset detail dan grafik bandwidth, silakan cek langsung di Dashboard Jarfi ya Bos! 🚀`);
-                return;
+            // 5. Billing
+            if (billingCmds.some(k => cleanText.includes(k))) {
+                const [cust] = await pool.query('SELECT COUNT(*) as count FROM Customers');
+                return bot.sendMessage(chatId, `📉 *INFO OPERASIONAL & BISNIS*\n\nTotal Pelanggan: *${cust[0].count}*.\n\nUntuk laporan omset detail dan grafik bandwidth, silakan cek langsung di Dashboard Jarfi ya Bos! 🚀`);
             }
 
-            if (introCmds.some(k => text.includes(k))) {
-                await bot.sendMessage(chatId, `🤖 *IDENTITAS BOT*\n\nSaya adalah *JarfiMgt_bot*, asisten pintar Dunia WiFi.\n\nSaya bisa membantu Bos cek status router dan pelanggan secara real-time. Ketik *status* untuk mencoba!`, { parse_mode: 'Markdown' });
-                return;
+            // 6. Menu/Help
+            if (introCmds.some(k => cleanText.includes(k))) {
+                return bot.sendMessage(chatId, `🤖 *IDENTITAS BOT*\n\nSaya adalah *JarfiMgt_bot*, asisten pintar Dunia WiFi.\n\n*Perintah Tersedia:*\n- /status\n- /trafik\n- /mikrotik\n- /menu`, { parse_mode: 'Markdown' });
             }
 
             // --- AI FALLBACK ---
             if (model) {
                 try {
-                    let ctx = `Data: ${cust[0].count} pelanggan, ${routers.length} router.`;
-                    const result = await model.generateContent(`Anda JarfiMgt_bot. Bantu bos ini. ${ctx}. Tanya: ${msg.text}`);
+                    const result = await model.generateContent(`Anda JarfiMgt_bot. Bantu bos ini. Tanya: ${msg.text}`);
                     const response = await result.response;
                     return bot.sendMessage(chatId, response.text(), { parse_mode: 'Markdown' });
                 } catch (e) {
