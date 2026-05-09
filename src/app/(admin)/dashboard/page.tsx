@@ -95,14 +95,14 @@ export default function Dashboard() {
                             <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.5)]"></div>
                             <span className="text-[10px] font-black text-accent uppercase tracking-[0.3em]">Ikhtisar Operasi NOC</span>
                         </div>
-                        <h2 className="text-4xl md:text-6xl xl:text-8xl font-black text-slate-900 dark:text-white tracking-tight leading-[0.85] uppercase">
+                        <h2 className="text-3xl sm:text-4xl md:text-6xl xl:text-8xl font-black text-slate-900 dark:text-white tracking-tight leading-[0.85] uppercase">
                             Inteligensi <br />
                             <span className="text-emerald-500 bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500">Jaringan.</span>
                         </h2>
                     </div>
                     <div className="flex flex-col items-start lg:items-end gap-2 relative z-10 w-full lg:w-auto">
                         <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Estimasi Pendapatan Bulanan</span>
-                        <div className="text-3xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white tabular-nums drop-shadow-2xl">
+                        <div className="text-2xl sm:text-3xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white tabular-nums drop-shadow-2xl">
                             {loading ? '...' : `Rp ${parseInt(stats.expectedRevenue as any).toLocaleString('id-ID')}`}
                         </div>
                         <div className="flex items-center gap-2 mt-4 px-4 py-2 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full border border-emerald-500/20 backdrop-blur-xl shadow-lg shadow-emerald-500/5">
@@ -112,7 +112,7 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
                     <div className="glass p-5 md:p-8 rounded-3xl md:rounded-[40px] flex flex-col justify-between min-h-[160px] md:min-h-[220px] hover:border-accent/30 transition-all duration-500 group bg-white/5 dark:bg-slate-900/50 border border-white/10 dark:border-white/5 shadow-2xl relative overflow-hidden backdrop-blur-xl">
                         <div className="absolute -right-10 -bottom-10 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-700 pointer-events-none">
                             <Users className="w-32 md:w-48 h-32 md:h-48 text-accent" />

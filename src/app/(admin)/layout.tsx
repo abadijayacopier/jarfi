@@ -185,9 +185,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Top Navigation Bar */}
             <header className="sticky top-0 z-50 w-full px-6 py-4 bg-(--background)/80 backdrop-blur-xl">
                 <div className="w-full">
-                    <div className="glass rounded-[40px] h-24 flex items-center px-10 justify-between shadow-2xl border border-white/10 dark:border-white/5 relative">
+                    <div className="glass rounded-[40px] h-24 flex items-center px-4 md:px-10 justify-between shadow-2xl border border-white/10 dark:border-white/5 relative">
 
-                        <div className="flex items-center gap-10 relative z-10">
+                        <div className="flex items-center gap-4 md:gap-10 relative z-10">
                             <Link href="/dashboard" className="flex items-center gap-3 group/logo">
                                 {settings?.company_logo ? (
                                     <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-lg shadow-accent/20 group-hover/logo:scale-110 transition-transform duration-500 border border-white/10">
@@ -199,15 +199,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     </div>
                                 )}
                                 <div className="flex flex-col">
-                                    <h1 className="text-lg font-bold tracking-tight text-primary uppercase leading-none">
+                                    <h1 className="text-sm md:text-lg font-bold tracking-tight text-primary uppercase leading-none">
                                         {settings?.company_name || 'Sahabat Network'}
                                     </h1>
-                                    <span className="text-[8px] font-bold text-accent uppercase tracking-widest mt-1.5 opacity-80">ISP Management System v0.1.0 by Supriyanto</span>
+                                    <span className="text-[7px] md:text-[8px] font-bold text-accent uppercase tracking-widest mt-1.5 opacity-80 hidden sm:block">ISP Management System v0.1.0 by Supriyanto</span>
                                 </div>
                             </Link>
 
-                            {/* Desktop Nav Items */}
-                            <nav className="hidden xl:flex items-center gap-1 px-2 py-1.5 bg-slate-500/5 rounded-2xl border border-white/5" ref={dropdownRef}>
+                            {/* Desktop Nav Items - ONLY for 2XL screens to prevent squashing */}
+                            <nav className="hidden 2xl:flex items-center gap-1 px-2 py-1.5 bg-slate-500/5 rounded-2xl border border-white/5" ref={dropdownRef}>
                                 {filteredNavItems.map((item, idx) => {
                                     const Icon = item.icon;
                                     const isActive = isActiveLink(item.href, item.subItems);
@@ -258,8 +258,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             </nav>
                         </div>
 
-                        <div className="flex items-center gap-4 relative z-10">
-                            <div className="hidden lg:flex flex-col items-end mr-4 border-r border-white/10 pr-6">
+                        <div className="flex items-center gap-2 md:gap-4 relative z-10">
+                            {/* Hamburger Menu for XL and below */}
+                            <button
+                                onClick={() => setActiveDropdown('more')}
+                                className="2xl:hidden w-10 h-10 rounded-2xl flex items-center justify-center text-muted hover:text-accent hover:bg-white/5 transition-all"
+                            >
+                                <Menu className="w-6 h-6" />
+                            </button>
+
+                            <div className="hidden lg:flex flex-col items-end mr-2 border-r border-white/10 pr-4">
                                 <span className="text-[10px] text-accent font-bold uppercase tracking-widest leading-none">
                                     {currentTime ? formatTime(currentTime) : '--:--:--'}
                                 </span>
@@ -275,9 +283,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     {!updateAvailable && <div className="absolute top-3 right-3 w-1.5 h-1.5 bg-red-500 rounded-full"></div>}
                                 </button>
                                 <ThemeToggle />
-                                <div className="h-8 w-px bg-white/10 mx-1 hidden sm:block"></div>
-                                <div className="flex items-center gap-4 pl-4 group cursor-pointer border-l border-white/10" onClick={handleLogout} title="Klik untuk Logout">
-                                    <div className="text-right hidden sm:block">
+                                <div className="flex items-center gap-2 sm:gap-4 pl-2 sm:pl-4 group cursor-pointer border-l border-white/10" onClick={handleLogout} title="Klik untuk Logout">
+                                    <div className="text-right hidden xl:block">
                                         <p className="text-value leading-none uppercase">{user?.name || 'Loading...'}</p>
                                         <div className="text-label text-accent opacity-100 mt-1.5 flex items-center justify-end gap-2">
                                             <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></div>

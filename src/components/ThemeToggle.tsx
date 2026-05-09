@@ -13,40 +13,18 @@ export default function ThemeToggle() {
   if (!mounted) return null;
 
   return (
-    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-2xl border border-slate-200 dark:border-white/5 shadow-inner backdrop-blur-md transition-colors duration-500">
-      <button
-        onClick={() => setTheme('light')}
-        className={`p-2.5 rounded-xl transition-all duration-300 ${
-          theme === 'light' 
-            ? 'bg-white text-accent shadow-lg scale-105' 
-            : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'
-        }`}
-        title="Light Mode"
-      >
-        <Sun className="w-4 h-4" />
-      </button>
-      <button
-        onClick={() => setTheme('dark')}
-        className={`p-2.5 rounded-xl transition-all duration-300 ${
-          theme === 'dark' 
-            ? 'bg-slate-700 text-accent shadow-lg border border-white/5 scale-105' 
-            : 'text-slate-500 hover:text-white hover:bg-slate-700/30'
-        }`}
-        title="Dark Mode"
-      >
-        <Moon className="w-4 h-4" />
-      </button>
-      <button
-        onClick={() => setTheme('system')}
-        className={`p-2.5 rounded-xl transition-all duration-300 ${
-          theme === 'system' 
-            ? 'bg-slate-200 dark:bg-slate-600 text-accent shadow-lg border border-white/5 scale-105' 
-            : 'text-slate-400 dark:text-slate-500 hover:text-primary hover:bg-white/10'
-        }`}
-        title="System Preference"
-      >
-        <Monitor className="w-4 h-4" />
-      </button>
-    </div>
+    <button
+      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      className="group relative w-12 h-12 flex items-center justify-center rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 shadow-2xl transition-all duration-500 active:scale-90"
+      title={theme === 'dark' ? 'Ganti ke Terang' : 'Ganti ke Gelap'}
+    >
+      <div className="relative w-6 h-6 overflow-hidden">
+        <Sun className={`absolute inset-0 w-6 h-6 text-yellow-400 transition-all duration-700 transform ${theme === 'dark' ? 'translate-y-10 opacity-0 rotate-90' : 'translate-y-0 opacity-100 rotate-0'}`} />
+        <Moon className={`absolute inset-0 w-6 h-6 text-blue-400 transition-all duration-700 transform ${theme === 'dark' ? 'translate-y-0 opacity-100 rotate-0' : '-translate-y-10 opacity-0 -rotate-90'}`} />
+      </div>
+      
+      {/* Decorative pulse effect */}
+      <div className={`absolute inset-0 rounded-2xl bg-accent/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${theme === 'dark' ? 'bg-blue-500/20' : 'bg-yellow-500/20'}`}></div>
+    </button>
   );
 }
