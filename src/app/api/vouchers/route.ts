@@ -9,8 +9,41 @@ function generateRandomString(length: number) {
     return result;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
+        const { searchParams } = new URL(req.url);
+        const sync = searchParams.get('sync');
+
+        if (sync === 'true') {
+            const [routers]: any = await pool.query('SELECT * FROM Routers');
+            for (const router of routers) {
+                try {
+                    const mk = new MikrotikService({
+                        host: router.ip_address, user: router.username, password: router.password, port: router.api_port
+                    });
+                    const mkUsers = await mk.getHotspotUsers();
+                    
+                    for (const user of mkUsers) {
+                        // Check if exists
+                        const [exists]: any = await pool.query('SELECT id FROM Vouchers WHERE router_id = ? AND code = ?', [router.id, user.name]);
+                        if (exists.length === 0) {
+                            await pool.query(
+                                'INSERT INTO Vouchers (router_id, code, password, profile, status) VALUES (?, ?, ?, ?, ?)',
+                                [router.id, user.name, user.password || '', user.profile || 'default', user.disabled === 'true' ? 'EXPIRED' : 'AVAILABLE']
+                            );
+                        } else {
+                            await pool.query(
+                                'UPDATE Vouchers SET profile = ?, status = ? WHERE id = ?',
+                                [user.profile || 'default', user.disabled === 'true' ? 'EXPIRED' : 'AVAILABLE', exists[0].id]
+                            );
+                        }
+                    }
+                } catch (e: any) {
+                    console.error(`Sync failed for router ${router.name}:`, e.message);
+                }
+            }
+        }
+
         const [rows] = await pool.query(`
       SELECT v.*, r.name as router_name 
       FROM Vouchers v

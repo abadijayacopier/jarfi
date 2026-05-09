@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import DynamicBranding from "@/components/DynamicBranding";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
       <body className={`${inter.className} min-h-full flex flex-col`}>
         <ThemeProvider>
+          <DynamicBranding />
           {children}
         </ThemeProvider>
       </body>

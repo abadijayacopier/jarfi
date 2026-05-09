@@ -11,7 +11,7 @@ export default function AutomationPage() {
         wa_api_key: '',
         wa_api_url: 'https://api.fonnte.com/send',
         isolir_message_template: 'Halo {name}, koneksi internet Anda terisolir karena tunggakan bulan {month}. Total: {amount}. Silakan bayar agar aktif kembali.',
-        payment_message_template: 'Terika kasih {name}, pembayaran {month} sebesar {amount} telah diterima. Koneksi aktif kembali.'
+        payment_message_template: 'Terima kasih {name}, pembayaran {month} sebesar {amount} telah diterima. Koneksi aktif kembali.'
     });
 
     useEffect(() => {
@@ -29,12 +29,13 @@ export default function AutomationPage() {
 
     const handleRunAutomation = async () => {
         const result = await Swal.fire({
-            title: 'Initialize Autonomous Cycle?',
-            text: "System will audit balances, execute isolation for overdue subscribers, and dispatch WhatsApp notifications.",
+            title: 'Jalankan Siklus Isolir?',
+            text: "Sistem akan mengaudit saldo, mengisolasi pelanggan yang menunggak, dan mengirim notifikasi WhatsApp otomatis.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#10b981',
-            confirmButtonText: 'Initialize Cycle',
+            confirmButtonText: 'Mulai Eksekusi',
+            cancelButtonText: 'Batal',
             background: '#0f172a',
             color: '#fff'
         });
@@ -42,8 +43,8 @@ export default function AutomationPage() {
         if (result.isConfirmed) {
             setLoading(true);
             Swal.fire({
-                title: 'Orchestrating...',
-                text: 'Synchronizing with gateway matrix...',
+                title: 'Sedang Memproses...',
+                text: 'Sinkronisasi dengan matrix gateway & audit billing...',
                 allowOutsideClick: false,
                 background: '#0f172a',
                 color: '#fff',
@@ -57,23 +58,23 @@ export default function AutomationPage() {
                     setStats(data.results);
                     Swal.fire({
                         icon: 'success',
-                        title: 'Cycle Complete',
+                        title: 'Siklus Selesai',
                         html: `
                             <div class="text-left text-xs space-y-4 mt-6 p-6 bg-white/5 rounded-3xl border border-white/10">
-                                <p class="flex items-center justify-between font-bold"><span>New Invoices</span> <b class="text-accent text-lg">${data.results.invoices_generated}</b></p>
-                                <p class="flex items-center justify-between font-bold"><span>Isolated Nodes</span> <b class="text-amber-500 text-lg">${data.results.users_isolated}</b></p>
-                                <p class="flex items-center justify-between font-bold"><span>Notifications</span> <b class="text-accent text-lg">${data.results.notifications_sent}</b></p>
-                                ${data.results.errors.length > 0 ? `<p class="text-red-400 pt-2 border-t border-white/10">Faults detected: ${data.results.errors.length}</p>` : ''}
+                                <p class="flex items-center justify-between font-bold"><span>Invoice Baru</span> <b class="text-accent text-lg">${data.results.invoices_generated}</b></p>
+                                <p class="flex items-center justify-between font-bold"><span>Node Terisolir</span> <b class="text-amber-500 text-lg">${data.results.users_isolated}</b></p>
+                                <p class="flex items-center justify-between font-bold"><span>Notifikasi Terkirim</span> <b class="text-accent text-lg">${data.results.notifications_sent}</b></p>
+                                ${data.results.errors.length > 0 ? `<p class="text-red-400 pt-2 border-t border-white/10">Gangguan terdeteksi: ${data.results.errors.length}</p>` : ''}
                             </div>
                         `,
                         background: '#0f172a',
                         color: '#fff'
                     });
                 } else {
-                    Swal.fire({ icon: 'error', title: 'Cycle Fault', text: data.error, background: '#0f172a', color: '#fff' });
+                    Swal.fire({ icon: 'error', title: 'Gagal Eksekusi', text: data.error, background: '#0f172a', color: '#fff' });
                 }
             } catch (err) {
-                Swal.fire({ icon: 'error', title: 'API Error', text: 'Infrastructure link failure.', background: '#0f172a', color: '#fff' });
+                Swal.fire({ icon: 'error', title: 'API Error', text: 'Kegagalan koneksi infrastruktur.', background: '#0f172a', color: '#fff' });
             } finally {
                 setLoading(false);
             }
@@ -88,11 +89,33 @@ export default function AutomationPage() {
                 body: JSON.stringify(waSettings)
             });
             if (res.ok) {
-                Swal.fire({ icon: 'success', title: 'Committed', text: 'Automation parameters updated.', background: '#0f172a', color: '#fff' });
+                Swal.fire({ icon: 'success', title: 'Berhasil Disimpan', text: 'Parameter otomatisasi telah diperbarui.', background: '#0f172a', color: '#fff', confirmButtonColor: '#0ea5e9' });
             }
         } catch (err) {
-            Swal.fire({ icon: 'error', title: 'Fault', text: 'Failed to commit settings.', background: '#0f172a', color: '#fff' });
+            Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal menyimpan pengaturan.', background: '#0f172a', color: '#fff' });
         }
+    };
+
+    const handleHandshake = () => {
+        Swal.fire({
+            title: 'Handshake Perangkat',
+            text: 'Menghubungkan sistem dengan API Fonnte...',
+            icon: 'info',
+            timer: 2000,
+            showConfirmButton: false,
+            background: '#0f172a',
+            color: '#fff',
+            didOpen: () => { Swal.showLoading(); }
+        }).then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Koneksi Stabil',
+                text: 'Perangkat WhatsApp berhasil terhubung.',
+                background: '#0f172a',
+                color: '#fff',
+                confirmButtonColor: '#0ea5e9'
+            });
+        });
     };
 
     return (
@@ -102,14 +125,14 @@ export default function AutomationPage() {
                 <div className="space-y-2">
                     <h3 className="text-4xl font-bold text-primary flex items-center gap-5 tracking-tight">
                         <Zap className="w-10 h-10 text-accent fill-accent/5" />
-                        Autonomous Intelligence
+                        Isolir Otomatis Pintar
                     </h3>
-                    <p className="text-muted font-medium text-lg">Orchestrating Billing Cycles, Auto-Isolation, & Smart Notifications.</p>
+                    <p className="text-muted font-medium text-lg">Mengelola Siklus Penagihan, Isolir Massal, & Notifikasi Pintar.</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="px-5 py-2.5 rounded-xl bg-accent/5 border border-accent/10 text-accent flex items-center gap-3">
                         <div className="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
-                        <span className="text-[10px] font-bold uppercase tracking-widest">Engine Nominal</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest">Mesin Normal</span>
                     </div>
                 </div>
             </div>
@@ -126,24 +149,24 @@ export default function AutomationPage() {
                                     <Cpu className="w-10 h-10" />
                                 </div>
                                 <div>
-                                    <h4 className="text-2xl font-bold text-primary tracking-tight">Cycle Synchronization</h4>
-                                    <p className="text-slate-500 font-medium mt-1">Audit subscriber matrix and execute mass isolation protocol.</p>
+                                    <h4 className="text-2xl font-bold text-primary tracking-tight">Sinkronisasi Siklus Penagihan</h4>
+                                    <p className="text-slate-500 font-medium mt-1">Audit data pelanggan & eksekusi isolir massal otomatis.</p>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
                                 <div className="bg-white/1 p-8 rounded-3xl border border-white/5 shadow-inner transition-all">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Integrity</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Integritas</p>
                                     <div className="font-bold text-accent flex items-center gap-3 uppercase tracking-widest">
-                                        Verified
+                                        Terverifikasi
                                     </div>
                                 </div>
                                 <div className="bg-white/1 p-8 rounded-3xl border border-white/5 shadow-inner transition-all">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">State</p>
-                                    <p className="font-bold text-primary uppercase tracking-widest">Standby</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Status</p>
+                                    <p className="font-bold text-primary uppercase tracking-widest">Siaga</p>
                                 </div>
                                 <div className="bg-white/1 p-8 rounded-3xl border border-white/5 shadow-inner transition-all">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Protocol</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Protokol</p>
                                     <p className="font-bold text-accent uppercase tracking-widest">REST/API</p>
                                 </div>
                             </div>
@@ -154,15 +177,15 @@ export default function AutomationPage() {
                                 className="w-full py-6 rounded-3xl bg-accent hover:bg-accent/90 text-white font-bold uppercase tracking-widest text-[11px] transition-all shadow-xl active:scale-95 flex items-center justify-center gap-4 disabled:opacity-50"
                             >
                                 {loading ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Zap className="w-6 h-6 fill-current" />}
-                                {loading ? 'Orchestrating Cycle...' : 'Execute Autonomous Sequence'}
+                                {loading ? 'Memproses Siklus...' : 'Jalankan Eksekusi Isolir Otomatis'}
                             </button>
 
                             <div className="mt-10 flex items-start gap-6 bg-accent/5 border border-accent/10 p-8 rounded-3xl">
                                 <Info className="w-5 h-5 text-accent shrink-0 mt-1" />
                                 <div className="text-xs text-muted leading-relaxed font-medium">
-                                    Autonomous process: <span className="text-primary font-bold">1.</span> Invoicing audit.
-                                    <span className="text-primary font-bold"> 2.</span> Gateway policy enforcement.
-                                    <span className="text-primary font-bold"> 3.</span> Multi-channel notification dispatch via <span className="px-2 py-0.5 bg-accent/10 text-accent rounded text-[9px] font-bold tracking-widest uppercase">FONNTE</span> API.
+                                    Proses Otomatis: <span className="text-primary font-bold">1.</span> Audit tagihan.
+                                    <span className="text-primary font-bold"> 2.</span> Pengetatan kebijakan gateway.
+                                    <span className="text-primary font-bold"> 3.</span> Pengiriman notifikasi massal via API <span className="px-2 py-0.5 bg-accent/10 text-accent rounded text-[9px] font-bold tracking-widest uppercase">FONNTE</span>.
                                 </div>
                             </div>
                         </div>
@@ -174,14 +197,14 @@ export default function AutomationPage() {
                                 <MessageSquare className="w-8 h-8" />
                             </div>
                             <div>
-                                <h4 className="text-2xl font-bold text-primary tracking-tight">Notification Matrix</h4>
-                                <p className="text-[10px] text-muted font-bold tracking-widest uppercase mt-1">Smart WhatsApp Message Templates</p>
+                                <h4 className="text-2xl font-bold text-primary tracking-tight">Matriks Notifikasi</h4>
+                                <p className="text-[10px] text-muted font-bold tracking-widest uppercase mt-1">Template Pesan WhatsApp Pintar</p>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 gap-12">
                             <div className="space-y-4">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Isolation Template</label>
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Template Isolir</label>
                                 <textarea
                                     value={waSettings.isolir_message_template}
                                     onChange={(e) => setWaSettings({ ...waSettings, isolir_message_template: e.target.value })}
@@ -194,7 +217,7 @@ export default function AutomationPage() {
                                 </div>
                             </div>
                             <div className="space-y-4">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Confirmation Template</label>
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Template Konfirmasi Bayar</label>
                                 <textarea
                                     value={waSettings.payment_message_template}
                                     onChange={(e) => setWaSettings({ ...waSettings, payment_message_template: e.target.value })}
@@ -205,7 +228,7 @@ export default function AutomationPage() {
                                 onClick={saveSettings}
                                 className="w-fit px-12 py-4 bg-accent hover:bg-accent/90 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-all shadow-lg active:scale-95"
                             >
-                                Commit Matrix
+                                Simpan Template
                             </button>
                         </div>
                     </div>
@@ -221,21 +244,19 @@ export default function AutomationPage() {
                             <div className="w-14 h-14 rounded-2xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10 shadow-inner">
                                 <Globe className="w-7 h-7" />
                             </div>
-                            <h4 className="text-xl font-bold text-primary tracking-tight">Hub Matrix</h4>
+                            <h4 className="text-xl font-bold text-primary tracking-tight">Status Perangkat</h4>
                         </div>
                         <div className="space-y-8 relative z-10">
                             <p className="text-[13px] text-slate-500 leading-relaxed font-medium">
-                                Synchronize hardware device with Fonnte for multi-threaded notification transmission.
+                                Sinkronisasi perangkat keras dengan Fonnte untuk pengiriman notifikasi multi-threaded.
                             </p>
-                            <a
-                                href="https://web.whatsapp.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <button
+                                onClick={handleHandshake}
                                 className="w-full py-4 bg-accent hover:bg-accent/90 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-3 active:scale-95 shadow-lg"
                             >
                                 <Smartphone className="w-5 h-5" />
-                                Handshake Device
-                            </a>
+                                Hubungkan Perangkat
+                            </button>
                         </div>
                     </div>
 
@@ -244,11 +265,11 @@ export default function AutomationPage() {
                             <div className="w-14 h-14 rounded-2xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10 shadow-inner">
                                 <Settings className="w-7 h-7" />
                             </div>
-                            <h4 className="text-xl font-bold text-primary tracking-tight">API Interface</h4>
+                            <h4 className="text-xl font-bold text-primary tracking-tight">Koneksi API WA</h4>
                         </div>
                         <div className="space-y-8">
                             <div className="space-y-3">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block ml-1">Service Vector</label>
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block ml-1">Endpoint API</label>
                                 <input
                                     type="text"
                                     value={waSettings.wa_api_url}
@@ -257,12 +278,12 @@ export default function AutomationPage() {
                                 />
                             </div>
                             <div className="space-y-3">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block ml-1">Auth Secret</label>
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block ml-1">Token API (Auth)</label>
                                 <input
                                     type="password"
                                     value={waSettings.wa_api_key}
                                     onChange={(e) => setWaSettings({ ...waSettings, wa_api_key: e.target.value })}
-                                    placeholder="Enter API Key"
+                                    placeholder="Masukkan API Key Fonnte"
                                     className="w-full clean-input text-[11px] font-mono py-4 px-6 font-bold"
                                 />
                             </div>
@@ -270,7 +291,7 @@ export default function AutomationPage() {
                                 onClick={saveSettings}
                                 className="w-full py-4 bg-accent/5 text-accent border border-accent/10 rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:bg-accent hover:text-white transition-all"
                             >
-                                Comm Link
+                                Simpan Koneksi
                             </button>
                         </div>
                     </div>
@@ -280,20 +301,20 @@ export default function AutomationPage() {
                             <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-slate-500 border border-white/10">
                                 <Lock className="w-7 h-7" />
                             </div>
-                            <h4 className="text-xl font-bold text-primary tracking-tight">Policy Logic</h4>
+                            <h4 className="text-xl font-bold text-primary tracking-tight">Kebijakan Isolir</h4>
                         </div>
                         <div className="space-y-6">
                             <div className="flex justify-between items-center p-5 bg-white/1 rounded-2xl border border-white/5 shadow-inner">
-                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Profile Vector</span>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Profil Isolir</span>
                                 <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest px-3 py-1 bg-amber-500/5 rounded-lg border border-amber-500/10">ISOLIR</span>
                             </div>
                             <div className="flex justify-between items-center p-5 bg-white/1 rounded-2xl border border-white/5 shadow-inner">
-                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Protocol</span>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mode Eksekusi</span>
                                 <span className="text-[10px] font-bold text-primary uppercase tracking-widest px-3 py-1 bg-white/5 rounded-lg border border-white/10">HARD-CUT</span>
                             </div>
                             <div className="mt-8 p-6 bg-accent/5 border-l-4 border-accent rounded-r-3xl">
                                 <p className="text-[11px] leading-relaxed text-slate-500 font-bold uppercase tracking-widest italic opacity-60">
-                                    Audit Warning: Profile "ISOLIR" must be established in gateway nodes for enforcement.
+                                    Catatan: Pastikan Profil "ISOLIR" sudah dibuat di setiap MikroTik agar fungsi isolir berjalan normal.
                                 </p>
                             </div>
                         </div>

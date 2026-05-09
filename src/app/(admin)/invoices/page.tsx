@@ -258,21 +258,21 @@ export default function InvoicesPage() {
                                                      )}
                                                  </div>
                                              </td>
-                                            <td className="px-8 py-3">
-                                                <span className={`px-4 py-2 rounded-xl text-[9px] font-bold tracking-widest uppercase border ${inv.status === 'PAID' ? 'bg-accent/10 text-accent border-accent/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
-                                                    {inv.status === 'PAID' ? 'LUNAS' : 'TERTUNDA'}
-                                                </span>
-                                            </td>
-                                            <td className="px-8 py-3">
-                                                {inv.paid_at ? (
-                                                    <div className="flex items-center gap-3 text-slate-500 font-bold text-[10px] uppercase tracking-widest">
-                                                        <CheckCircle className="w-3.5 h-3.5 text-accent" />
-                                                        {new Date(inv.paid_at).toLocaleDateString('id-ID')}
-                                                    </div>
-                                                ) : <span className="text-slate-600 font-bold text-[10px] uppercase tracking-widest italic opacity-20">Belum Bayar</span>}
-                                            </td>
-                                            <td className="px-8 py-3">
-                                                <div className="flex items-center justify-end gap-3 opacity-40 group-hover:opacity-100 transition-opacity">
+                                             <td className="px-8 py-3">
+                                                 <span className={`px-4 py-2 rounded-xl text-[9px] font-black tracking-widest uppercase border ${inv.status === 'PAID' ? 'bg-accent/10 text-emerald-600 dark:text-accent border-accent/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-500 border-rose-500/20'}`}>
+                                                     {inv.status === 'PAID' ? 'LUNAS' : 'TERTUNDA'}
+                                                 </span>
+                                             </td>
+                                             <td className="px-8 py-3">
+                                                 {inv.paid_at ? (
+                                                     <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase tracking-widest">
+                                                         <CheckCircle className="w-3.5 h-3.5 text-accent" />
+                                                         {new Date(inv.paid_at).toLocaleDateString('id-ID')}
+                                                     </div>
+                                                 ) : <span className="text-slate-400 dark:text-slate-600 font-black text-[10px] uppercase tracking-widest italic opacity-60 dark:opacity-40">Belum Bayar</span>}
+                                             </td>
+                                             <td className="px-8 py-3">
+                                                 <div className="flex items-center justify-end gap-3 opacity-60 dark:opacity-40 group-hover:opacity-100 transition-opacity">
                                                     {inv.status !== 'PAID' && (
                                                         <button 
                                                             onClick={() => handleConfirmPayment(inv.id)} 

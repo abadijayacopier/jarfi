@@ -37,6 +37,18 @@ export class MikrotikService {
         return this.execute(api => api.menu('/ppp/profile').get());
     }
 
+    public async getHotspotProfiles() {
+        return this.execute(api => api.menu('/ip/hotspot/user/profile').get());
+    }
+
+    public async getHotspotUsers() {
+        return this.execute(api => api.menu('/ip/hotspot/user').get());
+    }
+
+    public async addHotspotUser(name: string, password: string, profile: string) {
+        return this.execute(api => api.menu('/ip/hotspot/user').add({ name, password, profile }));
+    }
+
     public async getSecrets() {
         return this.execute(api => api.menu('/ppp/secret').get());
     }

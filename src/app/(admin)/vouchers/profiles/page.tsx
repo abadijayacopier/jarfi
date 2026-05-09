@@ -207,9 +207,9 @@ export default function HotspotProfilesPage() {
                             </thead>
                             <tbody className="divide-y divide-white/5">
                                 {loading ? (
-                                    <tr><td colSpan={5} className="p-20 text-center text-slate-500 font-bold uppercase tracking-widest animate-pulse">Menarik data profil dari Mikrotik...</td></tr>
+                                    <tr key="loading-row"><td colSpan={5} className="p-20 text-center text-slate-500 font-bold uppercase tracking-widest animate-pulse">Menarik data profil dari Mikrotik...</td></tr>
                                 ) : profiles.length === 0 ? (
-                                    <tr><td colSpan={5} className="p-20 text-center text-slate-500">Tidak ada profil ditemukan.</td></tr>
+                                    <tr key="empty-row"><td colSpan={5} className="p-20 text-center text-slate-500">Tidak ada profil ditemukan.</td></tr>
                                 ) : (
                                     profiles
                                         .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)

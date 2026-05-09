@@ -330,19 +330,19 @@ export default function PackagesPage() {
                         </div>
                     ) : (
                         paginatedPackages.map((p: any) => (
-                            <div key={p.id} className="group relative bg-surface dark:bg-[#0f172a]/80 backdrop-blur-3xl p-1 rounded-[40px] border border-glass-border dark:border-white/5 hover:border-accent/40 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_40px_80px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_40px_80px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col h-full min-h-[420px]">
+                            <div key={p.id} className="group relative bg-surface dark:bg-[#0f172a]/80 backdrop-blur-3xl p-1 rounded-[32px] border border-glass-border dark:border-white/5 hover:border-accent/40 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col h-full min-h-[320px]">
                                 {/* Animated background gradient */}
                                 <div className="absolute inset-0 bg-linear-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                                 
-                                <div className="p-10 space-y-8 flex-1 flex flex-col relative z-10">
+                                <div className="p-6 space-y-6 flex-1 flex flex-col relative z-10">
                                     <div className="flex justify-between items-start">
-                                        <div className="w-20 h-20 rounded-[28px] bg-linear-to-br from-white/5 to-white/2 border border-glass-border dark:border-white/10 flex items-center justify-center text-accent shadow-2xl group-hover:scale-110 group-hover:bg-accent group-hover:text-white transition-all duration-500">
-                                            <Package className="w-10 h-10" />
+                                        <div className="w-14 h-14 rounded-[20px] bg-linear-to-br from-white/5 to-white/2 border border-glass-border dark:border-white/10 flex items-center justify-center text-accent shadow-2xl group-hover:scale-110 group-hover:bg-accent group-hover:text-white transition-all duration-500">
+                                            <Package className="w-7 h-7" />
                                         </div>
                                         <div className="flex flex-col items-end">
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                                                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Active</span>
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                                <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Active</span>
                                             </div>
                                             <button 
                                                 onClick={() => {
@@ -351,45 +351,45 @@ export default function PackagesPage() {
                                                     setFormData({ name: p.name, speed_limit: p.speed_limit || p.bandwidth_limit || '', price: parseInt(p.price) });
                                                     setShowForm(true);
                                                 }}
-                                                className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl text-muted hover:text-accent border border-glass-border dark:border-white/5 transition-all"
+                                                className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-muted hover:text-accent border border-glass-border dark:border-white/5 transition-all"
                                             >
-                                                <Edit className="w-6 h-6" />
+                                                <Edit className="w-4 h-4" />
                                             </button>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-3">
-                                        <h4 className="text-3xl font-black text-primary dark:text-white tracking-tighter uppercase leading-none group-hover:text-accent transition-colors truncate">{p.name}</h4>
-                                        <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em] opacity-60 underline underline-offset-4 decoration-accent/20">Logic Node Matrix</p>
+                                    <div className="space-y-1.5">
+                                        <h4 className="text-xl font-black text-primary dark:text-white tracking-tighter uppercase leading-none group-hover:text-accent transition-colors truncate">{p.name}</h4>
+                                        <p className="text-[9px] font-black text-muted uppercase tracking-[0.2em] opacity-60 underline underline-offset-4 decoration-accent/20">Logic Node Matrix</p>
                                     </div>
 
-                                    <div className="flex-1 flex flex-col justify-center py-8 border-y border-glass-border dark:border-white/5 my-2">
-                                        <div className="flex items-center justify-between mb-6">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-                                                    <Wifi className="w-5 h-5 text-indigo-400" />
+                                    <div className="flex-1 flex flex-col justify-center py-4 border-y border-glass-border dark:border-white/5 my-1">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                                                    <Wifi className="w-4 h-4 text-indigo-400" />
                                                 </div>
-                                                <span className="text-[11px] font-black text-muted uppercase tracking-widest">Bandwidth</span>
+                                                <span className="text-[10px] font-black text-muted uppercase tracking-widest">Bandwidth</span>
                                             </div>
-                                            <span className="text-lg font-mono font-black text-primary dark:text-white bg-white/5 px-6 py-3 rounded-2xl border border-glass-border dark:border-white/5">{p.speed_limit || p.bandwidth_limit || 'UNLIMITED'}</span>
+                                            <span className="text-[12px] font-mono font-black text-primary dark:text-white bg-white/5 px-3 py-1.5 rounded-xl border border-glass-border dark:border-white/5">{p.speed_limit || p.bandwidth_limit || 'UNLIMITED'}</span>
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                                                    <Zap className="w-5 h-5 text-emerald-400" />
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                                                    <Zap className="w-4 h-4 text-emerald-400" />
                                                 </div>
-                                                <span className="text-[11px] font-black text-muted uppercase tracking-widest">Pricing</span>
+                                                <span className="text-[10px] font-black text-muted uppercase tracking-widest">Pricing</span>
                                             </div>
-                                            <span className="text-xl font-black text-emerald-500">Rp {parseInt(p.price).toLocaleString('id-ID')}</span>
+                                            <span className="text-sm font-black text-emerald-500">Rp {parseInt(p.price).toLocaleString('id-ID')}</span>
                                         </div>
                                     </div>
 
-                                    <div className="pt-6 flex flex-col gap-4">
+                                    <div className="pt-2 flex flex-col gap-3">
                                         <button 
                                             onClick={() => handleDelete(p.id, p.name)}
-                                            className="w-full py-6 rounded-[32px] bg-red-500/5 hover:bg-red-500/10 text-red-500 border border-red-500/10 font-black text-[11px] uppercase tracking-[0.4em] active:scale-95 transition-all flex items-center justify-center gap-4 group/del shadow-inner"
+                                            className="w-full py-4 rounded-2xl bg-red-500/5 hover:bg-red-500/10 text-red-500 border border-red-500/10 font-black text-[10px] uppercase tracking-[0.4em] active:scale-95 transition-all flex items-center justify-center gap-3 group/del shadow-inner"
                                         >
-                                            <Trash2 className="w-5 h-5 group-hover/del:scale-125 transition-transform" />
+                                            <Trash2 className="w-4 h-4 group-hover/del:scale-125 transition-transform" />
                                             Hapus Paket
                                         </button>
                                     </div>

@@ -81,119 +81,116 @@ export default function SystemMonitorPage() {
     return (
         <div className="animate-in fade-in duration-500 pb-20 space-y-12">
             {/* Header Section */}
-            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8 mb-16 border-b border-(--glass-border) pb-10">
-                <div className="space-y-2">
-                    <h3 className="text-heading flex items-center gap-5">
-                        <Activity className="w-10 h-10 text-accent fill-accent/5" />
-                        Monitor Sistem
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10 border-b border-slate-200 dark:border-white/5 pb-8">
+                <div className="space-y-1">
+                    <h3 className="text-2xl font-black flex items-center gap-4 text-slate-800 dark:text-white uppercase tracking-tight">
+                        <Activity className="w-8 h-8 text-accent" />
+                        Monitoring
                     </h3>
-                    <p className="text-label mt-2 opacity-100">Metrik Performa & Telemetri Infrastruktur Jaringan secara Real-time.</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest opacity-60">Metrik Performa & Telemetri Real-time</p>
                 </div>
                 
-                <div className="flex flex-wrap gap-4 glass p-3 rounded-4xl border border-(--glass-border) bg-white/2 shadow-xl items-center">
-                    <div className="flex items-center gap-3 px-5 py-2.5 bg-white/5 rounded-2xl border border-white/5">
-                        <Server className="w-4 h-4 text-accent/50" />
+                <div className="flex flex-wrap gap-3 glass p-2.5 rounded-3xl border border-slate-200 dark:border-white/5 bg-white/40 dark:bg-slate-900/40 shadow-lg items-center backdrop-blur-xl">
+                    <div className="flex items-center gap-2.5 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/5">
+                        <Server className="w-3.5 h-3.5 text-accent/50" />
                         <select 
                             value={selectedRouter} 
                             onChange={e => setSelectedRouter(e.target.value)} 
-                            className="bg-transparent text-primary text-[10px] font-bold uppercase tracking-widest focus:outline-none cursor-pointer appearance-none"
+                            className="bg-transparent text-slate-700 dark:text-slate-200 text-[9px] font-black uppercase tracking-widest focus:outline-none cursor-pointer appearance-none"
                         >
                             {routers.map((r: any) => <option key={r.id} value={r.id} className="bg-slate-900">{r.name}</option>)}
                         </select>
                     </div>
-                    <div className="flex items-center gap-3 px-5 py-2.5 bg-white/5 rounded-2xl border border-white/5">
-                        <Wifi className="w-4 h-4 text-accent/50" />
+                    <div className="flex items-center gap-2.5 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/5">
+                        <Wifi className="w-3.5 h-3.5 text-accent/50" />
                         <select 
                             value={selectedInterface} 
                             onChange={e => setSelectedInterface(e.target.value)} 
-                            className="bg-transparent text-primary text-[10px] font-bold uppercase tracking-widest focus:outline-none cursor-pointer appearance-none"
+                            className="bg-transparent text-slate-700 dark:text-slate-200 text-[9px] font-black uppercase tracking-widest focus:outline-none cursor-pointer appearance-none"
                         >
                             {interfaces.length === 0 ? <option>MEMERIKSA...</option> : interfaces.map(i => <option key={i} value={i} className="bg-slate-900">{i}</option>)}
                         </select>
                     </div>
-                    <div className="px-5 py-2.5 bg-accent/10 rounded-2xl border border-accent/20 flex items-center gap-3">
-                        <div className="w-2 h-2 rounded-full bg-accent shadow-[0_0_12px_rgba(16,185,129,0.5)] animate-pulse"></div>
-                        <span className="text-[10px] font-bold text-accent uppercase tracking-widest">Koneksi Aktif</span>
+                    <div className="px-4 py-2 bg-accent/10 rounded-xl border border-accent/20 flex items-center gap-2.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse"></div>
+                        <span className="text-[9px] font-black text-accent uppercase tracking-widest">Live Connection</span>
                     </div>
                 </div>
             </div>
 
             {/* Core Metrics Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: 'Downlink (RX)', value: formatMbps(currentStats.rx), unit: 'Mbps', icon: ArrowDown, color: 'accent', detail: 'Ingress Real-time' },
-                    { label: 'Uplink (TX)', value: formatMbps(currentStats.tx), unit: 'Mbps', icon: ArrowUp, color: 'sky-500', detail: 'Egress Real-time' },
-                    { label: 'Latensi', value: currentStats.latency, unit: 'ms', icon: Zap, color: 'amber-500', detail: 'Respon ICMP' },
-                    { label: 'Beban Inti', value: currentStats.cpu, unit: '%', icon: Cpu, color: 'purple-500', detail: 'Vektor Pemrosesan' }
+                    { label: 'Downlink (RX)', value: formatMbps(currentStats.rx), unit: 'Mbps', icon: ArrowDown, color: 'accent', detail: 'Ingress' },
+                    { label: 'Uplink (TX)', value: formatMbps(currentStats.tx), unit: 'Mbps', icon: ArrowUp, color: 'blue-500', detail: 'Egress' },
+                    { label: 'Latensi', value: currentStats.latency, unit: 'ms', icon: Zap, color: 'amber-500', detail: 'ICMP' },
+                    { label: 'Beban Inti', value: currentStats.cpu, unit: '%', icon: Cpu, color: 'purple-500', detail: 'CPU' }
                 ].map((stat, idx) => (
-                    <div key={idx} className="glass p-8 rounded-4xl border border-(--glass-border) bg-white/2 relative overflow-hidden group hover:scale-[1.02] transition-all duration-500 shadow-xl">
-                        <div className={`absolute -right-8 -top-8 w-24 h-24 bg-${stat.color}/5 rounded-full blur-3xl group-hover:bg-${stat.color}/10 transition-all duration-700`}></div>
-                        <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-4">{stat.label}</p>
-                        <div className="flex items-baseline gap-3">
-                            <h4 className="text-5xl font-bold text-primary tracking-tighter">{stat.value}</h4>
-                            <span className={`text-${stat.color} text-[10px] font-bold uppercase tracking-widest`}>{stat.unit}</span>
+                    <div key={idx} className="bg-white dark:bg-slate-900/50 p-6 rounded-[28px] border border-slate-200 dark:border-white/5 relative overflow-hidden group hover:shadow-xl hover:-translate-y-1 transition-all duration-500 shadow-sm backdrop-blur-xl">
+                        <div className={`absolute -right-6 -top-6 w-16 h-16 bg-${stat.color}/5 rounded-full blur-2xl group-hover:bg-${stat.color}/10 transition-all duration-700`}></div>
+                        <p className="text-slate-400 dark:text-slate-500 text-[8px] font-black uppercase tracking-widest mb-2">{stat.label}</p>
+                        <div className="flex items-baseline gap-2">
+                            <h4 className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter">{stat.value}</h4>
+                            <span className={`text-${stat.color} text-[8px] font-black uppercase tracking-widest opacity-60`}>{stat.unit}</span>
                         </div>
-                        <div className="mt-8 flex items-center gap-3 text-[10px] text-slate-500 font-bold uppercase tracking-widest opacity-60">
-                            <stat.icon className={`w-4 h-4 text-${stat.color} ${stat.icon === Zap ? 'animate-pulse' : ''}`} /> {stat.detail}
+                        <div className="mt-4 flex items-center gap-2 text-[8px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest opacity-40">
+                            <stat.icon className={`w-3.5 h-3.5 text-${stat.color} ${stat.icon === Zap ? 'animate-pulse' : ''}`} /> {stat.detail}
                         </div>
                     </div>
                 ))}
             </div>
 
             {/* Throughput Analytics */}
-            <div className="glass p-12 rounded-4xl border border-(--glass-border) bg-white/2 shadow-xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none group-hover:scale-110 transition-transform duration-1000">
-                    <Activity className="w-96 h-96 text-accent" />
-                </div>
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-8 relative z-10">
+            <div className="bg-white dark:bg-slate-900/50 p-8 rounded-[32px] border border-slate-200 dark:border-white/5 shadow-xl relative overflow-hidden group backdrop-blur-xl">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-6 relative z-10">
                     <div>
-                        <h3 className="text-2xl font-bold text-primary tracking-tight">Analitik Throughput</h3>
-                        <p className="text-[10px] text-muted font-bold mt-2 uppercase tracking-widest">Vektor Antarmuka: {selectedInterface || 'Memeriksa Node...'}</p>
+                        <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">Analitik Throughput</h3>
+                        <p className="text-[9px] text-slate-400 dark:text-slate-500 font-black mt-1 uppercase tracking-widest">Interface: {selectedInterface || 'Memeriksa Node...'}</p>
                     </div>
-                    <div className="flex flex-wrap gap-8 bg-white/2 px-8 py-4 rounded-2xl border border-white/5">
-                        <div className="flex items-center gap-4">
-                            <div className="w-3 h-3 rounded-full bg-accent shadow-[0_0_10px_rgba(16,185,129,0.4)]"></div>
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Downlink</span>
+                    <div className="flex gap-6 bg-slate-50 dark:bg-white/5 px-6 py-3 rounded-xl border border-slate-200 dark:border-white/5">
+                        <div className="flex items-center gap-3">
+                            <div className="w-2.5 h-2.5 rounded-full bg-accent shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div>
+                            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Downlink</span>
                         </div>
-                        <div className="flex items-center gap-4">
-                            <div className="w-3 h-3 rounded-full bg-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.4)]"></div>
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Uplink</span>
+                        <div className="flex items-center gap-3">
+                            <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]"></div>
+                            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Uplink</span>
                         </div>
                     </div>
                 </div>
-                <div className="h-[500px] relative z-10 w-full rounded-3xl overflow-hidden border border-white/5 bg-slate-950/20">
+                <div className="h-[380px] relative z-10 w-full rounded-[24px] overflow-hidden border border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/30 backdrop-blur-sm">
                     <AdvancedMonitorChart data={bwHistory} type="bandwidth" />
                 </div>
             </div>
 
             {/* Sub Metrics Grid */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
-                <div className="glass p-10 rounded-4xl border border-(--glass-border) bg-white/2 shadow-xl">
-                    <div className="flex justify-between items-center mb-10">
-                        <h3 className="text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-4">
-                            <div className="p-2.5 rounded-xl bg-amber-500/5 border border-amber-500/10">
-                                <Zap className="w-4 h-4 text-amber-500" />
+                <div className="bg-white dark:bg-slate-900/50 p-6 rounded-[28px] border border-slate-200 dark:border-white/5 shadow-xl backdrop-blur-xl">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-[9px] font-black text-slate-800 dark:text-white uppercase tracking-widest flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-amber-500/5 border border-amber-500/10">
+                                <Zap className="w-3.5 h-3.5 text-amber-500" />
                             </div>
                             Analisis Latensi
                         </h3>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest px-3 py-1 bg-white/2 rounded-lg border border-white/5">Siaran Langsung</span>
+                        <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2.5 py-1 bg-slate-50 dark:bg-white/5 rounded-md border border-slate-200 dark:border-white/5">Siaran Langsung</span>
                     </div>
-                    <div className="h-[350px] rounded-3xl overflow-hidden border border-white/5">
+                    <div className="h-[250px] rounded-2xl overflow-hidden border border-slate-100 dark:border-white/5 bg-slate-50/30 dark:bg-slate-950/20">
                         <AdvancedMonitorChart data={latencyHistory} type="latency" />
                     </div>
                 </div>
 
-                <div className="glass p-10 rounded-4xl border border-(--glass-border) bg-white/2 shadow-xl">
-                    <div className="flex justify-between items-center mb-10">
-                        <h3 className="text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-4">
-                            <div className="p-2.5 rounded-xl bg-purple-500/5 border border-purple-500/10">
-                                <BarChart3 className="w-4 h-4 text-purple-500" />
+                <div className="bg-white dark:bg-slate-900/50 p-6 rounded-[28px] border border-slate-200 dark:border-white/5 shadow-xl backdrop-blur-xl">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-[9px] font-black text-slate-800 dark:text-white uppercase tracking-widest flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-purple-500/5 border border-purple-500/10">
+                                <BarChart3 className="w-3.5 h-3.5 text-purple-500" />
                             </div>
                             Vektor Infrastruktur
                         </h3>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest px-3 py-1 bg-white/2 rounded-lg border border-white/5">Beban CPU</span>
+                        <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2.5 py-1 bg-slate-50 dark:bg-white/5 rounded-md border border-slate-200 dark:border-white/5">Beban CPU</span>
                     </div>
-                    <div className="h-[350px] rounded-3xl overflow-hidden border border-white/5">
+                    <div className="h-[250px] rounded-2xl overflow-hidden border border-slate-100 dark:border-white/5 bg-slate-50/30 dark:bg-slate-950/20">
                         <AdvancedMonitorChart 
                             data={resourceHistory.map(h => ({ ...h, value: h.cpu }))} 
                             type="resources" 

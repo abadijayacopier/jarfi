@@ -531,7 +531,7 @@ export default function CustomersPage() {
     const paginatedCustomers = filteredCustomers.slice((currentPage - 1) * 30, currentPage * 30);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#020617] transition-colors pb-24 w-full space-y-10 animate-in fade-in duration-500">
+        <div className="min-h-screen bg-white dark:bg-[#020617] transition-colors pb-24 w-full space-y-10 animate-in fade-in duration-500">
             {/* Header Vyber Style */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 mb-6 border-b border-slate-200 dark:border-white/5 pb-10">
                 <div className="flex items-center gap-6">
@@ -637,7 +637,7 @@ export default function CustomersPage() {
 
             {/* Table Area / Grid View */}
             <div className="space-y-6">
-                <div className="bg-white dark:bg-slate-900 p-8 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+                <div className="bg-slate-50/50 dark:bg-slate-900/50 p-8 rounded-[32px] border border-slate-200/60 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6 backdrop-blur-md">
                     <div className="relative w-full md:w-[400px]">
                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                         <input 
@@ -752,33 +752,30 @@ export default function CustomersPage() {
                         </div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-8 animate-in slide-in-from-bottom-4 duration-500 w-full relative">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 animate-in slide-in-from-bottom-4 duration-500 w-full relative">
                         {isSyncing && (
                             <div className="absolute -top-4 left-0 right-0 h-1 bg-accent animate-pulse z-50 rounded-full" />
                         )}
                         {paginatedCustomers.map((c) => (
-                            <div key={c.id} className="bg-white dark:bg-slate-900/50 rounded-2xl md:rounded-[32px] border border-slate-200 dark:border-white/5 shadow-xl p-8 md:p-8 space-y-8 md:space-y-8 hover:shadow-2xl hover:shadow-accent/5 hover:-translate-y-2 transition-all duration-500 group relative overflow-hidden cursor-default backdrop-blur-xl md:aspect-auto flex flex-col justify-between">
-                                <div className={`absolute top-0 right-0 w-24 md:w-48 h-24 md:h-48 -mr-6 -mt-6 md:-mr-12 md:-mt-12 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity`}>
-                                    <Signal className="w-full h-full text-accent" />
-                                </div>
+                            <div key={c.id} className="bg-white dark:bg-slate-900/40 rounded-2xl md:rounded-[28px] border border-slate-200 dark:border-white/5 shadow-xl p-6 md:p-6 space-y-6 md:space-y-6 hover:shadow-2xl hover:shadow-accent/5 hover:-translate-y-1 transition-all duration-500 group relative overflow-hidden cursor-default backdrop-blur-xl flex flex-col justify-between">
                                 
                                 <div className="flex justify-between items-start gap-4 relative z-10 overflow-hidden">
-                                    <div className="flex items-center gap-4 md:gap-5 flex-1 min-w-0">
-                                        <div className="w-16 h-16 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex-shrink-0 flex items-center justify-center text-indigo-600 border border-indigo-500/10 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-inner">
-                                            <Users className="w-8 h-8 md:w-7 md:h-7" />
+                                    <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+                                        <div className="w-10 h-10 md:w-11 md:h-11 rounded-lg md:rounded-xl bg-slate-100 dark:bg-white/5 flex-shrink-0 flex items-center justify-center text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-white/5 group-hover:border-accent/30 group-hover:text-accent transition-all duration-500">
+                                            <Users className="w-5 h-5 md:w-5.5 md:h-5.5" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="text-sm md:text-sm font-black text-primary uppercase truncate group-hover:text-accent transition-colors tracking-tight leading-tight" title={c.name}>{c.name}</h3>
-                                            <p className="text-[10px] md:text-[10px] font-bold text-muted uppercase tracking-widest mt-1.5 md:mt-2 opacity-50 truncate">{c.user_id || 'ID PELANGGAN'}</p>
+                                            <h3 className="text-[12px] md:text-[13px] font-black text-slate-800 dark:text-white uppercase group-hover:text-accent transition-colors tracking-tight leading-tight mb-1" title={c.name}>{c.name || 'PELANGGAN BARU'}</h3>
+                                            <p className="text-[9px] md:text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest opacity-60 truncate">{c.user_id || 'ID PELANGGAN'}</p>
                                         </div>
                                     </div>
-                                    <div className={`shrink-0 whitespace-nowrap px-3 py-1.5 md:px-3 md:py-1 rounded-lg md:rounded-lg text-[10px] md:text-[10px] font-black uppercase tracking-widest relative z-10 shadow-sm ${c.status.toUpperCase() === 'ACTIVE' || c.status.toUpperCase() === 'TERHUBUNG' ? 'bg-emerald-500 text-white animate-pulse' : 'bg-rose-500 text-white'}`}>
+                                    <div className={`shrink-0 whitespace-nowrap px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest relative z-10 shadow-sm ${c.status.toUpperCase() === 'ACTIVE' || c.status.toUpperCase() === 'TERHUBUNG' ? 'bg-emerald-500 text-white animate-pulse' : 'bg-rose-500 text-white'}`}>
                                         {c.status}
                                     </div>
                                 </div>
 
-                                <div className="space-y-2 md:space-y-6 relative z-10">
-                                    <div className="space-y-1 md:space-y-3">
+                                <div className="space-y-2 md:space-y-4 relative z-10">
+                                    <div className="space-y-1 md:space-y-2.5">
                                         <div className="flex justify-between items-end px-1">
                                             <div className="flex items-center gap-1.5 md:gap-3">
                                                 <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${c.rx < -27 ? 'bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.5)]' : c.rx < -24 ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
@@ -786,9 +783,9 @@ export default function CustomersPage() {
                                                     <span className="text-[9px] md:text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Sinyal</span>
                                                 </div>
                                             </div>
-                                            <span className={`text-sm md:text-base font-black tracking-tighter ${c.rx < -27 ? 'text-rose-500' : c.rx < -24 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                                            <span className={`text-sm md:text-lg font-black tracking-tighter ${c.rx < -27 ? 'text-rose-500 dark:text-rose-400' : c.rx < -24 ? 'text-amber-500 dark:text-amber-400' : 'text-emerald-500 dark:text-emerald-400'}`}>
                                                 {c.rx?.toFixed(1) || '-22.5'} 
-                                                <span className="text-[9px] md:text-[10px] opacity-60 ml-1 tracking-normal font-bold">dBm</span>
+                                                <span className="text-[10px] md:text-[11px] opacity-40 ml-1 tracking-normal font-bold">dBm</span>
                                             </span>
                                         </div>
                                         <div className="h-1 md:h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -799,38 +796,38 @@ export default function CustomersPage() {
                                         </div>
                                     </div>
 
-                                    <div className="flex justify-between items-center py-3 md:py-4 border-y border-slate-100 dark:border-white/5">
-                                        <div className="flex flex-col gap-1 md:gap-1">
-                                            <span className="text-[9px] md:text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Down</span>
-                                            <div className="flex items-center gap-2 md:gap-2 text-accent">
-                                                <ArrowDown className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                                                <span className="text-xs md:text-sm font-black tracking-tighter">
+                                    <div className="flex justify-between items-center py-2.5 md:py-3 border-y border-slate-100 dark:border-white/5">
+                                        <div className="flex flex-col gap-0.5">
+                                            <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Down</span>
+                                            <div className="flex items-center gap-1.5 text-accent">
+                                                <ArrowDown className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                                                <span className="text-[11px] md:text-[12px] font-black tracking-tighter">
                                                     {formatSpeed(getTrafficInfo(c.pppoe_username)?.rx || 0)}
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="w-px h-8 md:h-10 bg-slate-200 dark:bg-white/5" />
-                                        <div className="flex flex-col items-end gap-1 md:gap-1">
-                                            <span className="text-[9px] md:text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Up</span>
-                                            <div className="flex items-center gap-2 md:gap-2 text-blue-500">
-                                                <span className="text-xs md:text-sm font-black tracking-tighter">
+                                        <div className="w-px h-6 md:h-8 bg-slate-200 dark:bg-white/5" />
+                                        <div className="flex flex-col items-end gap-0.5">
+                                            <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Up</span>
+                                            <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500">
+                                                <span className="text-[11px] md:text-[12px] font-black tracking-tighter">
                                                     {formatSpeed(getTrafficInfo(c.pppoe_username)?.tx || 0)}
                                                 </span>
-                                                <ArrowUp className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                                                <ArrowUp className="w-3 h-3 md:w-3.5 md:h-3.5" />
                                             </div>
                                         </div>
                                     </div>
                                 </div>
  
-                                <div className="flex gap-1.5 md:gap-3 relative z-10">
-                                    <button onClick={() => { setSelectedCustomer(c); setShowDetail(true); }} className="flex-1 h-8 md:h-14 bg-slate-50 dark:bg-white/5 hover:bg-accent/10 text-slate-400 dark:text-slate-500 hover:text-accent rounded-lg md:rounded-[20px] transition-all border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm active:scale-95 group/btn" title="Detail">
-                                        <Eye className="w-3.5 h-3.5 md:w-5 md:h-5 group-hover/btn:scale-110 transition-transform" />
+                                <div className="flex gap-2 relative z-10">
+                                    <button onClick={() => { setSelectedCustomer(c); setShowDetail(true); }} className="flex-1 h-9 md:h-11 bg-slate-50 dark:bg-white/5 hover:bg-accent/10 text-slate-400 dark:text-slate-500 hover:text-accent rounded-xl transition-all border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm active:scale-95 group/btn" title="Detail">
+                                        <Eye className="w-3.5 h-3.5 md:w-4 md:h-4 group-hover/btn:scale-110 transition-transform" />
                                     </button>
-                                    <button onClick={() => openEditForm(c)} className="flex-1 h-8 md:h-14 bg-slate-50 dark:bg-white/5 hover:bg-indigo-500/10 text-slate-400 dark:text-slate-500 hover:text-indigo-500 rounded-lg md:rounded-[20px] transition-all border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm active:scale-95 group/btn" title="Edit">
-                                        <Edit className="w-3.5 h-3.5 md:w-5 md:h-5 group-hover/btn:scale-110 transition-transform" />
+                                    <button onClick={() => openEditForm(c)} className="flex-1 h-9 md:h-11 bg-slate-50 dark:bg-white/5 hover:bg-indigo-500/10 text-slate-400 dark:text-slate-500 hover:text-indigo-500 rounded-xl transition-all border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm active:scale-95 group/btn" title="Edit">
+                                        <Edit className="w-3.5 h-3.5 md:w-4 md:h-4 group-hover/btn:scale-110 transition-transform" />
                                     </button>
-                                    <button onClick={() => handleDelete(c.id, c.name)} className="flex-1 h-8 md:h-14 bg-slate-50 dark:bg-white/5 hover:bg-red-500/10 text-slate-400 dark:text-slate-500 hover:text-red-500 rounded-lg md:rounded-[20px] transition-all border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm active:scale-95 group/btn" title="Hapus">
-                                        <Trash2 className="w-3.5 h-3.5 md:w-5 md:h-5 group-hover/btn:scale-110 transition-transform" />
+                                    <button onClick={() => handleDelete(c.id, c.name)} className="flex-1 h-9 md:h-11 bg-slate-50 dark:bg-white/5 hover:bg-red-500/10 text-slate-400 dark:text-slate-500 hover:text-red-500 rounded-xl transition-all border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm active:scale-95 group/btn" title="Hapus">
+                                        <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4 group-hover/btn:scale-110 transition-transform" />
                                     </button>
                                 </div>
                             </div>

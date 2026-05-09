@@ -6,9 +6,11 @@ async function ensureSchema() {
         await pool.query(`
             CREATE TABLE IF NOT EXISTS Settings (
                 \`key\` VARCHAR(100) PRIMARY KEY,
-                \`value\` TEXT
+                \`value\` LONGTEXT
             )
         `);
+        // Ensure column is LONGTEXT for large logos
+        await pool.query("ALTER TABLE Settings MODIFY COLUMN \`value\` LONGTEXT");
         
         // Seed default values if empty
         const [rows]: any = await pool.query('SELECT COUNT(*) as count FROM Settings');

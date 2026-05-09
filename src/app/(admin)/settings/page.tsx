@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { 
     Settings, Building2, Save, RefreshCw, CheckCircle2, AlertCircle, FileCheck,
-    CreditCard, Printer, History, Send, MessageCircle, Landmark, Smartphone, Info, Loader2
+    CreditCard, Printer, History, Send, MessageCircle, Landmark, Smartphone, Info, Loader2, Wifi
 } from 'lucide-react';
 
 interface SettingsState {
@@ -31,6 +31,7 @@ const defaultSettings: SettingsState = {
     wa_api_enabled: '0',
     wa_api_url: '',
     wa_api_token: '',
+    hotspot_domain: 'www.jarfi.net',
 };
 
 export default function SettingsPage() {
@@ -84,7 +85,9 @@ export default function SettingsPage() {
                         color: 'text-accent'
                     })
                 });
-                fetchLogs();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             } else {
                 Swal.fire({ icon: 'error', title: 'Kegagalan', text: 'Gagal menyimpan pengaturan.', background: '#0f172a', color: '#fff' });
             }
@@ -212,6 +215,15 @@ export default function SettingsPage() {
                                     <Field label="Email Dukungan" field="company_email" type="email" />
                                     <Field label="WhatsApp Bisnis" field="company_whatsapp" prefix="+62" />
                                 </div>
+                                <div className="p-6 bg-accent/5 rounded-3xl border border-accent/10 flex items-center gap-6">
+                                    <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center text-accent shadow-inner shrink-0">
+                                        <Wifi className="w-7 h-7" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <Field label="Hotspot DNS Name / Domain" field="hotspot_domain" placeholder="Contoh: wifi.hotspot / www.jarfi.net" />
+                                        <p className="text-[9px] font-bold text-accent/60 uppercase tracking-widest mt-2 ml-1">Domain ini akan digunakan untuk link QR Code login otomatis.</p>
+                                    </div>
+                                </div>
                                 <button type="submit" disabled={saving} className="w-full py-5 bg-accent hover:bg-accent/90 text-white rounded-2xl font-bold shadow-xl shadow-accent/20 transition-all flex items-center justify-center gap-4 active:scale-95 disabled:opacity-50 uppercase tracking-widest text-[11px]">
                                     {saving ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                                     Simpan Identitas
@@ -223,6 +235,22 @@ export default function SettingsPage() {
                         <div className="glass p-10 rounded-4xl text-center flex flex-col items-center shadow-xl border border-(--glass-border) bg-white/2 relative overflow-hidden group">
                             <h4 className="text-[10px] font-bold text-slate-500 mb-8 uppercase tracking-widest">Vektor Brand</h4>
                             <div className="w-40 h-40 bg-white/2 rounded-4xl border-2 border-dashed border-white/5 mb-6 flex items-center justify-center cursor-pointer hover:border-accent transition-all duration-700 relative overflow-hidden group/logo shadow-inner">
+                                <input 
+                                    type="file" 
+                                    accept="image/*" 
+                                    className="absolute inset-0 opacity-0 cursor-pointer z-20"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => {
+                                                const base64 = reader.result as string;
+                                                updateField('company_logo', base64);
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }
+                                    }}
+                                />
                                 {settings.company_logo ? (
                                     <img src={settings.company_logo} alt="Logo" className="w-full h-full object-cover group-hover/logo:scale-110 transition-transform duration-700" />
                                 ) : (
@@ -230,7 +258,7 @@ export default function SettingsPage() {
                                         {(settings.company_name || 'S').charAt(0).toUpperCase()}
                                     </span>
                                 )}
-                                <div className="absolute inset-0 bg-accent/90 opacity-0 group-hover/logo:opacity-100 flex flex-col items-center justify-center transition-all duration-500">
+                                <div className="absolute inset-0 bg-accent/90 opacity-0 group-hover/logo:opacity-100 flex flex-col items-center justify-center transition-all duration-500 z-10">
                                     <Smartphone className="w-8 h-8 text-white mb-2" />
                                     <span className="text-white text-[9px] font-bold uppercase tracking-widest">Ganti Logo</span>
                                 </div>

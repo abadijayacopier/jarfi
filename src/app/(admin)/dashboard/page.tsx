@@ -95,14 +95,14 @@ export default function Dashboard() {
                             <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.5)]"></div>
                             <span className="text-[10px] font-black text-accent uppercase tracking-[0.3em]">Ikhtisar Operasi NOC</span>
                         </div>
-                        <h2 className="text-3xl sm:text-4xl md:text-6xl xl:text-8xl font-black text-slate-900 dark:text-white tracking-tight leading-[0.85] uppercase">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl xl:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[0.95] uppercase">
                             Inteligensi <br />
                             <span className="text-emerald-500 bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500">Jaringan.</span>
                         </h2>
                     </div>
                     <div className="flex flex-col items-start lg:items-end gap-2 relative z-10 w-full lg:w-auto">
                         <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Estimasi Pendapatan Bulanan</span>
-                        <div className="text-2xl sm:text-3xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white tabular-nums drop-shadow-2xl">
+                        <div className="text-xl sm:text-2xl md:text-4xl font-black tracking-tighter text-slate-900 dark:text-white tabular-nums drop-shadow-2xl">
                             {loading ? '...' : `Rp ${parseInt(stats.expectedRevenue as any).toLocaleString('id-ID')}`}
                         </div>
                         <div className="flex items-center gap-2 mt-4 px-4 py-2 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full border border-emerald-500/20 backdrop-blur-xl shadow-lg shadow-emerald-500/5">
@@ -113,54 +113,54 @@ export default function Dashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
-                    <div className="glass p-5 md:p-8 rounded-3xl md:rounded-[40px] flex flex-col justify-between min-h-[160px] md:min-h-[220px] hover:border-accent/30 transition-all duration-500 group bg-white/5 dark:bg-slate-900/50 border border-white/10 dark:border-white/5 shadow-2xl relative overflow-hidden backdrop-blur-xl">
-                        <div className="absolute -right-10 -bottom-10 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-700 pointer-events-none">
-                            <Users className="w-32 md:w-48 h-32 md:h-48 text-accent" />
+                    <div className="glass p-4 md:p-6 rounded-2xl md:rounded-[32px] flex flex-col justify-between min-h-[140px] md:min-h-[180px] hover:border-accent/30 transition-all duration-500 group bg-white/5 dark:bg-slate-900/50 border border-white/10 dark:border-white/5 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+                        <div className="absolute -right-8 -bottom-8 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-700 pointer-events-none">
+                            <Users className="w-24 md:w-36 h-24 md:h-36 text-accent" />
                         </div>
                         <div className="flex justify-between items-start relative z-10">
-                            <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-accent/10 flex items-center justify-center text-accent border border-accent/20 group-hover:scale-110 transition-transform shadow-inner">
-                                <Users className="w-5 h-5 md:w-7 md:h-7" />
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-accent/10 flex items-center justify-center text-accent border border-accent/20 group-hover:scale-110 transition-transform shadow-inner">
+                                <Users className="w-5 h-5 md:w-6 md:h-6" />
                             </div>
-                            <span className="text-[8px] md:text-[10px] font-black text-muted uppercase tracking-[0.2em]">Total Pelanggan</span>
+                            <span className="text-[8px] md:text-[9px] font-black text-muted uppercase tracking-[0.2em]">Total Pelanggan</span>
                         </div>
-                        <div className="relative z-10 mt-4 md:mt-0">
-                            <div className="text-3xl md:text-5xl font-black tracking-tighter mb-1 tabular-nums text-primary">{loading ? '...' : stats.totalCustomers}</div>
-                            <p className="text-[8px] md:text-[10px] text-muted font-black uppercase tracking-[0.2em]">Basis Data Terdaftar</p>
+                        <div className="relative z-10 mt-3 md:mt-0">
+                            <div className="text-2xl md:text-4xl font-black tracking-tighter mb-0.5 tabular-nums text-primary">{loading ? '...' : stats.totalCustomers}</div>
+                            <p className="text-[8px] md:text-[9px] text-muted font-black uppercase tracking-[0.2em]">Basis Data Terdaftar</p>
                         </div>
                     </div>
 
-                    <div className="glass p-5 md:p-8 rounded-3xl md:rounded-[40px] flex flex-col justify-between min-h-[160px] md:min-h-[220px] hover:border-accent/30 transition-all duration-500 group bg-white/5 dark:bg-slate-900/50 border border-white/10 dark:border-white/5 shadow-2xl relative overflow-hidden backdrop-blur-xl">
-                        <div className="absolute -right-10 -bottom-10 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-700 pointer-events-none">
-                            <Wifi className="w-32 md:w-48 h-32 md:h-48 text-accent" />
+                    <div className="glass p-4 md:p-6 rounded-2xl md:rounded-[32px] flex flex-col justify-between min-h-[140px] md:min-h-[180px] hover:border-accent/30 transition-all duration-500 group bg-white/5 dark:bg-slate-900/50 border border-white/10 dark:border-white/5 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+                        <div className="absolute -right-8 -bottom-8 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-700 pointer-events-none">
+                            <Wifi className="w-24 md:w-36 h-24 md:h-36 text-accent" />
                         </div>
                         <div className="flex justify-between items-start relative z-10">
-                            <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-accent/10 flex items-center justify-center text-accent border border-accent/20 group-hover:scale-110 transition-transform shadow-inner">
-                                <Wifi className="w-5 h-5 md:w-7 md:h-7" />
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-accent/10 flex items-center justify-center text-accent border border-accent/20 group-hover:scale-110 transition-transform shadow-inner">
+                                <Wifi className="w-5 h-5 md:w-6 md:h-6" />
                             </div>
                             <div className="hidden sm:flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></div>
-                                <span className="text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest">Real-time</span>
+                                <span className="text-[8px] md:text-[9px] font-black text-white/40 uppercase tracking-widest">Real-time</span>
                             </div>
                         </div>
-                        <div className="relative z-10 mt-4 md:mt-0">
-                            <div className="text-3xl md:text-5xl font-black tracking-tighter mb-1 tabular-nums text-accent">{loading ? '...' : stats.activePppoe}</div>
-                            <p className="text-[8px] md:text-[10px] text-muted font-black uppercase tracking-[0.2em]">Sesi PPPoE Aktif</p>
+                        <div className="relative z-10 mt-3 md:mt-0">
+                            <div className="text-2xl md:text-4xl font-black tracking-tighter mb-0.5 tabular-nums text-accent">{loading ? '...' : stats.activePppoe}</div>
+                            <p className="text-[8px] md:text-[9px] text-muted font-black uppercase tracking-[0.2em]">Sesi PPPoE Aktif</p>
                         </div>
                     </div>
 
-                    <div className="p-5 md:p-8 rounded-3xl md:rounded-[40px] flex flex-col justify-between min-h-[160px] md:min-h-[220px] hover:border-amber-500/30 transition-all duration-500 group bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 shadow-2xl relative overflow-hidden col-span-2 lg:col-span-1">
-                        <div className="absolute -right-10 -bottom-10 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-700 pointer-events-none">
-                            <Wallet className="w-32 md:w-48 h-32 md:h-48 text-amber-500" />
+                    <div className="p-4 md:p-6 rounded-2xl md:rounded-[32px] flex flex-col justify-between min-h-[140px] md:min-h-[180px] hover:border-amber-500/30 transition-all duration-500 group bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 shadow-2xl relative overflow-hidden col-span-2 lg:col-span-1">
+                        <div className="absolute -right-8 -bottom-8 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-700 pointer-events-none">
+                            <Wallet className="w-24 md:w-36 h-24 md:h-36 text-amber-500" />
                         </div>
                         <div className="flex justify-between items-start relative z-10">
-                            <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 border border-amber-500/20 group-hover:scale-110 transition-transform shadow-inner">
-                                <Wallet className="w-5 h-5 md:w-7 md:h-7" />
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 border border-amber-500/20 group-hover:scale-110 transition-transform shadow-inner">
+                                <Wallet className="w-5 h-5 md:w-6 md:h-6" />
                             </div>
-                            <span className="text-[8px] md:text-[10px] font-black text-muted uppercase tracking-[0.2em]">Invois Tertunda</span>
+                            <span className="text-[8px] md:text-[9px] font-black text-muted uppercase tracking-[0.2em]">Invois Tertunda</span>
                         </div>
-                        <div className="relative z-10 mt-4 md:mt-0">
-                            <div className="text-3xl md:text-5xl font-black tracking-tighter mb-1 tabular-nums text-amber-500">{loading ? '...' : stats.unpaidCount}</div>
-                            <p className="text-[8px] md:text-[10px] text-muted font-black uppercase tracking-[0.2em]">Menunggu Pembayaran</p>
+                        <div className="relative z-10 mt-3 md:mt-0">
+                            <div className="text-2xl md:text-4xl font-black tracking-tighter mb-0.5 tabular-nums text-amber-500">{loading ? '...' : stats.unpaidCount}</div>
+                            <p className="text-[8px] md:text-[9px] text-muted font-black uppercase tracking-[0.2em]">Menunggu Pembayaran</p>
                         </div>
                     </div>
                 </div>
