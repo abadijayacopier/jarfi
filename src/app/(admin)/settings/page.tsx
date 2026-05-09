@@ -32,6 +32,7 @@ const defaultSettings: SettingsState = {
     wa_api_url: '',
     wa_api_token: '',
     hotspot_domain: 'www.jarfi.net',
+    gemini_api_key: '',
 };
 
 export default function SettingsPage() {
@@ -418,16 +419,26 @@ export default function SettingsPage() {
                         <div className="space-y-6 relative z-10">
                             <Toggle label="Aktifkan Telegram" desc="Pengiriman Notifikasi Otomatis" field="telegram_enabled" color="blue" />
                             <div>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Kunci Otak AI (Gemini Key)</label>
+                                <input
+                                    type="password"
+                                    value={settings.gemini_api_key || ''}
+                                    onChange={(e) => updateField('gemini_api_key', e.target.value)}
+                                    placeholder="Tempel Gemini API Key di sini..."
+                                    className="w-full clean-input py-4 font-bold text-sm"
+                                />
+                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-2 ml-1 italic opacity-60 text-accent">Ambil kuncinya di aistudio.google.com</p>
+                            </div>
+                            <div>
                                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Token Layanan (BotFather)</label>
                                 <input
                                     type="password"
                                     value={settings.telegram_bot_token || ''}
                                     onChange={(e) => updateField('telegram_bot_token', e.target.value)}
-                                    onPaste={(e) => e.preventDefault()}
-                                    placeholder="Tempel Token di sini (Anti-Copy)..."
+                                    placeholder="Tempel Token di sini..."
                                     className="w-full clean-input py-4 font-bold text-sm"
                                 />
-                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-2 ml-1 italic opacity-60">Sandi diaktifkan untuk keamanan. Tempel tidak diizinkan.</p>
+                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-2 ml-1 italic opacity-60">Sandi diaktifkan untuk keamanan.</p>
                             </div>
                             <Field 
                                 label="Identitas Chat (Chat ID)" 
