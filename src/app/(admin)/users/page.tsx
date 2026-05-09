@@ -5,7 +5,7 @@ import Swal from 'sweetalert2';
 import { 
   Users, UserPlus, Shield, Trash2, Mail, 
   User as UserIcon, Search, ChevronRight, Home, 
-  ChevronLeft, Edit2, Filter
+  ChevronLeft, Edit2, Filter, Eye
 } from 'lucide-react';
 
 export default function UserManagementPage() {
@@ -13,6 +13,8 @@ export default function UserManagementPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [editMode, setEditMode] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -62,18 +64,55 @@ export default function UserManagementPage() {
     kasir: users.filter(u => u.role === 'KASIR').length,
   };
 
+  const handleEdit = (u: any) => {
+    setEditMode(true);
+    setCurrentUserId(u.id);
+    setFormData({
+      name: u.name,
+      email: u.email,
+      password: u.password || '',
+      role: u.role
+    });
+    setShowModal(true);
+  };
+
+  const handleView = (u: any) => {
+    Swal.fire({
+      title: 'Detail Petugas',
+      html: `
+        <div class="text-left space-y-4 p-4 bg-black/10 rounded-2xl">
+          <p><strong>Nama:</strong> ${u.name}</p>
+          <p><strong>Email:</strong> ${u.email}</p>
+          <p><strong>Password:</strong> <code class="bg-accent/10 px-2 rounded">${u.password || '******'}</code></p>
+          <p><strong>Role:</strong> <span class="px-2 py-0.5 bg-accent text-white rounded text-[10px] uppercase">${u.role}</span></p>
+        </div>
+      `,
+      icon: 'info',
+      confirmButtonText: 'Tutup',
+      background: '#1a1d21',
+      color: '#fff',
+      confirmButtonColor: 'var(--accent)'
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/users', {
-        method: 'POST',
+      const url = '/api/users';
+      const method = editMode ? 'PUT' : 'POST';
+      const payload = editMode ? { ...formData, id: currentUserId } : formData;
+
+      const res = await fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
-        Swal.fire('Berhasil!', 'User baru telah ditambahkan.', 'success');
+        Swal.fire('Berhasil!', editMode ? 'User telah diperbarui.' : 'User baru telah ditambahkan.', 'success');
         setShowModal(false);
+        setEditMode(false);
+        setCurrentUserId(null);
         setFormData({ name: '', email: '', password: '', role: 'TEKNISI' });
         fetchUsers();
       } else {
@@ -184,6 +223,7 @@ export default function UserManagementPage() {
               <tr className="bg-slate-50/50 dark:bg-white/5 border-b border-slate-200 dark:border-white/5">
                 <th className="px-6 py-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Profil</th>
                 <th className="px-6 py-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Identitas</th>
+                <th className="px-6 py-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Password</th>
                 <th className="px-6 py-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Peran (Role)</th>
                 <th className="px-6 py-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 text-right">Aksi</th>
               </tr>
@@ -223,6 +263,12 @@ export default function UserManagementPage() {
                       </div>
                     </td>
                     <td className="px-6 py-3.5">
+                      <div className="flex items-center gap-2 text-slate-400">
+                        < Shield className="w-3 h-3 opacity-30" />
+                        <span className="text-[9px] font-bold uppercase tracking-widest opacity-40 italic">Terproteksi</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-3.5">
                       <span className={`px-3 py-1 rounded-lg text-[8px] font-black tracking-widest uppercase border ${
                         u.role === 'SUPERADMIN' ? 'bg-purple-500/10 text-purple-500 border-purple-500/20' :
                         u.role === 'ADMIN' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
@@ -235,7 +281,16 @@ export default function UserManagementPage() {
                     </td>
                     <td className="px-6 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-accent hover:border-accent/30 border border-transparent transition-all active:scale-90 flex items-center justify-center">
+                        <button 
+                          onClick={() => handleView(u)}
+                          className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-accent hover:border-accent/30 border border-transparent transition-all active:scale-90 flex items-center justify-center"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleEdit(u)}
+                          className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-emerald-500 hover:border-emerald-500/30 border border-transparent transition-all active:scale-90 flex items-center justify-center"
+                        >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button 
@@ -297,7 +352,7 @@ export default function UserManagementPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowModal(false)}></div>
           <div className="bg-[#1a1d21] w-full max-w-lg rounded-[40px] border border-white/10 p-10 relative z-10 shadow-2xl animate-in zoom-in-95 duration-300">
-            <h2 className="text-2xl font-black text-white uppercase italic mb-8">Tambah <span className="text-accent">User</span> Baru</h2>
+            <h2 className="text-2xl font-black text-white uppercase italic mb-8">{editMode ? 'Ubah' : 'Tambah'} <span className="text-accent">User</span> Baru</h2>
             
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">

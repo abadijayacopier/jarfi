@@ -25,6 +25,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [updateAvailable, setUpdateAvailable] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [notificationCount, setNotificationCount] = useState(0);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const navItems = [
@@ -73,6 +74,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         fetch('/api/auth/me').then(res => res.json()).then(data => {
             if (data.user) setUser(data.user);
         });
+
+        // Periodic check for notifications (Offline Routers)
+        const checkNotifications = async () => {
+            try {
+                const res = await fetch('/api/dashboard/stats');
+                if (res.ok) {
+                    const data = await res.json();
+                    const offlineCount = data.routerStats.filter((r: any) => r.error || r.status === 'OFFLINE').length;
+                    setNotificationCount(offlineCount);
+                }
+            } catch (e) {}
+        };
+        checkNotifications();
+        const notifInterval = setInterval(checkNotifications, 30000); // 30 seconds
 
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -213,9 +228,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         )}
                         <div className="flex flex-col">
                             <h1 className="text-sm font-bold tracking-tight text-primary uppercase leading-none">
-                                {settings?.company_name || 'Sahabat Network'}
+                                {settings?.company_name || 'DUNIA WIFI'}
                             </h1>
-                            <span className="text-[9px] font-black text-accent uppercase tracking-[0.2em] mt-1 opacity-90">JARINGAN WIFI</span>
+                            <span className="text-[9px] font-black text-accent uppercase tracking-[0.2em] mt-1 opacity-90">DUNIA WIFI MANAGEMENT</span>
                         </div>
                     </Link>
 
@@ -327,9 +342,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                             <div className="flex items-center gap-2 border-r border-slate-200 dark:border-white/10 pr-4 md:pr-6">
                                 <ThemeToggle />
-                                <button className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all relative ${updateAvailable ? 'text-accent bg-accent/10 animate-bounce' : 'text-slate-400 hover:text-accent hover:bg-slate-100 dark:hover:bg-white/5'}`}>
+                                <button className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all relative ${(updateAvailable || notificationCount > 0) ? 'text-accent bg-accent/10 animate-bounce' : 'text-slate-400 hover:text-accent hover:bg-slate-100 dark:hover:bg-white/5'}`}>
                                     <Bell className="w-5 h-5" />
-                                    {updateAvailable && <div className="absolute top-3 right-3 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></div>}
+                                    {(updateAvailable || notificationCount > 0) && (
+                                        <div className="absolute top-2 right-2 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-lg">
+                                            <span className="text-[8px] font-black text-white">{notificationCount > 0 ? notificationCount : '!'}</span>
+                                        </div>
+                                    )}
                                 </button>
                             </div>
 

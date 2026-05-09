@@ -416,9 +416,27 @@ export default function SettingsPage() {
                             </div>
                         </div>
                         <div className="space-y-6 relative z-10">
-                            <Toggle label="Aktifkan Telegram" desc="Pengiriman Matriks Otonom" field="telegram_enabled" color="blue" />
-                            <Field label="Token Layanan" field="telegram_bot_token" placeholder="Token BotFather..." />
-                            <Field label="Identitas Chat" field="telegram_chat_id" placeholder="-100..." />
+                            <Toggle label="Aktifkan Telegram" desc="Pengiriman Notifikasi Otomatis" field="telegram_enabled" color="blue" />
+                            <div>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Token Layanan (BotFather)</label>
+                                <input
+                                    type="password"
+                                    value={settings.telegram_bot_token || ''}
+                                    onChange={(e) => updateField('telegram_bot_token', e.target.value)}
+                                    onPaste={(e) => e.preventDefault()}
+                                    placeholder="Tempel Token di sini (Anti-Copy)..."
+                                    className="w-full clean-input py-4 font-bold text-sm"
+                                />
+                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-2 ml-1 italic opacity-60">Sandi diaktifkan untuk keamanan. Tempel tidak diizinkan.</p>
+                            </div>
+                            <Field 
+                                label="Identitas Chat (Chat ID)" 
+                                field="telegram_chat_id" 
+                                placeholder="Contoh: 123456789 atau -100..." 
+                            />
+                            <p className="text-[9px] font-bold text-accent/60 uppercase tracking-widest mt-1 ml-1 leading-relaxed">
+                                ID unik chat/grup untuk menerima notifikasi. Gunakan @userinfobot untuk cek ID Bos.
+                            </p>
                         </div>
                     </div>
                     <div className="glass p-10 rounded-4xl border border-(--glass-border) shadow-xl bg-white/2 relative overflow-hidden group">

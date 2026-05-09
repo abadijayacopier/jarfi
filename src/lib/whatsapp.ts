@@ -1,31 +1,32 @@
-/**
- * JARFI WhatsApp Utility
- * Placeholder for WhatsApp API integration (Fonnte, Waba, or custom)
- */
-
 export async function sendWhatsApp(to: string, message: string) {
-    console.log(`[WA SEND] To: ${to}, Message: ${message}`);
-    
-    // Example implementation for Fonnte:
-    /*
-    const apiKey = process.env.WA_API_KEY;
-    if (!apiKey) return false;
-
     try {
+        // Fetch WA Settings from DB
+        const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/settings`);
+        const data = await res.json();
+        const token = data.settings?.wa_api_token;
+        
+        if (!token) {
+            console.error('WhatsApp API Token not configured');
+            return false;
+        }
+
+        // Using Fonnte API (Standard in ID)
         const response = await fetch('https://api.fonnte.com/send', {
             method: 'POST',
-            headers: { 'Authorization': apiKey },
+            headers: {
+                'Authorization': token,
+            },
             body: new URLSearchParams({
-                target: to,
-                message: message
+                'target': to,
+                'message': message,
+                'countryCode': '62', // Default to Indonesia
             })
         });
-        return response.ok;
-    } catch (e) {
-        console.error('WA API Error:', e);
+
+        const result = await response.json();
+        return result.status === true;
+    } catch (error) {
+        console.error('WhatsApp Send Error:', error);
         return false;
     }
-    */
-
-    return true; // Return true as placeholder
 }

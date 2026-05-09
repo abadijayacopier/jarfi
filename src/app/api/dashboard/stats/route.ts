@@ -114,7 +114,11 @@ export async function GET() {
             activePppoe += res.activeCount;
             totalRx += res.rxSpeed;
             totalTx += res.txSpeed;
-            routerStats.push(res.stats);
+            routerStats.push({
+                ...res.stats,
+                rxSpeed: res.rxSpeed,
+                txSpeed: res.txSpeed
+            });
         });
 
         return NextResponse.json({

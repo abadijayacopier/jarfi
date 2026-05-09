@@ -12,6 +12,7 @@ import dynamic from 'next/dynamic';
 import StatCard from '@/components/dashboard/StatCard';
 import RouterStatus from '@/components/dashboard/RouterStatus';
 import LogViewer from '@/components/dashboard/LogViewer';
+import RegionalNodeMonitor from '@/components/dashboard/RegionalNodeMonitor';
 
 const AdvancedMonitorChart = dynamic(() => import('@/components/AdvancedMonitorChart'), { ssr: false });
 
@@ -93,11 +94,11 @@ export default function Dashboard() {
                     <div className="max-w-3xl space-y-4 relative z-10">
                         <div className="flex items-center gap-3">
                             <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.5)]"></div>
-                            <span className="text-[10px] font-black text-accent uppercase tracking-[0.3em]">Ikhtisar Operasi NOC</span>
+                            <span className="text-[10px] font-black text-accent uppercase tracking-[0.3em]">Pusat Kendali Jaringan</span>
                         </div>
                         <h2 className="text-2xl sm:text-3xl md:text-4xl xl:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[0.95] uppercase">
-                            Inteligensi <br />
-                            <span className="text-emerald-500 bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500">Jaringan.</span>
+                            Ekosistem <br />
+                            <span className="text-emerald-500 bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500">Dunia WiFi.</span>
                         </h2>
                     </div>
                     <div className="flex flex-col items-start lg:items-end gap-2 relative z-10 w-full lg:w-auto">
@@ -110,6 +111,10 @@ export default function Dashboard() {
                             <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Aliran Kas Terverifikasi</span>
                         </div>
                     </div>
+                </div>
+
+                <div className="mb-12">
+                    <RegionalNodeMonitor routers={stats.routerStats} loading={loading} />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
@@ -172,9 +177,21 @@ export default function Dashboard() {
                     <div className="absolute -right-20 -top-20 w-[400px] h-[400px] bg-accent/5 rounded-full blur-[100px] group-hover:bg-accent/8 transition-all duration-1000"></div>
                     
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-6 relative z-10">
-                        <div>
-                            <h3 className="text-2xl font-black text-primary tracking-tighter uppercase">Throughput Jaringan</h3>
-                            <p className="text-[10px] text-muted font-bold uppercase tracking-[0.2em] mt-1 opacity-60">Matriks Real-time NOC</p>
+                        <div className="flex items-center gap-6">
+                            <div>
+                                <h3 className="text-2xl font-black text-primary tracking-tighter uppercase">Throughput Jaringan</h3>
+                                <p className="text-[10px] text-muted font-bold uppercase tracking-[0.2em] mt-1 opacity-60">Matriks Real-time NOC</p>
+                            </div>
+                            <select 
+                                value={selectedLogRouter}
+                                onChange={(e) => setSelectedLogRouter(e.target.value)}
+                                className="bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest text-primary focus:outline-none focus:border-accent/40"
+                            >
+                                <option value="">Global Traffic</option>
+                                {stats.routerStats.map((r: any) => (
+                                    <option key={r.id} value={r.id}>{r.name}</option>
+                                ))}
+                            </select>
                         </div>
                         <div className="flex gap-4 p-2 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
                             <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-white/5 rounded-xl shadow-sm border border-slate-100 dark:border-white/5">
@@ -272,6 +289,37 @@ export default function Dashboard() {
                             <RouterStatus key={router.id} router={router} />
                         ))
                     )}
+                </div>
+            </div>
+
+            {/* Support Tickets Overview */}
+            <div className="space-y-10">
+                <div className="flex items-center justify-between border-b border-(--glass-border) pb-6">
+                    <div>
+                        <h3 className="text-2xl font-bold text-primary tracking-tight">Pusat Bantuan</h3>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1">Tiket Troubleshooting Aktif</p>
+                    </div>
+                    <Link href="/tickets" className="text-[10px] font-bold text-accent uppercase tracking-widest hover:underline flex items-center gap-2">
+                        Buka Semua Tiket <ArrowUpRight className="w-3.5 h-3.5" />
+                    </Link>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="p-8 rounded-[40px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 shadow-2xl flex items-center justify-center min-h-[150px] group overflow-hidden relative">
+                        <div className="absolute inset-0 bg-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+                        <div className="text-center relative z-10">
+                            <p className="text-[11px] font-black text-muted uppercase tracking-[0.4em] mb-4">Sistem Troubleshooting</p>
+                            <Link href="/tickets" className="px-8 py-3 bg-accent text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-accent/20 active:scale-95 transition-all inline-block">
+                                Kelola Tiket Masuk
+                            </Link>
+                        </div>
+                    </div>
+                    <div className="p-8 rounded-[40px] bg-emerald-500/5 dark:bg-emerald-500/5 border border-emerald-500/10 shadow-2xl flex flex-col justify-center items-center text-center space-y-4">
+                        <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+                            <Activity className="w-8 h-8" />
+                        </div>
+                        <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest leading-relaxed">Semua Layanan <br /> Beroperasi Normal</p>
+                    </div>
                 </div>
             </div>
 

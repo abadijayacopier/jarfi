@@ -170,20 +170,20 @@ export default function RoutersPage() {
             <div className="fixed top-1/4 -right-20 w-96 h-96 bg-accent/5 rounded-full blur-[120px] pointer-events-none z-0"></div>
             
             {/* Header Section */}
-            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-10 mb-16 border-b border-glass-border dark:border-white/5 pb-12">
-                <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-1 bg-accent rounded-full"></div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-accent">Gateway Core v4.0</span>
+            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 border-b border-glass-border dark:border-white/5 pb-8">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-1 bg-accent rounded-full"></div>
+                        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-accent">Gateway Core v4.0</span>
                     </div>
-                    <h3 className="text-4xl md:text-5xl font-black text-primary flex items-center gap-6 tracking-tighter">
+                    <h3 className="text-3xl md:text-4xl font-black text-primary flex items-center gap-4 tracking-tighter">
                         <div className="relative">
-                            <div className="absolute inset-0 bg-accent rounded-2xl blur-lg opacity-20"></div>
-                            <Wifi className="w-12 h-12 text-accent relative z-10" />
+                            <div className="absolute inset-0 bg-accent rounded-xl blur-md opacity-20"></div>
+                            <Wifi className="w-8 h-8 text-accent relative z-10" />
                         </div>
-                        Matriks Gateway
+                        Router Dunia WiFi
                     </h3>
-                    <p className="text-sm font-bold text-muted uppercase tracking-widest opacity-60">Pusat Kendali MikroTik & Sinkronisasi Jaringan</p>
+                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest opacity-60">Pusat Kendali MikroTik & Sinkronisasi Jaringan</p>
                 </div>
                 <button 
                     onClick={() => {
@@ -198,18 +198,18 @@ export default function RoutersPage() {
                 </button>
             </div>
 
-            {/* Stats Summary - Pro Max Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-                <div className="group bg-surface dark:bg-[#0f172a]/80 backdrop-blur-3xl p-10 rounded-[48px] border border-glass-border dark:border-white/5 hover:border-accent/40 transition-all duration-700 relative overflow-hidden">
-                    <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-accent/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                    <div className="flex items-center justify-between gap-8">
-                        <div className="flex items-center gap-8">
-                            <div className="w-20 h-20 rounded-[32px] bg-accent/10 flex items-center justify-center text-accent border border-accent/20 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
-                                <RouterIcon className="w-10 h-10" />
+            {/* Stats Summary - Compact Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                <div className="group bg-surface dark:bg-[#0f172a]/80 backdrop-blur-3xl p-6 rounded-[32px] border border-glass-border dark:border-white/5 hover:border-accent/40 transition-all duration-700 relative overflow-hidden">
+                    <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-accent/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+                    <div className="flex items-center justify-between gap-6">
+                        <div className="flex items-center gap-6">
+                            <div className="w-16 h-16 rounded-[24px] bg-accent/10 flex items-center justify-center text-accent border border-accent/20 shadow-xl group-hover:scale-110 transition-all duration-500 relative z-10">
+                                <RouterIcon className="w-8 h-8" />
                             </div>
                             <div className="relative z-10">
-                                <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mb-2 opacity-60">Gateway Aktif</p>
-                                <h4 className="text-5xl font-black text-primary dark:text-white tracking-tighter tabular-nums leading-none">{routers.length}</h4>
+                                <p className="text-[9px] text-muted font-black uppercase tracking-[0.2em] mb-1 opacity-60">Gateway Aktif</p>
+                                <h4 className="text-3xl font-black text-primary dark:text-white tracking-tighter tabular-nums leading-none">{routers.length}</h4>
                             </div>
                         </div>
                         <div className="w-24 h-14 opacity-20 group-hover:opacity-100 transition-all duration-700">
@@ -222,19 +222,21 @@ export default function RoutersPage() {
                     </div>
                 </div>
                 
-                <div className="group bg-surface dark:bg-[#0f172a]/80 backdrop-blur-3xl p-10 rounded-[48px] border border-glass-border dark:border-white/5 hover:border-emerald-500/40 transition-all duration-700 relative overflow-hidden">
-                    <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                    <div className="flex items-center justify-between gap-8">
-                        <div className="flex items-center gap-8">
-                            <div className="w-20 h-20 rounded-[32px] bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
-                                <Activity className="w-10 h-10" />
-                            </div>
-                            <div className="relative z-10">
-                                <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mb-2 opacity-60">Global Link</p>
-                                <h4 className="text-3xl font-black text-emerald-500 tracking-tight uppercase leading-none">Normal</h4>
+                <div className="group bg-surface dark:bg-[#0f172a]/80 backdrop-blur-3xl p-6 rounded-[32px] border border-glass-border dark:border-white/5 hover:border-emerald-500/40 transition-all duration-700 relative overflow-hidden">
+                    <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+                    <div className="flex items-center justify-between gap-6">
+                        <div className="flex items-center gap-6">
+                                                    <div className="flex items-center gap-6">
+                                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-500 border border-emerald-500/30">
+                                    <Plus className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-white uppercase tracking-tight">Hubungkan MikroTik Baru</h3>
+                                    <p className="text-[9px] font-black text-accent uppercase tracking-[0.2em] opacity-80 mt-1">Integrasi RouterOS Dunia WiFi</p>
+                                </div>
                             </div>
                         </div>
-                        <div className="w-24 h-14 opacity-20 group-hover:opacity-100 transition-all duration-700">
+                        <div className="w-20 h-12 opacity-20 group-hover:opacity-100 transition-all duration-700">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={mockSparkline}>
                                     <Area type="monotone" dataKey="v" stroke="#10b981" fill="#10b981" fillOpacity={0.1} strokeWidth={2} isAnimationActive={false} />
@@ -244,15 +246,15 @@ export default function RoutersPage() {
                     </div>
                 </div>
 
-                <div className="group bg-surface dark:bg-[#0f172a]/80 backdrop-blur-3xl p-10 rounded-[48px] border border-glass-border dark:border-white/5 hover:border-indigo-500/40 transition-all duration-700 relative overflow-hidden">
-                    <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                    <div className="flex items-center justify-between gap-8">
-                        <div className="flex items-center gap-8">
-                            <div className="w-20 h-20 rounded-[32px] bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative z-10">
-                                <Cpu className="w-10 h-10" />
+                <div className="group bg-surface dark:bg-[#0f172a]/80 backdrop-blur-3xl p-6 rounded-[32px] border border-glass-border dark:border-white/5 hover:border-indigo-500/40 transition-all duration-700 relative overflow-hidden">
+                    <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+                    <div className="flex items-center justify-between gap-6">
+                        <div className="flex items-center gap-6">
+                            <div className="w-16 h-16 rounded-[24px] bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-xl group-hover:scale-110 transition-all duration-500 relative z-10">
+                                <Cpu className="w-8 h-8" />
                             </div>
                             <div className="relative z-10">
-                                <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mb-2 opacity-60">OS Matriks</p>
+                                <p className="text-[9px] text-muted font-black uppercase tracking-[0.2em] mb-1 opacity-60">Sistem Operasi</p>
                                 <h4 className="text-2xl font-black text-primary dark:text-white/80 tracking-tight uppercase leading-none">MikroTik</h4>
                             </div>
                         </div>
@@ -271,7 +273,7 @@ export default function RoutersPage() {
             <div className="space-y-8 relative z-10">
                 <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-8 px-2">
                     <div className="space-y-1">
-                        <h4 className="text-2xl font-black text-primary dark:text-white uppercase tracking-tighter">Node Jaringan Terintegrasi</h4>
+                        <h4 className="text-2xl font-black text-primary dark:text-white uppercase tracking-tighter">MikroTik Terintegrasi</h4>
                         <div className="flex items-center gap-3">
                             <div className="w-3 h-3 rounded-full bg-accent animate-pulse"></div>
                             <p className="text-[10px] font-black text-muted uppercase tracking-[0.4em]">API Link Synchronized</p>
@@ -282,7 +284,7 @@ export default function RoutersPage() {
                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-muted group-focus-within:text-accent transition-colors" />
                         <input 
                             type="text" 
-                            placeholder="Saring identitas gateway..."
+                            placeholder="Saring identitas perangkat..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full bg-surface dark:bg-white/5 border border-glass-border dark:border-white/10 rounded-[32px] py-5 pl-16 pr-8 text-sm font-black text-primary dark:text-white focus:outline-none focus:border-accent/40 transition-all placeholder:text-muted placeholder:uppercase placeholder:tracking-widest backdrop-blur-xl shadow-2xl"
@@ -295,12 +297,12 @@ export default function RoutersPage() {
                     {loading ? (
                         <div className="py-20 flex flex-col items-center justify-center gap-6 animate-pulse">
                             <RefreshCw className="w-12 h-12 text-accent animate-spin" />
-                            <span className="text-[11px] font-black text-muted uppercase tracking-[0.5em]">Scanning Node Matrix...</span>
+                            <span className="text-[11px] font-black text-muted uppercase tracking-[0.5em]">Mencari Perangkat...</span>
                         </div>
                     ) : filteredRouters.length === 0 ? (
                         <div className="py-20 flex flex-col items-center justify-center gap-6 bg-white/2 rounded-[48px] border border-dashed border-glass-border dark:border-white/10">
                             <Wifi className="w-12 h-12 text-muted opacity-20" />
-                            <span className="text-[10px] font-black text-muted uppercase tracking-[0.5em]">Node Tidak Terdeteksi</span>
+                            <span className="text-[10px] font-black text-muted uppercase tracking-[0.5em]">Tidak Terdeteksi</span>
                         </div>
                     ) : (
                         filteredRouters.map((router) => (
@@ -348,7 +350,7 @@ export default function RoutersPage() {
                                         className="flex-1 py-5 rounded-3xl bg-white/5 hover:bg-accent/10 hover:text-accent text-primary dark:text-white border border-glass-border dark:border-white/10 flex items-center justify-center gap-3 transition-all active:scale-95"
                                     >
                                         <Edit3 className="w-5 h-5" />
-                                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Edit Node</span>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Edit</span>
                                     </button>
                                     <button 
                                         onClick={() => handleDelete(router.id)}
@@ -368,7 +370,7 @@ export default function RoutersPage() {
                         <table className="w-full text-left border-collapse whitespace-nowrap">
                             <thead>
                                 <tr className="bg-white/2 text-[10px] font-black text-muted uppercase tracking-[0.4em] border-b border-glass-border dark:border-white/5">
-                                    <th className="px-10 py-10">Node Gateway</th>
+                                    <th className="px-10 py-10">Identitas MikroTik</th>
                                     <th className="px-10 py-10">Vektor Jaringan</th>
                                     <th className="px-10 py-10">Otentikasi</th>
                                     <th className="px-10 py-10">Status Link</th>
@@ -380,12 +382,12 @@ export default function RoutersPage() {
                                     <tr>
                                         <td colSpan={5} className="py-40 text-center">
                                             <div className="w-10 h-10 border-4 border-accent/20 border-t-accent rounded-full animate-spin mx-auto mb-6 opacity-40"></div>
-                                            <span className="text-[11px] font-black text-muted uppercase tracking-[0.5em]">Synchronizing Gateways...</span>
+                                            <span className="text-[11px] font-black text-muted uppercase tracking-[0.5em]">Synchronizing...</span>
                                         </td>
                                     </tr>
                                 ) : routers.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="py-40 text-center text-slate-500 font-black uppercase tracking-widest opacity-40 text-[10px]">Tidak ada node gateway yang terdaftar.</td>
+                                        <td colSpan={5} className="py-40 text-center text-slate-500 font-black uppercase tracking-widest opacity-40 text-[10px]">Tidak ada MikroTik terdaftar.</td>
                                     </tr>
                                 ) : (
                                     filteredRouters
@@ -400,7 +402,7 @@ export default function RoutersPage() {
                                                     <div>
                                                         <p className="font-black text-primary dark:text-white text-xl tracking-tighter leading-none mb-2 uppercase">{router.name}</p>
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-[9px] font-black uppercase tracking-widest text-accent px-3 py-1 bg-accent/10 rounded-lg border border-accent/20">MikroTik RouterOS</span>
+                                                            <span className="text-[9px] font-black uppercase tracking-widest text-accent px-3 py-1 bg-accent/10 rounded-lg border border-accent/20">RouterOS</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -459,7 +461,7 @@ export default function RoutersPage() {
                 {!loading && routers.length > itemsPerPage && (
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-8 pt-10 px-4">
                         <p className="text-[10px] font-black text-muted uppercase tracking-[0.3em]">
-                            Matrix Identified: <span className="text-primary dark:text-white">{routers.length} Node</span>
+                            Devices: <span className="text-primary dark:text-white">{routers.length}</span>
                         </p>
                         <div className="flex items-center gap-4">
                             <button 
@@ -481,7 +483,7 @@ export default function RoutersPage() {
                 )}
             </div>
 
-            {/* Modal Form - Pro Max Ultra */}
+            {/* Modal Form */}
             {showModal && (
                 <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 sm:p-10 bg-slate-950/95 backdrop-blur-2xl animate-in fade-in duration-500">
                     <div className="bg-surface dark:bg-[#0f172a] w-full max-w-4xl rounded-[64px] border border-glass-border dark:border-white/15 shadow-[0_60px_120px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[90vh] relative animate-in zoom-in-95 duration-500">
@@ -494,9 +496,9 @@ export default function RoutersPage() {
                                 </div>
                                 <div>
                                     <h3 className="text-3xl font-black text-primary dark:text-white tracking-tighter uppercase leading-none mb-3">
-                                        {editMode ? 'Ubah Matriks Gateway' : 'Inisialisasi Node Gateway'}
+                                        {editMode ? 'Ubah MikroTik' : 'Inisialisasi MikroTik'}
                                     </h3>
-                                    <p className="text-accent text-[11px] font-black uppercase tracking-[0.4em] opacity-80 underline underline-offset-8 decoration-accent/30">MikroTik RouterOS Layer</p>
+                                    <p className="text-accent text-[11px] font-black uppercase tracking-[0.4em] opacity-80 underline underline-offset-8 decoration-accent/30">RouterOS Layer</p>
                                 </div>
                             </div>
                             <button onClick={() => setShowModal(false)} className="w-16 h-16 bg-white/5 hover:bg-white/10 rounded-[28px] text-primary dark:text-white transition-all flex items-center justify-center border border-glass-border dark:border-white/10 shadow-2xl active:scale-95">
@@ -505,74 +507,75 @@ export default function RoutersPage() {
                         </div>
                         
                         <form onSubmit={handleSave} className="p-12 space-y-12 overflow-y-auto custom-scrollbar flex-1">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                                <div className="col-span-1 md:col-span-2 space-y-5">
-                                    <label className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-muted ml-2">
-                                        <div className="w-2 h-2 rounded-full bg-accent"></div>
-                                        Alias Gateway (Infrastruktur)
-                                    </label>
-                                    <input 
-                                        type="text" required
-                                        value={currentRouter.name}
-                                        onChange={e => setCurrentRouter({...currentRouter, name: e.target.value})}
-                                        className="w-full bg-input dark:bg-white/5 border border-input-border dark:border-white/10 rounded-[32px] py-6 px-10 text-2xl font-black text-primary dark:text-white focus:outline-none focus:border-accent/50 focus:bg-white/10 transition-all shadow-inner"
-                                        placeholder="CORE-GATEWAY-01"
-                                    />
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-2 h-2 rounded-full bg-accent"></div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nama MikroTik (Contoh: Magetan-01)</label>
                                 </div>
-                                <div className="space-y-5">
-                                    <label className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-muted ml-2">
-                                        <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                        Matriks Host (IP)
-                                    </label>
-                                    <div className="relative group">
+                                <input 
+                                    type="text" required
+                                    value={currentRouter.name}
+                                    onChange={e => setCurrentRouter({...currentRouter, name: e.target.value})}
+                                    className="w-full bg-slate-900/50 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold placeholder:text-slate-600 focus:outline-none focus:border-accent/40 transition-all"
+                                    placeholder="CORE-GATEWAY-01"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-2 h-2 rounded-full bg-accent"></div>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Alamat IP MikroTik</label>
+                                    </div>
+                                    <div className="relative">
+                                        <Globe className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-accent opacity-40" />
                                         <input 
                                             type="text" required
                                             value={currentRouter.ip_address}
                                             onChange={e => setCurrentRouter({...currentRouter, ip_address: e.target.value})}
-                                            className="w-full bg-input dark:bg-white/5 border border-input-border dark:border-white/10 rounded-[32px] py-6 pl-16 pr-10 font-mono font-black text-2xl text-primary dark:text-white focus:outline-none focus:border-accent/50 transition-all shadow-inner"
+                                            className="w-full bg-slate-900/50 border border-white/5 rounded-2xl pl-16 pr-6 py-4 text-white font-bold placeholder:text-slate-600 focus:outline-none focus:border-accent/40 transition-all"
                                             placeholder="192.168.x.x"
                                         />
-                                        <Globe className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-accent/40 group-focus-within:text-accent transition-all" />
                                     </div>
                                 </div>
-                                <div className="space-y-5">
-                                    <label className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-muted ml-2">
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3">
                                         <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                                        Port Protokol API
-                                    </label>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">API Port</label>
+                                    </div>
                                     <input 
                                         type="number" required
                                         value={currentRouter.api_port}
                                         onChange={e => setCurrentRouter({...currentRouter, api_port: parseInt(e.target.value)})}
-                                        className="w-full bg-input dark:bg-white/5 border border-input-border dark:border-white/10 rounded-[32px] py-6 px-10 font-mono font-black text-xl text-primary dark:text-white focus:outline-none focus:border-accent/50 transition-all shadow-inner"
+                                        className="w-full bg-slate-900/50 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold placeholder:text-slate-600 focus:outline-none focus:border-accent/40 transition-all"
                                         placeholder="8728"
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                                <div className="space-y-5">
-                                    <label className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-muted ml-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3">
                                         <div className="w-2 h-2 rounded-full bg-accent"></div>
-                                        Prinsipal Otentikasi
-                                    </label>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Username</label>
+                                    </div>
                                     <input 
                                         type="text" 
                                         value={currentRouter.username}
                                         onChange={e => setCurrentRouter({...currentRouter, username: e.target.value})}
-                                        className="w-full bg-input dark:bg-white/5 border border-input-border dark:border-white/10 rounded-[32px] py-6 px-10 text-xl font-black text-primary dark:text-white focus:outline-none focus:border-accent/50 transition-all shadow-inner"
+                                        className="w-full bg-slate-900/50 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold placeholder:text-slate-600 focus:outline-none focus:border-accent/40 transition-all"
                                     />
                                 </div>
-                                <div className="space-y-5">
-                                    <label className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-muted ml-2">
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3">
                                         <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                        Token Keamanan
-                                    </label>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Password</label>
+                                    </div>
                                     <input 
                                         type="password" 
                                         value={currentRouter.password}
                                         onChange={e => setCurrentRouter({...currentRouter, password: e.target.value})}
-                                        className="w-full bg-input dark:bg-white/5 border border-input-border dark:border-white/10 rounded-[32px] py-6 px-10 text-xl font-black text-primary dark:text-white focus:outline-none focus:border-accent/50 transition-all shadow-inner"
+                                        className="w-full bg-slate-900/50 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold placeholder:text-slate-600 focus:outline-none focus:border-accent/40 transition-all"
                                         placeholder="••••••••"
                                     />
                                 </div>
@@ -582,8 +585,8 @@ export default function RoutersPage() {
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl"></div>
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 relative z-10">
                                     <div className="flex flex-col gap-2">
-                                        <span className="text-[12px] font-black text-primary dark:text-white uppercase tracking-[0.3em]">Diagnostik Link Hardware</span>
-                                        <span className="text-[10px] text-muted font-bold uppercase tracking-widest">Wajib Sebelum Registrasi Node Baru</span>
+                                        <span className="text-[12px] font-black text-primary dark:text-white uppercase tracking-[0.3em]">Diagnostik Link</span>
+                                        <span className="text-[10px] text-muted font-bold uppercase tracking-widest">Wajib Sebelum Pendaftaran</span>
                                     </div>
                                     <button
                                         type="button"
@@ -592,7 +595,7 @@ export default function RoutersPage() {
                                         disabled={!currentRouter.ip_address || !currentRouter.username}
                                     >
                                         {testSuccess ? <CheckCircle className="w-6 h-6" /> : <Wifi className="w-6 h-6" />}
-                                        {testSuccess ? 'Matriks Terverifikasi' : 'Inisialisasi Uji Koneksi'}
+                                        {testSuccess ? 'Terverifikasi' : 'Uji Koneksi'}
                                     </button>
                                 </div>
                             </div>
@@ -603,14 +606,14 @@ export default function RoutersPage() {
                                     onClick={() => setShowModal(false)}
                                     className="flex-1 py-6 rounded-[32px] bg-white/5 hover:bg-white/10 text-muted font-black uppercase tracking-[0.4em] text-[11px] transition-all border border-glass-border dark:border-white/5 active:scale-95 shadow-xl"
                                 >
-                                    Batalkan Operasi
+                                    Batalkan
                                 </button>
                                 <button 
                                     type="submit" 
-                                    className="flex-2 py-6 rounded-[32px] bg-linear-to-r from-accent to-emerald-700 hover:from-accent hover:to-emerald-600 text-white font-black uppercase tracking-[0.4em] text-[11px] shadow-[0_30px_60px_rgba(16,185,129,0.3)] transition-all active:scale-95 flex items-center justify-center gap-5 border border-white/20"
+                                    className="flex-2 py-6 rounded-[32px] bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white p-5 font-black text-[12px] uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 border border-white/20"
                                 >
-                                    <Save className="w-6 h-6" />
-                                    Simpan Konfigurasi Node Hardware
+                                    <Save className="w-5 h-5" />
+                                    Simpan Pengaturan MikroTik
                                 </button>
                             </div>
                         </form>

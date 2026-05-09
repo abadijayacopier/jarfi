@@ -14,9 +14,11 @@
     "start": "next start",
     "lint": "eslint",
     "electron-dev": "electron .",
-    "electron-pack": "electron-builder build --win --publish never"
+    "electron-pack": "electron-builder build --win --publish never",
+    "bot": "node scripts/dunia-wifi-bot.js"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.3.1",
@@ -26,6 +28,7 @@
     "lucide-react": "^1.8.0",
     "mysql2": "^3.20.0",
     "next": "16.2.1",
+    "node-telegram-bot-api": "^0.67.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-leaflet": "^5.0.0",

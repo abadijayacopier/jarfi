@@ -106,9 +106,9 @@ export default function OLTManagementPage() {
                             <div className="absolute inset-0 bg-accent rounded-2xl blur-lg opacity-20"></div>
                             <Zap className="w-12 h-12 text-accent relative z-10" />
                         </div>
-                        Matriks OLT
+                        Pusat Kendali OLT
                     </h3>
-                    <p className="text-sm font-bold text-muted uppercase tracking-widest opacity-60">Manajemen Core Fiber & Inteligensia Distribusi</p>
+                    <p className="text-sm font-bold text-muted uppercase tracking-widest opacity-60">Manajemen Distribusi Fiber & Konfigurasi OLT</p>
                 </div>
                 <button 
                     onClick={() => {
@@ -118,7 +118,7 @@ export default function OLTManagementPage() {
                     }}
                     className="w-full md:w-auto bg-linear-to-r from-accent to-emerald-600 hover:from-emerald-500 hover:to-emerald-600 text-white font-black py-5 px-10 rounded-2xl transition-all shadow-[0_20px_40px_rgba(16,185,129,0.3)] active:scale-95 flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-[11px] border border-white/10"
                 >
-                    <Plus className="w-5 h-5" /> Daftarkan Node Baru
+                    <Plus className="w-5 h-5" /> Hubungkan OLT Baru
                 </button>
             </div>
 
@@ -132,7 +132,7 @@ export default function OLTManagementPage() {
                                 <Server className="w-10 h-10" />
                             </div>
                             <div className="relative z-10">
-                                <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mb-2 opacity-60">Node Terpasang</p>
+                                <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mb-2 opacity-60">OLT Terhubung</p>
                                 <h4 className="text-5xl font-black text-primary dark:text-white tracking-tighter tabular-nums leading-none">{olts.length}</h4>
                             </div>
                         </div>
@@ -404,9 +404,9 @@ export default function OLTManagementPage() {
                                 </div>
                                 <div>
                                     <h3 className="text-3xl font-black text-primary dark:text-white tracking-tighter uppercase leading-none mb-3">
-                                        {editMode ? 'Ubah Matriks Node' : 'Inisialisasi Node OLT'}
+                                        {editMode ? 'Ubah Pengaturan OLT' : 'Hubungkan OLT Baru'}
                                     </h3>
-                                    <p className="text-accent text-[11px] font-black uppercase tracking-[0.4em] opacity-80 underline underline-offset-8 decoration-accent/30">Hardware Interface Layer</p>
+                                    <p className="text-accent text-[11px] font-black uppercase tracking-[0.4em] opacity-80 underline underline-offset-8 decoration-accent/30">Infrastruktur Fiber Dunia WiFi</p>
                                 </div>
                             </div>
                             <button onClick={() => setShowModal(false)} className="w-16 h-16 bg-white/5 hover:bg-white/10 rounded-[28px] text-primary dark:text-white transition-all flex items-center justify-center border border-glass-border dark:border-white/10 shadow-2xl active:scale-95">
@@ -521,7 +521,7 @@ export default function OLTManagementPage() {
                                     className="flex-2 py-6 rounded-[32px] bg-linear-to-r from-accent to-emerald-700 hover:from-accent hover:to-emerald-600 text-white font-black uppercase tracking-[0.4em] text-[11px] shadow-[0_30px_60px_rgba(16,185,129,0.3)] transition-all active:scale-95 flex items-center justify-center gap-5 border border-white/20"
                                 >
                                     <Save className="w-6 h-6" />
-                                    Simpan Konfigurasi Node Hardware
+                                    Simpan Pengaturan OLT
                                 </button>
                             </div>
                         </form>
