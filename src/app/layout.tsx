@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import DynamicBranding from "@/components/DynamicBranding";
+import UpdateChecker from "@/components/UpdateChecker";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,6 +25,7 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-full flex flex-col`}>
         <ThemeProvider>
           <DynamicBranding />
+          <UpdateChecker />
           {children}
         </ThemeProvider>
       </body>
