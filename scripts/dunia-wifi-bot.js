@@ -101,25 +101,29 @@ async function startBot() {
             const billingCmds = ['omset', 'duit', 'uang', 'bayar', 'tagihan', 'trafik', 'beban', 'bandwidth'];
             const introCmds = ['siapa', 'namamu', 'bantuan', 'menu', 'help'];
 
+            // Match words exactly to avoid false positives (e.g., 'apakah' containing 'p')
+            const words = cleanText.split(/\s+/);
+            const matches = (keywords) => keywords.some(k => words.includes(k) || cleanText === k);
+
             // 1. Sapaan
-            if (greetings.some(k => cleanText.includes(k))) {
+            if (matches(greetings) && words.length <= 2) {
                 return bot.sendMessage(chatId, `Halo Bos ${msg.from.first_name}! 👋 JarfiMgt siap membantu. Mau cek apa hari ini?\n\nKetik *status* untuk cek jaringan atau *omset* untuk cek bisnis.`);
             }
 
             // 2. Data MikroTik
-            if (mikrotikCmds.some(k => cleanText.includes(k))) {
+            if (matches(mikrotikCmds)) {
                 const [routers] = await pool.query('SELECT name FROM Routers');
                 return bot.sendMessage(chatId, `📡 *STATUS HARDWARE & CORE*\n\nRouter MikroTik terpantau *ONLINE*. Resource CPU & RAM masih sangat lega untuk melayani pelanggan. Uptime stabil Bos! ✅\n\nTerhubung ke *${routers.length} Router*.`);
             }
 
             // 3. Layanan
-            if (serviceCmds.some(k => cleanText.includes(k))) {
+            if (matches(serviceCmds)) {
                 const [act] = await pool.query("SELECT COUNT(*) as count FROM Customers WHERE status = 'ACTIVE'");
                 return bot.sendMessage(chatId, `🛠️ *LAYANAN DUNIA WIFI*\n\nLayanan *PPPoE & Hotspot* berjalan normal. Pelanggan aktif saat ini: *${act[0].count} User*.\n\nUntuk buat Voucher baru atau Isolasi pelanggan, silakan akses Menu Layanan di Dashboard Utama ya Bos! 🚀`);
             }
 
             // 4. Status Jaringan
-            if (statusCmds.some(k => cleanText.includes(k))) {
+            if (matches(statusCmds)) {
                 const [cust] = await pool.query('SELECT COUNT(*) as count FROM Customers');
                 const [act] = await pool.query("SELECT COUNT(*) as count FROM Customers WHERE status = 'ACTIVE'");
                 const [routers] = await pool.query('SELECT name, ip_address, status FROM Routers');
@@ -135,20 +139,35 @@ async function startBot() {
             }
 
             // 5. Billing
-            if (billingCmds.some(k => cleanText.includes(k))) {
+            if (matches(billingCmds)) {
                 const [cust] = await pool.query('SELECT COUNT(*) as count FROM Customers');
                 return bot.sendMessage(chatId, `📉 *INFO OPERASIONAL & BISNIS*\n\nTotal Pelanggan: *${cust[0].count}*.\n\nUntuk laporan omset detail dan grafik bandwidth, silakan cek langsung di Dashboard Jarfi ya Bos! 🚀`);
             }
 
             // 6. Menu/Help
-            if (introCmds.some(k => cleanText.includes(k))) {
+            if (matches(introCmds)) {
                 return bot.sendMessage(chatId, `🤖 *IDENTITAS BOT*\n\nSaya adalah *JarfiMgt_bot*, asisten pintar Dunia WiFi.\n\n*Perintah Tersedia:*\n- /status\n- /trafik\n- /mikrotik\n- /menu`, { parse_mode: 'Markdown' });
             }
 
             if (model) {
                 try {
                     const promptText = `Anda adalah asisten cerdas ISP bernama JarfiMgt_bot. Berikan jawaban yang ramah, singkat, dan membantu kepada bos Anda. Usahakan tanpa menggunakan format teks tebal/miring yang rumit. Pertanyaan: ${msg.text}`;
-                    const result = await model.generateContent(promptText);
+                    let result;
+                    try {
+                        result = await model.generateContent(promptText);
+                    } catch (aiError) {
+                        if (aiError.message && aiError.message.includes('404')) {
+                            console.log('Fallback ke model gemini-pro (versi 1.0)...');
+                            const settingsDB = await getSettings();
+                            const fallbackKey = settingsDB.gemini_api_key || process.env.GEMINI_API_KEY;
+                            const fallbackGenAI = new GoogleGenerativeAI(fallbackKey);
+                            const fallbackModel = fallbackGenAI.getGenerativeModel({ model: "gemini-pro" });
+                            result = await fallbackModel.generateContent(promptText);
+                        } else {
+                            throw aiError;
+                        }
+                    }
+                    
                     const responseText = result.response.text();
                     
                     try {
