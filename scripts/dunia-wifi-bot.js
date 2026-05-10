@@ -105,6 +105,33 @@ async function startBot() {
             const words = cleanText.split(/\s+/);
             const matches = (keywords) => keywords.some(k => words.includes(k) || cleanText === k);
 
+            // 0. Cari Pelanggan Khusus
+            if (words.length >= 2 && ['cari', 'lacak', 'info'].includes(words[0])) {
+                const keyword = words.slice(1).join(' ');
+                
+                const [custs] = await pool.query(`
+                    SELECT c.pppoe_username, c.status, p.name as package_name, u.name as real_name
+                    FROM Customers c
+                    LEFT JOIN Users u ON c.user_id = u.id
+                    LEFT JOIN Packages p ON c.package_id = p.id
+                    WHERE c.pppoe_username LIKE ? OR u.name LIKE ?
+                    LIMIT 3
+                `, [`%${keyword}%`, `%${keyword}%`]);
+
+                if (custs.length > 0) {
+                    let resultMsg = `🔍 *Hasil Pencarian: ${keyword}*\n\n`;
+                    custs.forEach(c => {
+                        const icon = c.status === 'ACTIVE' ? '🟢' : (c.status === 'ISOLATED' ? '🔴' : '⚪');
+                        resultMsg += `${icon} *${c.pppoe_username}* ${c.real_name ? `(${c.real_name})` : ''}\n`;
+                        resultMsg += `├ Paket: ${c.package_name || '-'}\n`;
+                        resultMsg += `└ Status: *${c.status}*\n\n`;
+                    });
+                    return bot.sendMessage(chatId, resultMsg, { parse_mode: 'Markdown' });
+                } else {
+                    return bot.sendMessage(chatId, `🔍 Maaf Bos, pelanggan dengan keyword *${keyword}* tidak ditemukan di Database.`, { parse_mode: 'Markdown' });
+                }
+            }
+
             // 1. Sapaan
             if (matches(greetings) && words.length <= 2) {
                 return bot.sendMessage(chatId, `Halo Bos ${msg.from.first_name}! 👋 JarfiMgt siap membantu. Mau cek apa hari ini?\n\nKetik *status* untuk cek jaringan atau *omset* untuk cek bisnis.`);

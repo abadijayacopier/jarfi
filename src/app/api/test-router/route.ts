@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { MikrotikService } from '@/lib/mikrotik';
 import { pool } from '@/lib/db';
+import { sendTelegramNotification } from '@/lib/telegram';
 
 export async function POST(req: Request) {
     let requestBody: any = null;
@@ -29,6 +30,16 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Host and User are required' }, { status: 400 });
         }
 
+        let routerName = 'Router';
+        let previousStatus = 'UNKNOWN';
+        if (id) {
+            const [rows]: any = await pool.query('SELECT status, name FROM Routers WHERE id = ?', [id]);
+            if (rows.length > 0) {
+                previousStatus = rows[0].status;
+                routerName = rows[0].name;
+            }
+        }
+
         const service = new MikrotikService({
             host,
             user,
@@ -39,6 +50,9 @@ export async function POST(req: Request) {
         const activeUsers = await service.getActiveUsers();
 
         if (id) {
+            if (previousStatus !== 'ONLINE') {
+                sendTelegramNotification(`🟢 *ROUTER ONLINE*\n\nRouter *${routerName}* (${host}) telah kembali UP/ONLINE! ✅\nKoneksi ke jaringan sudah stabil.`);
+            }
             await pool.query('UPDATE Routers SET status = ? WHERE id = ?', ['ONLINE', id]);
         }
 
@@ -49,7 +63,13 @@ export async function POST(req: Request) {
         });
     } catch (error: any) {
         if (requestBody && requestBody.id) {
-            try { await pool.query('UPDATE Routers SET status = ? WHERE id = ?', ['OFFLINE', requestBody.id]); } catch (e) { }
+            try { 
+                const [rows]: any = await pool.query('SELECT status, name FROM Routers WHERE id = ?', [requestBody.id]);
+                if (rows.length > 0 && rows[0].status !== 'OFFLINE') {
+                    sendTelegramNotification(`🔴 *ROUTER DOWN / TERPUTUS*\n\nRouter *${rows[0].name}* (${requestBody.host || 'Unknown IP'}) terdeteksi OFFLINE! ❌\nHarap segera cek perangkat atau jaringan.`);
+                }
+                await pool.query('UPDATE Routers SET status = ? WHERE id = ?', ['OFFLINE', requestBody.id]); 
+            } catch (e) { }
         }
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }

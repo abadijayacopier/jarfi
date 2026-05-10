@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { pool } from '@/lib/db';
 import { MikrotikService } from '@/lib/mikrotik';
+import { sendTelegramNotification } from '@/lib/telegram';
 import { sendWhatsApp } from '@/lib/whatsapp';
 
 export async function GET() {
@@ -63,8 +64,9 @@ export async function GET() {
 
                     // Update Status di Database
                     await pool.query('UPDATE Customers SET status = ? WHERE id = ?', ['ISOLATED', customer.id]);
-                    
                     results.users_isolated++;
+                    
+                    await sendTelegramNotification(`⚠️ *PELANGGAN TERISOLIR OTOMATIS*\n\n👤 *Nama:* ${customer.name}\n💻 *Username:* ${customer.pppoe_username}\n📅 *Jatuh Tempo:* ${customer.due_date}\n💳 *Tagihan:* Rp ${parseInt(customer.price).toLocaleString('id-ID')}\n\nSistem telah memutus koneksi pelanggan karena keterlambatan pembayaran.`);
 
                     // 4. Kirim Notifikasi WhatsApp
                     const msg = `Halo ${customer.name}, koneksi internet Anda sementara terisolir karena tagihan bulan ${currentMonth} belum terbayar (Jatuh tempo tgl ${customer.due_date}). Silakan lakukan pembayaran Rp ${parseInt(customer.price).toLocaleString()} agar internet aktif kembali.`;
@@ -86,6 +88,8 @@ export async function GET() {
 
                     // Update Status di Database
                     await pool.query('UPDATE Customers SET status = ? WHERE id = ?', ['ACTIVE', customer.id]);
+                    
+                    await sendTelegramNotification(`🟢 *ISOLIR DIBUKA (AUTO)*\n\n👤 *Nama:* ${customer.name}\n💻 *Username:* ${customer.pppoe_username}\n\nKoneksi pelanggan telah diaktifkan kembali karena tagihan sudah lunas. ✅`);
                     
                     const msg = `Terima kasih ${customer.name}, pembayaran tagihan Anda sudah kami terima. Koneksi internet Anda telah diaktifkan kembali. Selamat berinternet!`;
                     await sendWhatsApp(customer.phone, msg);

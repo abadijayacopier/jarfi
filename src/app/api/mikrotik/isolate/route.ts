@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { pool } from '@/lib/db';
 import { MikrotikService } from '@/lib/mikrotik';
+import { sendTelegramNotification } from '@/lib/telegram';
 
 export async function POST(req: Request) {
     try {
@@ -25,6 +26,8 @@ export async function POST(req: Request) {
 
         await mk.isolateUser(data.pppoe_username, 'ISOLIR');
         await pool.query('UPDATE Customers SET status = "ISOLATED" WHERE id = ?', [customer_id]);
+        
+        sendTelegramNotification(`⚠️ *PELANGGAN TERISOLIR (MANUAL)*\n\n💻 *Username:* ${data.pppoe_username}\n\nKoneksi pelanggan ini telah dinonaktifkan/diisolir secara manual melalui Dashboard NOC.`);
 
         return NextResponse.json({ success: true });
     } catch (err: any) {

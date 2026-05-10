@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { pool } from '@/lib/db';
 import { MikrotikService } from '@/lib/mikrotik';
+import { sendTelegramNotification } from '@/lib/telegram';
 
 export async function GET() {
     try {
@@ -74,6 +75,8 @@ export async function POST(req: Request) {
                 }
             }
         }
+
+        sendTelegramNotification(`🟢 *Pelanggan Baru Dibuat*\n\n👤 *Nama:* ${name}\n💻 *Username:* ${pppoe_username}\n📱 *Telp:* ${phone}\n📡 *Paket ID:* ${package_id || '-'}\n\nSelamat Bos! Ada pelanggan baru nih! 🚀`);
 
         return NextResponse.json({ success: true, message: 'Pelanggan berhasil dibuat dan sinkron ke RouterOS' });
     } catch (error: any) {
