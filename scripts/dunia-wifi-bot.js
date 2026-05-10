@@ -145,12 +145,18 @@ async function startBot() {
                 return bot.sendMessage(chatId, `🤖 *IDENTITAS BOT*\n\nSaya adalah *JarfiMgt_bot*, asisten pintar Dunia WiFi.\n\n*Perintah Tersedia:*\n- /status\n- /trafik\n- /mikrotik\n- /menu`, { parse_mode: 'Markdown' });
             }
 
-            // --- AI FALLBACK ---
             if (model) {
                 try {
-                    const result = await model.generateContent(`Anda JarfiMgt_bot. Bantu bos ini. Tanya: ${msg.text}`);
-                    const response = await result.response;
-                    return bot.sendMessage(chatId, response.text(), { parse_mode: 'Markdown' });
+                    const promptText = `Anda adalah asisten cerdas ISP bernama JarfiMgt_bot. Berikan jawaban yang ramah, singkat, dan membantu kepada bos Anda. Usahakan tanpa menggunakan format teks tebal/miring yang rumit. Pertanyaan: ${msg.text}`;
+                    const result = await model.generateContent(promptText);
+                    const responseText = result.response.text();
+                    
+                    try {
+                        return await bot.sendMessage(chatId, responseText, { parse_mode: 'Markdown' });
+                    } catch (parseError) {
+                        // Fallback without parse_mode if markdown is invalid
+                        return await bot.sendMessage(chatId, responseText);
+                    }
                 } catch (e) {
                     console.error('❌ AI Fail:', e.message);
                 }

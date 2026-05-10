@@ -74,7 +74,7 @@ export default function SystemMonitorPage() {
     if (!routers.length) return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6">
             <div className="w-12 h-12 border-4 border-accent/10 border-t-accent rounded-full animate-spin"></div>
-            <p className="text-slate-500 uppercase font-bold text-[10px] tracking-widest animate-pulse">Membangun Tautan Gateway...</p>
+            <p className="text-slate-500 uppercase font-bold text-[10px] tracking-widest animate-pulse">Menghubungkan ke Router...</p>
         </div>
     );
 
@@ -87,7 +87,7 @@ export default function SystemMonitorPage() {
                         <Activity className="w-8 h-8 text-accent" />
                         Monitoring
                     </h3>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest opacity-60">Metrik Performa & Telemetri Real-time</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest opacity-60">Performa & Status Real-time</p>
                 </div>
                 
                 <div className="flex flex-wrap gap-3 glass p-2.5 rounded-3xl border border-slate-200 dark:border-white/5 bg-white/40 dark:bg-slate-900/40 shadow-lg items-center backdrop-blur-xl">
@@ -113,7 +113,7 @@ export default function SystemMonitorPage() {
                     </div>
                     <div className="px-4 py-2 bg-accent/10 rounded-xl border border-accent/20 flex items-center gap-2.5">
                         <div className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse"></div>
-                        <span className="text-[9px] font-black text-accent uppercase tracking-widest">Live Connection</span>
+                        <span className="text-[9px] font-black text-accent uppercase tracking-widest">Terkoneksi</span>
                     </div>
                 </div>
             </div>
@@ -186,7 +186,7 @@ export default function SystemMonitorPage() {
                             <div className="p-2 rounded-lg bg-purple-500/5 border border-purple-500/10">
                                 <BarChart3 className="w-3.5 h-3.5 text-purple-500" />
                             </div>
-                            Vektor Infrastruktur
+                            Status Hardware
                         </h3>
                         <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2.5 py-1 bg-slate-50 dark:bg-white/5 rounded-md border border-slate-200 dark:border-white/5">Beban CPU</span>
                     </div>
@@ -202,10 +202,10 @@ export default function SystemMonitorPage() {
             {/* Node Metadata Footer */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                 {[
-                    { label: 'Spek Perangkat Keras', value: currentStats.board || 'CORE-NODE-X', sub: 'Identifikasi Matriks' },
-                    { label: 'Versi Kernel', value: `Build v${currentStats.version || '6.xx+'}`, sub: 'Kernel Perangkat Lunak' },
-                    { label: 'Arsitektur', value: currentStats.architecture || 'X86 / TILE', sub: 'Fabrik Prosesor' },
-                    { label: 'Kontinuitas Sistem', value: currentStats.uptime || '00:00:00', sub: 'Vektor Uptime', highlight: true }
+                    { label: 'Spek Perangkat Keras', value: currentStats.board || 'CORE-NODE-X', sub: 'Tipe Perangkat' },
+                    { label: 'Versi Kernel', value: `Build v${currentStats.version || '6.xx+'}`, sub: 'Sistem Operasi' },
+                    { label: 'Arsitektur', value: currentStats.architecture || 'X86 / TILE', sub: 'Tipe Prosesor' },
+                    { label: 'Kontinuitas Sistem', value: currentStats.uptime || '00:00:00', sub: 'Lama Menyala', highlight: true }
                 ].map((meta, idx) => (
                     <div key={idx} className="bg-white/1 border border-(--glass-border) p-8 rounded-4xl shadow-inner group hover:bg-white/2 transition-all duration-500">
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 group-hover:text-accent transition-colors">{meta.label}</p>

@@ -69,9 +69,9 @@ export default function ReportsPage() {
         if (!reportData.length) return;
         
         const headers = Object.keys(reportData[0]);
-        const csvContent = [
-            headers.join(','),
-            ...reportData.map(row => headers.map(header => JSON.stringify(row[header])).join(','))
+        const csvContent = "\uFEFF" + [
+            headers.join(';'),
+            ...reportData.map(row => headers.map(header => `"${String(row[header]).replace(/"/g, '""')}"`).join(';'))
         ].join('\n');
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -223,31 +223,20 @@ export default function ReportsPage() {
                         </div>
 
                         {/* Export & Print — Hanya untuk non-stiker */}
-                        {activeReport !== 'stiker' && (
-                            <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
                                 <button 
                                     onClick={exportToExcel}
-                                    className="h-12 md:h-14 px-4 md:px-8 rounded-2xl bg-white/5 border border-white/10 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-primary hover:bg-white/10 transition-all flex items-center gap-2 md:gap-3 flex-1 md:flex-none justify-center"
+                                    className="h-12 md:h-14 px-6 md:px-8 rounded-2xl bg-emerald-50 text-[10px] md:text-xs font-black uppercase tracking-widest text-emerald-600 hover:bg-emerald-100 transition-all flex items-center gap-2 md:gap-3 flex-1 md:flex-none justify-center border border-emerald-200"
                                 >
-                                    <FileSpreadsheet className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-500" /> 
-                                    <span className="md:inline">Excel</span>
+                                    <FileSpreadsheet className="w-4 h-4 md:w-5 md:h-5" /> 
+                                    <span className="md:inline">Export Excel</span>
                                 </button>
                                 <button 
                                     onClick={handlePrint}
-                                    className="h-12 md:h-14 px-4 md:px-8 rounded-2xl bg-white/5 border border-white/10 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-primary hover:bg-white/10 transition-all flex items-center gap-2 md:gap-3 flex-1 md:flex-none justify-center"
+                                    className="h-12 md:h-14 px-8 md:px-10 rounded-2xl bg-accent text-white shadow-xl shadow-accent/20 text-[10px] md:text-xs font-black uppercase tracking-widest hover:bg-accent/90 transition-all flex items-center gap-2 md:gap-3 w-full md:w-auto justify-center"
                                 >
-                                    <Download className="w-3.5 h-3.5 md:w-4 md:h-4 text-blue-500" />
-                                    <span className="md:inline">PDF</span>
+                                    <PrinterIcon className="w-4 h-4 md:w-5 md:h-5" /> 
+                                    <span className="inline">Cetak / Simpan PDF</span>
                                 </button>
-                                <button 
-                                    onClick={handlePrint}
-                                    className="h-12 md:h-14 px-6 md:px-10 rounded-2xl bg-accent text-white shadow-xl shadow-accent/20 text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-accent/90 transition-all flex items-center gap-2 md:gap-3 w-full md:w-auto justify-center"
-                                >
-                                    <PrinterIcon className="w-3.5 h-3.5 md:w-4 md:h-4" /> 
-                                    <span className="inline">Cetak</span>
-                                </button>
-                            </div>
-                        )}
                     </div>
 
                     {/* The Actual Report Content (Printable) */}
@@ -260,28 +249,38 @@ export default function ReportsPage() {
                                     <h2 className="text-xl font-black uppercase tracking-tight text-white">Preview Stiker ID</h2>
                                     <p className="text-[10px] font-bold text-muted uppercase tracking-widest">A3+ (470×310mm) • Sheet {stikerPage + 1} of {Math.ceil(reportData.length / 25)}</p>
                                 </div>
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-2 md:pb-0 max-w-xs md:max-w-md">
                                     <button 
                                         disabled={stikerPage === 0}
                                         onClick={() => setStikerPage(p => p - 1)}
-                                        className="h-12 px-6 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-primary disabled:opacity-20 hover:bg-white/10 transition-all"
+                                        className="h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-primary disabled:opacity-20 hover:bg-white/10 transition-all shrink-0"
                                     >
-                                        Prev Sheet
+                                        Prev
                                     </button>
-                                    <div className="text-xs font-black text-accent">{stikerPage + 1}</div>
+                                    
+                                    {Array.from({ length: Math.ceil(reportData.length / 25) }).map((_, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setStikerPage(i)}
+                                            className={`h-12 w-12 rounded-xl text-[12px] font-black shrink-0 transition-all ${stikerPage === i ? 'bg-accent text-white shadow-lg' : 'bg-white/5 border border-white/10 text-slate-400 hover:bg-white/10'}`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+
                                     <button 
                                         disabled={stikerPage >= Math.ceil(reportData.length / 25) - 1}
                                         onClick={() => setStikerPage(p => p + 1)}
-                                        className="h-12 px-6 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-primary disabled:opacity-20 hover:bg-white/10 transition-all"
+                                        className="h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-primary disabled:opacity-20 hover:bg-white/10 transition-all shrink-0"
                                     >
-                                        Next Sheet
+                                        Next
                                     </button>
-                                    <div className="w-px h-8 bg-white/10 mx-2"></div>
+                                    <div className="w-px h-8 bg-white/10 mx-2 shrink-0"></div>
                                     <button 
                                         onClick={handlePrint}
-                                        className="h-12 px-8 rounded-xl bg-accent text-white shadow-lg shadow-accent/20 text-[10px] font-black uppercase tracking-widest hover:bg-accent/90 transition-all flex items-center gap-2"
+                                        className="h-12 px-6 rounded-xl bg-accent text-white shadow-lg shadow-accent/20 text-[10px] font-black uppercase tracking-widest hover:bg-accent/90 transition-all flex items-center gap-2 shrink-0"
                                     >
-                                        <Printer className="w-4 h-4" /> Cetak Semua
+                                        <Printer className="w-4 h-4" /> Cetak
                                     </button>
                                 </div>
                             </div>
@@ -358,19 +357,19 @@ export default function ReportsPage() {
                                                                             </div>
                                                                         </div>
                                                                         <div>
-                                                                            <p className="text-[5pt] font-black text-slate-300 uppercase">Alamat</p>
-                                                                            <p className="text-[6.5pt] font-semibold text-slate-600 leading-tight line-clamp-1">{item.address || '-'}</p>
+                                                                            <p className="text-[6pt] font-black text-slate-400 uppercase">Alamat</p>
+                                                                            <p className="text-[8pt] font-black text-slate-800 leading-tight line-clamp-2">{item.address || '-'}</p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
 
                                                                 {/* Payment Info */}
-                                                                <div className="mt-[1mm] pt-[1mm] border-t border-dashed border-slate-200">
-                                                                    <p className="text-[5pt] font-black text-emerald-600 uppercase">Pembayaran</p>
-                                                                    <p className="text-[7pt] font-black text-slate-800 leading-tight">
+                                                                <div className="mt-[1.5mm] pt-[1.5mm] border-t border-dashed border-slate-200">
+                                                                    <p className="text-[6pt] font-black text-emerald-600 uppercase">Pembayaran / Transfer</p>
+                                                                    <p className="text-[8pt] font-black text-slate-800 leading-tight">
                                                                         {summary?.bank_name || '-'} • {summary?.bank_account || '-'}
                                                                     </p>
-                                                                    <p className="text-[5.5pt] font-semibold text-slate-400">a.n {summary?.bank_holder || '-'}</p>
+                                                                    <p className="text-[6.5pt] font-semibold text-slate-600">a.n {summary?.bank_holder || '-'}</p>
                                                                 </div>
                                                             </div>
 
@@ -407,319 +406,321 @@ export default function ReportsPage() {
                     ) : (
                     <div className="bg-white text-slate-900 p-12 md:p-20 rounded-[40px] shadow-2xl min-h-[1000px] print:shadow-none print:p-0 print:rounded-none">
                         {/* Print Header */}
-                        <div className="flex justify-between items-start border-b-2 border-slate-900 pb-12 mb-6">
+                        <div className="flex justify-between items-start border-b-4 border-slate-900 pb-12 mb-8">
                             <div className="space-y-4">
-                                <h1 className="text-4xl font-black tracking-tighter uppercase">{summary?.company_name || 'NETWORKS'}</h1>
-                                <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-60">High-Performance Infrastructure</p>
-                                <div className="text-[11px] font-medium leading-relaxed max-w-sm">
-                                    Jl. Teknologi Masa Depan No. 99, Jakarta<br />
-                                    Telp: +62 812 3456 789 | Email: cs@jarfi.net
+                                <h1 className="text-5xl font-black tracking-tighter uppercase text-slate-900">{summary?.company_name || 'NETWORKS'}</h1>
+                                <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500">Sistem Laporan Infrastruktur</p>
+                                <div className="text-sm font-semibold leading-relaxed text-slate-700 max-w-md mt-4">
+                                    <strong>Informasi Pembayaran / Kas:</strong><br />
+                                    Bank: {summary?.bank_name || '-'} • Rek: {summary?.bank_account || '-'}<br />
+                                    Atas Nama: {summary?.bank_holder || '-'}
                                 </div>
                             </div>
-                            <div className="text-right space-y-2">
-                                <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Laporan {activeReport === 'customers' ? 'Data Pelanggan' : reports.find(r => r.id === activeReport)?.title}</h2>
+                            <div className="text-right space-y-3">
+                                <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">Laporan {activeReport === 'customers' ? 'Data Pelanggan' : reports.find(r => r.id === activeReport)?.title}</h2>
                                 {activeReport !== 'customers' && (
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">Periode: {dateRange.start ? new Date(dateRange.start).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : 'Seluruh Waktu'}</p>
+                                    <p className="text-sm font-black text-slate-500 uppercase tracking-[0.2em]">Periode: {dateRange.start ? new Date(dateRange.start).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : 'Seluruh Waktu'}</p>
                                 )}
-                                <div className="mt-8 p-4 border border-slate-200 rounded-2xl inline-block text-left">
-                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Tanggal Cetak</p>
-                                    <p className="text-xs font-black">{new Date().toLocaleString('id-ID')}</p>
+                                <div className="mt-8 p-6 border-2 border-slate-200 rounded-2xl inline-block text-left bg-slate-50">
+                                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Dicetak Pada</p>
+                                    <p className="text-sm font-black text-slate-900">{new Date().toLocaleString('id-ID')}</p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Report Table - Simplified for Print */}
-                        <div className="space-y-12 overflow-x-auto custom-scrollbar">
-                            {loading ? (
-                                <div className="flex flex-col items-center justify-center py-20 space-y-4">
-                                    <Loader2 className="w-12 h-12 text-accent animate-spin" />
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Menyusun Dokumentasi...</p>
-                                </div>
-                            ) : reportData.length === 0 ? (
-                                <div className="text-center py-20 text-slate-400 font-bold italic">
-                                    Tidak ada data untuk periode ini.
-                                </div>
-                            ) : (
-                                <>
+                        {/* Report Table */}
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                                <Loader2 className="w-12 h-12 text-accent animate-spin" />
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Menyusun Dokumentasi...</p>
+                            </div>
+                        ) : reportData.length === 0 ? (
+                            <div className="text-center py-20 text-slate-400 font-bold italic">
+                                Tidak ada data untuk periode ini.
+                            </div>
+                        ) : (
+                            <>
+                                <div className="overflow-x-auto custom-scrollbar">
                                     <table className="w-full text-left border-collapse border-b border-slate-200 min-w-[800px]">
                                         <thead>
-                                            <tr className="bg-slate-50 text-[10px] font-black uppercase tracking-widest border-t-2 border-slate-900">
+                                            <tr className="bg-slate-100 text-xs font-black uppercase tracking-widest border-y-2 border-slate-900 text-slate-700">
                                                 {activeReport === 'customers' ? (
                                                     <>
-                                                        <th className="px-6 py-6 border-b border-slate-200">Nama Pelanggan</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200">Username</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200">Paket</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200 text-center">Status</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200 text-right">Biaya</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300">Nama Pelanggan</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300">Username</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300">Paket</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300 text-center">Status</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300 text-right">Biaya</th>
                                                     </>
                                                 ) : activeReport === 'finance' ? (
                                                     <>
-                                                        <th className="px-6 py-6 border-b border-slate-200">Periode</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200">Pelanggan</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200">Tanggal Bayar</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200 text-center">Status</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200 text-right">Nominal</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300">Periode</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300">Pelanggan</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300">Tanggal Bayar</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300 text-center">Status</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300 text-right">Nominal</th>
                                                     </>
                                                 ) : activeReport === 'inventory' ? (
                                                     <>
-                                                        <th className="px-6 py-6 border-b border-slate-200">Nama Barang</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200">Kategori</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200 text-center">Stok</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200 text-right">Harga Satuan</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200 text-right">Total Nilai</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300">Nama Barang</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300">Kategori</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300 text-center">Stok</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300 text-right">Harga Satuan</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300 text-right">Total Nilai</th>
                                                     </>
                                                 ) : activeReport === 'journal' ? (
                                                     <>
-                                                        <th className="px-6 py-6 border-b border-slate-200">Aksi / Aktivitas</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200">Keterangan</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200 text-center">Waktu</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200 text-right">Tipe</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300">Aksi / Aktivitas</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300">Keterangan</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300 text-center">Waktu</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300 text-right">Tipe</th>
                                                     </>
                                                 ) : activeReport === 'bandwidth' ? (
                                                     <>
-                                                        <th className="px-6 py-6 border-b border-slate-200">Pelanggan</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200">Paket / Speed</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200">OLT Node</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200 text-right">Sinyal RX (dBm)</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200 text-right">Sinyal TX (dBm)</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300">Pelanggan</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300">Paket / Speed</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300">OLT Node</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300 text-right">Sinyal RX (dBm)</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300 text-right">Sinyal TX (dBm)</th>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <th className="px-6 py-6 border-b border-slate-200">Item</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200">Kategori</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200 text-right">Debit</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200 text-right">Kredit</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200 text-right">Saldo</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300">Item</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300">Kategori</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300 text-right">Debit</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300 text-right">Kredit</th>
+                                                        <th className="px-6 py-6 border-b border-slate-300 text-right">Saldo</th>
                                                     </>
                                                 )}
                                             </tr>
                                         </thead>
-                                        <tbody className="text-xs font-medium">
-                                            {paginatedData.map((item, idx) => (
-                                                <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                                        <tbody className="text-sm font-semibold text-slate-800">
+                                            {/* Saat Print tampilkan semua data, jika tidak, tampilkan paginated */}
+                                            {(typeof window !== 'undefined' && window.matchMedia('print').matches ? reportData : paginatedData).map((item, idx) => (
+                                                <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
                                                     {activeReport === 'customers' ? (
                                                         <>
-                                                            <td className="px-6 py-5 font-bold">{item.customer_name}</td>
-                                                            <td className="px-6 py-5 font-mono text-[10px]">{item.username}</td>
-                                                            <td className="px-6 py-5">{item.package_name}</td>
-                                                            <td className="px-6 py-5 text-center">
-                                                                <span className={`px-2 py-1 rounded-md text-[9px] font-black uppercase ${(item.status || '').toUpperCase() === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                                                            <td className="px-6 py-6 font-bold">{item.customer_name}</td>
+                                                            <td className="px-6 py-6 font-mono text-xs">{item.username}</td>
+                                                            <td className="px-6 py-6">{item.package_name}</td>
+                                                            <td className="px-6 py-6 text-center">
+                                                                <span className={`px-3 py-1.5 rounded-md text-xs font-black uppercase ${(item.status || '').toUpperCase() === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
                                                                     {item.status || 'N/A'}
                                                                 </span>
                                                             </td>
-                                                            <td className="px-6 py-5 text-right font-bold">{formatIDR(item.monthly_fee || 0)}</td>
+                                                            <td className="px-6 py-6 text-right font-bold">{formatIDR(item.monthly_fee || 0)}</td>
                                                         </>
                                                     ) : activeReport === 'finance' ? (
                                                         <>
-                                                            <td className="px-6 py-5 uppercase">{item.period}</td>
-                                                            <td className="px-6 py-5 font-bold">{item.customer_name}</td>
-                                                            <td className="px-6 py-5">{item.paid_at ? new Date(item.paid_at).toLocaleDateString('id-ID') : '-'}</td>
-                                                            <td className="px-6 py-5 text-center">
-                                                                <span className={`px-2 py-1 rounded-md text-[9px] font-black uppercase ${item.status === 'PAID' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'}`}>
+                                                            <td className="px-6 py-6 uppercase">{item.period}</td>
+                                                            <td className="px-6 py-6 font-bold">{item.customer_name}</td>
+                                                            <td className="px-6 py-6">{item.paid_at ? new Date(item.paid_at).toLocaleDateString('id-ID') : '-'}</td>
+                                                            <td className="px-6 py-6 text-center">
+                                                                <span className={`px-3 py-1.5 rounded-md text-xs font-black uppercase ${item.status === 'PAID' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'}`}>
                                                                     {item.status}
                                                                 </span>
                                                             </td>
-                                                            <td className="px-6 py-5 text-right font-bold">{formatIDR(item.amount || 0)}</td>
+                                                            <td className="px-6 py-6 text-right font-bold">{formatIDR(item.amount || 0)}</td>
                                                         </>
                                                     ) : activeReport === 'inventory' ? (
                                                         <>
-                                                            <td className="px-6 py-5 font-bold uppercase">{item.name}</td>
-                                                            <td className="px-6 py-5">{item.category}</td>
-                                                            <td className="px-6 py-5 text-center font-bold">
-                                                                {item.stock} <span className="text-[10px] text-slate-400 font-medium">{item.unit}</span>
+                                                            <td className="px-6 py-6 font-bold uppercase">{item.name}</td>
+                                                            <td className="px-6 py-6">{item.category}</td>
+                                                            <td className="px-6 py-6 text-center font-bold">
+                                                                {item.stock} <span className="text-xs text-slate-500 font-medium">{item.unit}</span>
                                                             </td>
-                                                            <td className="px-6 py-5 text-right">{formatIDR(item.price || 0)}</td>
-                                                            <td className="px-6 py-5 text-right font-black">{formatIDR(item.value || 0)}</td>
+                                                            <td className="px-6 py-6 text-right">{formatIDR(item.price || 0)}</td>
+                                                            <td className="px-6 py-6 text-right font-black">{formatIDR(item.value || 0)}</td>
                                                         </>
                                                     ) : activeReport === 'journal' ? (
                                                         <>
-                                                            <td className="px-6 py-5 font-bold">{item.name}</td>
-                                                            <td className="px-6 py-5 text-slate-500">{item.category}</td>
-                                                            <td className="px-6 py-5 text-center font-mono text-[10px]">{new Date(item.date).toLocaleString('id-ID')}</td>
-                                                            <td className="px-6 py-5 text-right uppercase font-black text-slate-400">{item.debit > 0 ? formatIDR(item.debit) : '-'}</td>
+                                                            <td className="px-6 py-6 font-bold">{item.name}</td>
+                                                            <td className="px-6 py-6 text-slate-600">{item.category}</td>
+                                                            <td className="px-6 py-6 text-center font-mono text-xs">{new Date(item.date).toLocaleString('id-ID')}</td>
+                                                            <td className="px-6 py-6 text-right uppercase font-black text-slate-500">{item.debit > 0 ? formatIDR(item.debit) : '-'}</td>
                                                         </>
                                                     ) : activeReport === 'bandwidth' ? (
                                                         <>
-                                                            <td className="px-6 py-5">
+                                                            <td className="px-6 py-6">
                                                                 <div><span className="font-bold">{item.customer_name}</span></div>
-                                                                <div className="text-[10px] text-slate-400 font-mono">{item.name}</div>
+                                                                <div className="text-xs text-slate-500 font-mono mt-1">{item.name}</div>
                                                             </td>
-                                                            <td className="px-6 py-5">
+                                                            <td className="px-6 py-6">
                                                                 <div className="font-bold">{item.package_name}</div>
-                                                                <div className="text-[10px] text-slate-400">{item.speed}</div>
+                                                                <div className="text-xs text-slate-500 mt-1">{item.speed}</div>
                                                             </td>
-                                                            <td className="px-6 py-5">{item.olt}</td>
-                                                            <td className="px-6 py-5 text-right font-mono font-bold">
+                                                            <td className="px-6 py-6 font-semibold">{item.olt}</td>
+                                                            <td className="px-6 py-6 text-right font-mono font-bold">
                                                                 <span className={Number(item.rx) < -25 ? 'text-rose-600' : Number(item.rx) < -20 ? 'text-amber-600' : 'text-emerald-600'}>
                                                                     {Number(item.rx).toFixed(2)} dBm
                                                                 </span>
                                                             </td>
-                                                            <td className="px-6 py-5 text-right font-mono font-bold">
+                                                            <td className="px-6 py-6 text-right font-mono font-bold">
                                                                 <span className="text-blue-600">{Number(item.tx).toFixed(2)} dBm</span>
                                                             </td>
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <td className="px-6 py-5">{item.name || 'Item'}</td>
-                                                            <td className="px-6 py-5">{item.category || 'N/A'}</td>
-                                                            <td className="px-6 py-5 text-right">{formatIDR(item.debit || 0)}</td>
-                                                            <td className="px-6 py-5 text-right">{formatIDR(item.credit || 0)}</td>
-                                                            <td className="px-6 py-5 text-right font-bold">{formatIDR(item.balance || 0)}</td>
+                                                            <td className="px-6 py-6">{item.name || 'Item'}</td>
+                                                            <td className="px-6 py-6">{item.category || 'N/A'}</td>
+                                                            <td className="px-6 py-6 text-right">{formatIDR(item.debit || 0)}</td>
+                                                            <td className="px-6 py-6 text-right">{formatIDR(item.credit || 0)}</td>
+                                                            <td className="px-6 py-6 text-right font-bold">{formatIDR(item.balance || 0)}</td>
                                                         </>
                                                     )}
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
+                                </div>
 
-                                    {/* Pagination Controls - Hidden on Print */}
-                                    <div className="flex justify-between items-center py-8 border-t border-slate-100 print:hidden">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                            Menampilkan {Math.min(filteredData.length, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(filteredData.length, currentPage * itemsPerPage)} dari {filteredData.length} data
-                                        </p>
-                                        <div className="flex gap-2">
-                                            <button 
-                                                disabled={currentPage === 1}
-                                                onClick={() => setCurrentPage(currentPage - 1)}
-                                                className="px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 text-[10px] font-black uppercase disabled:opacity-30"
-                                            >
-                                                Prev
-                                            </button>
-                                            <div className="flex gap-1">
-                                                {[...Array(totalPages)].map((_, i) => (
-                                                    <button
-                                                        key={i}
-                                                        onClick={() => setCurrentPage(i + 1)}
-                                                        className={`w-8 h-8 rounded-lg text-[10px] font-black ${currentPage === i + 1 ? 'bg-slate-900 text-white' : 'bg-slate-50 border border-slate-200 text-slate-600'}`}
-                                                    >
-                                                        {i + 1}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                            <button 
-                                                disabled={currentPage === totalPages}
-                                                onClick={() => setCurrentPage(currentPage + 1)}
-                                                className="px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 text-[10px] font-black uppercase disabled:opacity-30"
-                                            >
-                                                Next
-                                            </button>
+                                {/* Pagination Controls - Hidden on Print */}
+                                <div className="flex justify-between items-center py-8 border-t border-slate-100 print:hidden">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                        Menampilkan {Math.min(filteredData.length, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(filteredData.length, currentPage * itemsPerPage)} dari {filteredData.length} data
+                                    </p>
+                                    <div className="flex gap-2">
+                                        <button 
+                                            disabled={currentPage === 1}
+                                            onClick={() => setCurrentPage(currentPage - 1)}
+                                            className="px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 text-[10px] font-black uppercase disabled:opacity-30"
+                                        >
+                                            Prev
+                                        </button>
+                                        <div className="flex gap-1">
+                                            {[...Array(totalPages)].map((_, i) => (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => setCurrentPage(i + 1)}
+                                                    className={`w-8 h-8 rounded-lg text-[10px] font-black ${currentPage === i + 1 ? 'bg-slate-900 text-white' : 'bg-slate-50 border border-slate-200 text-slate-600'}`}
+                                                >
+                                                    {i + 1}
+                                                </button>
+                                            ))}
                                         </div>
-                                    </div>
-
-                                    {/* Summary Box */}
-                                    <div className="flex justify-end pt-12">
-                                        <div className="w-96 space-y-6">
-                                            {activeReport === 'customers' ? (
-                                                <>
-                                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                        <span>Total Pelanggan</span>
-                                                        <span className="text-slate-900">{summary?.total}</span>
-                                                    </div>
-                                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                        <span>Aktif / Terhubung</span>
-                                                        <span className="text-emerald-600">{summary?.active}</span>
-                                                    </div>
-                                                    <div className="h-px bg-slate-200"></div>
-                                                    <div className="flex justify-between items-center bg-slate-900 text-white p-6 rounded-2xl shadow-xl">
-                                                        <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Nonaktif / Terputus</span>
-                                                        <span className="text-xl font-black tracking-tighter text-rose-400">{summary?.inactive}</span>
-                                                    </div>
-                                                </>
-                                            ) : activeReport === 'finance' ? (
-                                                <>
-                                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                        <span>Total Tagihan</span>
-                                                        <span className="text-slate-900">{formatIDR(summary?.total_billed || 0)}</span>
-                                                    </div>
-                                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                        <span>Terbayar (Lunas)</span>
-                                                        <span className="text-emerald-600">{formatIDR(summary?.total_paid || 0)}</span>
-                                                    </div>
-                                                    <div className="h-px bg-slate-200"></div>
-                                                    <div className="flex justify-between items-center bg-slate-900 text-white p-6 rounded-2xl shadow-xl">
-                                                        <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Piutang (Belum Bayar)</span>
-                                                        <span className="text-xl font-black tracking-tighter text-amber-400">{formatIDR(summary?.total_unpaid || 0)}</span>
-                                                    </div>
-                                                </>
-                                            ) : activeReport === 'inventory' ? (
-                                                <>
-                                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                        <span>Total Jenis Barang</span>
-                                                        <span className="text-slate-900">{summary?.total_items}</span>
-                                                    </div>
-                                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                        <span>Total Unit Tersedia</span>
-                                                        <span className="text-slate-900">{summary?.total_stock}</span>
-                                                    </div>
-                                                    <div className="h-px bg-slate-200"></div>
-                                                    <div className="flex justify-between items-center bg-slate-900 text-white p-6 rounded-2xl shadow-xl">
-                                                        <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Nilai Total Aset</span>
-                                                        <span className="text-xl font-black tracking-tighter text-emerald-400">{formatIDR(summary?.total_value || 0)}</span>
-                                                    </div>
-                                                </>
-                                            ) : activeReport === 'journal' ? (
-                                                <>
-                                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                        <span>Total Debit</span>
-                                                        <span className="text-emerald-600 font-bold">{formatIDR(summary?.total_debit || 0)}</span>
-                                                    </div>
-                                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                        <span>Total Kredit</span>
-                                                        <span className="text-rose-600 font-bold">{formatIDR(summary?.total_credit || 0)}</span>
-                                                    </div>
-                                                    <div className="h-px bg-slate-200"></div>
-                                                    <div className="flex justify-between items-center bg-slate-900 text-white p-6 rounded-2xl shadow-xl">
-                                                        <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Jumlah Transaksi</span>
-                                                        <span className="text-xl font-black tracking-tighter">{summary?.count} Record</span>
-                                                    </div>
-                                                </>
-                                            ) : activeReport === 'bandwidth' ? (
-                                                <>
-                                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                        <span>Rata-rata RX Signal</span>
-                                                        <span className={`font-bold ${(summary?.avg_rx || 0) < -25 ? 'text-rose-600' : 'text-emerald-600'}`}>{(summary?.avg_rx || 0).toFixed(2)} dBm</span>
-                                                    </div>
-                                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                        <span>Rata-rata TX Signal</span>
-                                                        <span className="text-blue-400 font-bold">{(summary?.avg_tx || 0).toFixed(2)} dBm</span>
-                                                    </div>
-                                                    <div className="h-px bg-slate-200"></div>
-                                                    <div className="flex justify-between items-center bg-slate-900 text-white p-6 rounded-2xl shadow-xl">
-                                                        <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Pelanggan Aktif Terpantau</span>
-                                                        <span className="text-xl font-black tracking-tighter">{summary?.total_active} User</span>
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <div className="flex justify-between items-center bg-slate-900 text-white p-6 rounded-2xl shadow-xl">
-                                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Total Balance</span>
-                                                    <span className="text-xl font-black tracking-tighter">Rp 0</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-
-                            {/* Signatures */}
-                            <div className="grid grid-cols-2 gap-20 pt-20">
-                                <div className="text-center space-y-24">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Disiapkan Oleh,</p>
-                                    <div className="border-t border-slate-900 pt-4">
-                                        <p className="text-xs font-black uppercase tracking-tight">Administrator NOC</p>
+                                        <button 
+                                            disabled={currentPage === totalPages}
+                                            onClick={() => setCurrentPage(currentPage + 1)}
+                                            className="px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 text-[10px] font-black uppercase disabled:opacity-30"
+                                        >
+                                            Next
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="text-center space-y-24">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Disetujui Oleh,</p>
-                                    <div className="border-t border-slate-900 pt-4">
-                                        <p className="text-xs font-black uppercase tracking-tight">Manager Operasional</p>
+
+                                {/* Summary Box */}
+                                <div className="flex justify-end pt-12">
+                                    <div className="w-96 space-y-6">
+                                        {activeReport === 'customers' ? (
+                                            <>
+                                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                    <span>Total Pelanggan</span>
+                                                    <span className="text-slate-900">{summary?.total}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                    <span>Aktif / Terhubung</span>
+                                                    <span className="text-emerald-600">{summary?.active}</span>
+                                                </div>
+                                                <div className="h-px bg-slate-200"></div>
+                                                <div className="flex justify-between items-center bg-slate-900 text-white p-6 rounded-2xl shadow-xl">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Nonaktif / Terputus</span>
+                                                    <span className="text-xl font-black tracking-tighter text-rose-400">{summary?.inactive}</span>
+                                                </div>
+                                            </>
+                                        ) : activeReport === 'finance' ? (
+                                            <>
+                                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                    <span>Total Tagihan</span>
+                                                    <span className="text-slate-900">{formatIDR(summary?.total_billed || 0)}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                    <span>Terbayar (Lunas)</span>
+                                                    <span className="text-emerald-600">{formatIDR(summary?.total_paid || 0)}</span>
+                                                </div>
+                                                <div className="h-px bg-slate-200"></div>
+                                                <div className="flex justify-between items-center bg-slate-900 text-white p-6 rounded-2xl shadow-xl">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Piutang (Belum Bayar)</span>
+                                                    <span className="text-xl font-black tracking-tighter text-amber-400">{formatIDR(summary?.total_unpaid || 0)}</span>
+                                                </div>
+                                            </>
+                                        ) : activeReport === 'inventory' ? (
+                                            <>
+                                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                    <span>Total Jenis Barang</span>
+                                                    <span className="text-slate-900">{summary?.total_items}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                    <span>Total Unit Tersedia</span>
+                                                    <span className="text-slate-900">{summary?.total_stock}</span>
+                                                </div>
+                                                <div className="h-px bg-slate-200"></div>
+                                                <div className="flex justify-between items-center bg-slate-900 text-white p-6 rounded-2xl shadow-xl">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Nilai Total Aset</span>
+                                                    <span className="text-xl font-black tracking-tighter text-emerald-400">{formatIDR(summary?.total_value || 0)}</span>
+                                                </div>
+                                            </>
+                                        ) : activeReport === 'journal' ? (
+                                            <>
+                                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                    <span>Total Debit</span>
+                                                    <span className="text-emerald-600 font-bold">{formatIDR(summary?.total_debit || 0)}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                    <span>Total Kredit</span>
+                                                    <span className="text-rose-600 font-bold">{formatIDR(summary?.total_credit || 0)}</span>
+                                                </div>
+                                                <div className="h-px bg-slate-200"></div>
+                                                <div className="flex justify-between items-center bg-slate-900 text-white p-6 rounded-2xl shadow-xl">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Jumlah Transaksi</span>
+                                                    <span className="text-xl font-black tracking-tighter">{summary?.count} Record</span>
+                                                </div>
+                                            </>
+                                        ) : activeReport === 'bandwidth' ? (
+                                            <>
+                                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                    <span>Rata-rata RX Signal</span>
+                                                    <span className={`font-bold ${(summary?.avg_rx || 0) < -25 ? 'text-rose-600' : 'text-emerald-600'}`}>{(summary?.avg_rx || 0).toFixed(2)} dBm</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                    <span>Rata-rata TX Signal</span>
+                                                    <span className="text-blue-400 font-bold">{(summary?.avg_tx || 0).toFixed(2)} dBm</span>
+                                                </div>
+                                                <div className="h-px bg-slate-200"></div>
+                                                <div className="flex justify-between items-center bg-slate-900 text-white p-6 rounded-2xl shadow-xl">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Pelanggan Aktif Terpantau</span>
+                                                    <span className="text-xl font-black tracking-tighter">{summary?.total_active} User</span>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="flex justify-between items-center bg-slate-900 text-white p-6 rounded-2xl shadow-xl">
+                                                <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Total Balance</span>
+                                                <span className="text-xl font-black tracking-tighter">Rp 0</span>
+                                            </div>
+                                        )}
                                     </div>
+                                </div>
+                            </>
+                        )}
+
+                        {/* Signatures */}
+                        <div className="grid grid-cols-2 gap-20 pt-20">
+                            <div className="text-center space-y-24">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Disiapkan Oleh,</p>
+                                <div className="border-t border-slate-900 pt-4">
+                                    <p className="text-xs font-black uppercase tracking-tight">Administrator NOC</p>
+                                </div>
+                            </div>
+                            <div className="text-center space-y-24">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Disetujui Oleh,</p>
+                                <div className="border-t border-slate-900 pt-4">
+                                    <p className="text-xs font-black uppercase tracking-tight">Manager Operasional</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Footer - Print Only */}
-                        <div className="hidden print:block fixed bottom-0 left-0 right-0 py-8 border-t border-slate-100 text-[8px] font-bold text-slate-400 text-center uppercase tracking-[0.3em]">
-                            Dokumen ini dihasilkan secara otomatis oleh Sistem Manajemen {summary?.company_name || 'Networks'} • Halaman 1 dari 1
+                        <div className="hidden print:block py-8 border-t border-slate-100 text-[8px] font-bold text-slate-400 text-center uppercase tracking-[0.3em]">
+                            {summary?.bank_name ? `Informasi Kas: ${summary.bank_name} - ${summary.bank_account} a.n ${summary.bank_holder}` : 'Dicetak oleh Sistem Administrasi'}
                         </div>
                     </div>
                     )}

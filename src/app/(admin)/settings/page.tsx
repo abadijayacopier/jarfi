@@ -76,13 +76,13 @@ export default function SettingsPage() {
                 body: JSON.stringify(settings)
             });
             if (res.ok) {
-                Swal.fire({ icon: 'success', title: 'Tersinkronisasi', text: 'Parameter infrastruktur telah diperbarui.', background: '#0f172a', color: '#fff', timer: 1500, showConfirmButton: false });
+                Swal.fire({ icon: 'success', title: 'Tersinkronisasi', text: 'Pengaturan sistem telah diperbarui.', background: '#0f172a', color: '#fff', timer: 1500, showConfirmButton: false });
                 await fetch('/api/activity-logs', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'Parameter Diperbarui',
-                        description: `Pengguna memodifikasi matriks core ${activeTab}`,
+                        description: `Pengguna mengubah pengaturan ${activeTab}`,
                         color: 'text-accent'
                     })
                 });
@@ -168,7 +168,7 @@ export default function SettingsPage() {
             <div className="mb-6 border-b border-(--glass-border) pb-8">
                 <h3 className="text-4xl font-bold text-primary flex items-center gap-4 tracking-tight">
                     <Settings className="w-10 h-10 text-accent" />
-                    Matriks Infrastruktur
+                    Pengaturan Sistem
                 </h3>
                 <p className="text-muted font-medium mt-2 text-lg">Konfigurasi Identitas, Penagihan, Integrasi Hub, dan Parameter Sistem.</p>
             </div>
@@ -200,16 +200,16 @@ export default function SettingsPage() {
                                 <div className="w-14 h-14 rounded-2xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10 shadow-inner"><Building2 className="w-7 h-7" /></div>
                                 <div>
                                     <h4 className="text-2xl font-bold text-primary tracking-tight">Identitas Perusahaan</h4>
-                                    <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Identitas Matriks untuk Tagihan & Voucher</p>
+                                    <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Identitas untuk Tagihan & Voucher</p>
                                 </div>
                             </div>
                             <form onSubmit={handleSave} className="space-y-8 relative z-10">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <Field label="Nama Brand / Perusahaan" field="company_name" placeholder="Contoh: Sahabat Network" />
-                                    <Field label="Vektor Logo (URL / Base64)" field="company_logo" placeholder="/logo.png" />
+                                    <Field label="URL Logo (Link / Base64)" field="company_logo" placeholder="/logo.png" />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 ml-1">Vektor Kantor Pusat</label>
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 ml-1">Alamat Kantor Pusat</label>
                                     <textarea rows={4} value={settings.company_address} onChange={(e) => updateField('company_address', e.target.value)} placeholder="Masukkan alamat lengkap..." className="w-full clean-input resize-none py-5 px-6 font-bold text-sm"></textarea>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -234,7 +234,7 @@ export default function SettingsPage() {
                     </div>
                     <div className="space-y-10">
                         <div className="glass p-10 rounded-4xl text-center flex flex-col items-center shadow-xl border border-(--glass-border) bg-white/2 relative overflow-hidden group">
-                            <h4 className="text-[10px] font-bold text-slate-500 mb-8 uppercase tracking-widest">Vektor Brand</h4>
+                            <h4 className="text-[10px] font-bold text-slate-500 mb-8 uppercase tracking-widest">Logo Brand</h4>
                             <div className="w-40 h-40 bg-white/2 rounded-4xl border-2 border-dashed border-white/5 mb-6 flex items-center justify-center cursor-pointer hover:border-accent transition-all duration-700 relative overflow-hidden group/logo shadow-inner">
                                 <input 
                                     type="file" 
@@ -264,7 +264,7 @@ export default function SettingsPage() {
                                     <span className="text-white text-[9px] font-bold uppercase tracking-widest">Ganti Logo</span>
                                 </div>
                             </div>
-                            <p className="text-muted text-[10px] font-bold uppercase tracking-widest opacity-40">Vektor Branding Dokumen</p>
+                            <p className="text-muted text-[10px] font-bold uppercase tracking-widest opacity-40">Logo untuk Dokumen</p>
                         </div>
                         <div className="glass p-10 rounded-4xl shadow-xl border border-(--glass-border) bg-white/2">
                             <div className="flex items-center gap-4 mb-8">
@@ -287,8 +287,8 @@ export default function SettingsPage() {
                         <div className="flex items-center gap-5 mb-10">
                             <div className="w-14 h-14 rounded-2xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10 shadow-inner"><CreditCard className="w-7 h-7" /></div>
                             <div>
-                                <h4 className="text-2xl font-bold text-primary tracking-tight">Vektor Pembayaran</h4>
-                                <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Matriks Pelunasan Pelanggan</p>
+                                <h4 className="text-2xl font-bold text-primary tracking-tight">Metode Pembayaran</h4>
+                                <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Pengaturan Pembayaran Pelanggan</p>
                             </div>
                         </div>
                         <div className="space-y-5 mb-8">
@@ -312,7 +312,7 @@ export default function SettingsPage() {
                             <div className="w-14 h-14 rounded-2xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10 shadow-inner"><Landmark className="w-7 h-7" /></div>
                             <div>
                                 <h4 className="text-2xl font-bold text-primary tracking-tight">
-                                    {settings.payment_method === 'ewallet' ? 'Matriks Dompet' : settings.payment_method === 'cod' ? 'Hub Manual' : 'Vault Pelunasan'}
+                                    {settings.payment_method === 'ewallet' ? 'Dompet Digital' : settings.payment_method === 'cod' ? 'Bayar Manual' : 'Transfer Bank'}
                                 </h4>
                                 <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Identifikasi Transaksional</p>
                             </div>
@@ -353,7 +353,7 @@ export default function SettingsPage() {
                         <div className="flex items-center gap-5 mb-10 relative z-10">
                             <div className="w-14 h-14 rounded-2xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10 shadow-inner"><Printer className="w-7 h-7" /></div>
                             <div>
-                                <h4 className="text-2xl font-bold text-primary tracking-tight">Matriks Output</h4>
+                                <h4 className="text-2xl font-bold text-primary tracking-tight">Pengaturan Cetak</h4>
                                 <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Konfigurasi Pencetakan Perangkat Keras</p>
                             </div>
                         </div>
@@ -371,11 +371,11 @@ export default function SettingsPage() {
                                     className="w-full clean-input py-4 px-6 appearance-none cursor-pointer font-bold text-sm"
                                 >
                                     <option value="thermal">Termal (POS / Hub)</option>
-                                    <option value="inkjet">Digital (Matriks A4)</option>
+                                    <option value="inkjet">Printer Standar (A4/A5)</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 ml-1">Lebar Vektor</label>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 ml-1">Ukuran Kertas</label>
                                 <select 
                                     value={settings.printer_width} 
                                     onChange={(e) => updateField('printer_width', e.target.value)} 
@@ -399,7 +399,7 @@ export default function SettingsPage() {
                     <div className="lg:col-span-2">
                         <button onClick={handleSave} disabled={saving} className="w-full py-5 bg-accent hover:bg-accent/90 text-white rounded-2xl font-bold shadow-xl shadow-accent/20 transition-all flex items-center justify-center gap-4 active:scale-95 disabled:opacity-50 uppercase tracking-widest text-[11px]">
                             {saving ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                            Simpan Matriks Penagihan
+                            Simpan Pengaturan Pembayaran
                         </button>
                     </div>
                 </div>
@@ -455,7 +455,7 @@ export default function SettingsPage() {
                             <div className="w-14 h-14 rounded-2xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10 shadow-inner"><MessageCircle className="w-7 h-7" /></div>
                             <div>
                                 <h4 className="text-2xl font-bold text-primary tracking-tight">API WhatsApp</h4>
-                                <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Matriks notifikasi siaran</p>
+                                <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Pengaturan Notifikasi</p>
                             </div>
                         </div>
                         <div className="space-y-8 relative z-10">
@@ -479,8 +479,8 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="space-y-6">
-                                <Toggle label="Aktifkan Matriks WA" desc="Pengiriman Otonom" field="wa_api_enabled" color="accent" />
-                                <Field label="Vektor Gateway" field="wa_api_url" placeholder="Endpoint API..." />
+                                <Toggle label="Aktifkan WhatsApp API" desc="Pengiriman Otonom" field="wa_api_enabled" color="accent" />
+                                <Field label="URL Gateway API" field="wa_api_url" placeholder="Endpoint API..." />
                                 <Field label="Rahasia Otentikasi" field="wa_api_token" placeholder="Token Layanan..." type="password" />
                             </div>
                         </div>
@@ -488,7 +488,7 @@ export default function SettingsPage() {
                     <div className="lg:col-span-2">
                         <button onClick={handleSave} disabled={saving} className="w-full py-5 bg-accent hover:bg-accent/90 text-white rounded-2xl font-bold shadow-xl shadow-accent/20 transition-all flex items-center justify-center gap-4 active:scale-95 disabled:opacity-50 uppercase tracking-widest text-[11px]">
                             {saving ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                            Simpan Integrasi
+                            Simpan Pengaturan Integrasi
                         </button>
                     </div>
                 </div>

@@ -12,6 +12,7 @@ export default function InventoryItemsPage() {
     const [items, setItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [settings, setSettings] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -39,9 +40,14 @@ export default function InventoryItemsPage() {
     const fetchItems = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/inventory');
+            const [res, settingsRes] = await Promise.all([
+                fetch('/api/inventory'),
+                fetch('/api/settings')
+            ]);
             const data = await res.json();
+            const settingsData = await settingsRes.json();
             if (res.ok) setItems(data.items || []);
+            if (settingsRes.ok) setSettings(settingsData.settings || null);
         } catch (err) {
             console.error(err);
         } finally {
@@ -106,7 +112,7 @@ export default function InventoryItemsPage() {
 
     const exportToExcel = () => {
         const headers = ['ID', 'Nama Barang', 'Kategori', 'Stok', 'Satuan', 'Harga', 'Total Nilai'];
-        const csvRows = [headers.join(',')];
+        const csvRows = [headers.join(';')];
         
         filteredItems.forEach(item => {
             const row = [
@@ -118,7 +124,7 @@ export default function InventoryItemsPage() {
                 item.price_per_unit,
                 item.stock * item.price_per_unit
             ];
-            csvRows.push(row.join(','));
+            csvRows.push(row.join(';'));
         });
 
         const csvContent = "\uFEFF" + csvRows.join('\n');
@@ -167,7 +173,7 @@ export default function InventoryItemsPage() {
                         <img src="${qrUrl}" class="qr" onload="window.print(); window.close();" />
                         <div class="name">${selectedItem.item_name}</div>
                         <div class="id">INV-${selectedItem.id.toString().padStart(4, '0')}</div>
-                        <div class="brand">Sahabat Network</div>
+                        <div class="brand">${settings?.company_name || 'ISP NETWORK'}</div>
                     </div>
                 </body>
             </html>
@@ -211,7 +217,7 @@ export default function InventoryItemsPage() {
             Swal.fire({
                 icon: 'success',
                 title: 'Import Selesai',
-                text: `${successCount} item telah diimpor ke matriks gudang.`,
+                text: `${successCount} item telah diimpor ke sistem gudang.`,
                 background: '#0f172a',
                 color: '#fff'
             });
@@ -232,7 +238,7 @@ export default function InventoryItemsPage() {
 
     return (
         <div className="animate-in fade-in duration-500 pb-20 space-y-12">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-6 border-b border-white/5 pb-10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-6 border-b border-white/5 pb-10 print:hidden">
                 <div>
                     <h3 className="text-heading flex items-center gap-5">
                         <Box className="w-10 h-10 text-accent" />
@@ -249,6 +255,13 @@ export default function InventoryItemsPage() {
                         Tambah Item Baru
                     </button>
                 </div>
+            </div>
+
+            {/* Print Header */}
+            <div className="hidden print:block mb-8 border-b-2 border-black pb-4">
+                <h2 className="text-2xl font-black uppercase text-black">{settings?.company_name || 'ISP NETWORK'}</h2>
+                <h3 className="text-lg font-bold text-gray-700">Laporan Logistik & Stok Barang</h3>
+                <p className="text-sm text-gray-500">Dicetak Pada: {new Date().toLocaleString('id-ID')}</p>
             </div>
 
             {/* Modal: Add/Edit Item */}
@@ -363,7 +376,7 @@ export default function InventoryItemsPage() {
             )}
 
             <div className="space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6 print:hidden">
                     <div className="relative w-full md:w-96">
                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                         <input
@@ -381,7 +394,7 @@ export default function InventoryItemsPage() {
                         </button>
                         <button onClick={() => window.print()} className="h-12 md:h-14 px-4 md:px-8 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 rounded-2xl flex items-center gap-3 md:gap-4 text-rose-500 transition-all shadow-sm group active:scale-95 flex-1 md:flex-none justify-center">
                             <FileDown className="w-4 h-4 md:w-5 md:h-5" />
-                            <span className="text-[10px] md:text-[11px] font-black uppercase tracking-widest">PDF</span>
+                            <span className="text-[10px] md:text-[11px] font-black uppercase tracking-widest">Cetak / PDF</span>
                         </button>
                         <div className="hidden md:block h-8 w-px bg-white/5 mx-2"></div>
                         <button onClick={() => fileInputRef.current?.click()} className="h-12 md:h-14 px-6 md:px-8 bg-accent/5 hover:bg-accent/10 border border-accent/10 rounded-2xl flex items-center gap-3 md:gap-4 text-accent transition-all shadow-sm group active:scale-95 w-full md:w-auto justify-center">
@@ -398,17 +411,17 @@ export default function InventoryItemsPage() {
                     </div>
                 </div>
 
-                <div className="glass rounded-[48px] overflow-hidden border border-white/10 bg-white dark:bg-slate-900/50 shadow-2xl backdrop-blur-xl">
+                <div className="glass rounded-[48px] overflow-hidden border border-white/10 bg-white dark:bg-slate-900/50 shadow-2xl backdrop-blur-xl print:shadow-none print:border-none print:bg-transparent">
                     <div className="overflow-x-auto custom-scrollbar">
                         <table className="w-full text-left border-collapse min-w-[1000px]">
                             <thead>
-                                <tr className="bg-slate-50/50 dark:bg-white/2 border-b border-slate-100 dark:border-white/5">
-                                    <th className="px-8 py-5 text-label">Nomenklatur Barang</th>
-                                    <th className="px-8 py-5 text-label">Klasifikasi</th>
-                                    <th className="px-8 py-5 text-label text-center">Stok Gudang</th>
-                                    <th className="px-8 py-5 text-label">Nilai Satuan</th>
-                                    <th className="px-8 py-5 text-label">Ekuitas Aset</th>
-                                    <th className="px-8 py-5 text-label text-right">Manajemen</th>
+                                <tr className="bg-slate-50/50 dark:bg-white/2 border-b border-slate-100 dark:border-white/5 print:bg-slate-100 print:text-black">
+                                    <th className="px-8 py-5 text-label print:text-black font-black uppercase">Nomenklatur Barang</th>
+                                    <th className="px-8 py-5 text-label print:text-black font-black uppercase">Klasifikasi</th>
+                                    <th className="px-8 py-5 text-label print:text-black font-black uppercase text-center">Stok Gudang</th>
+                                    <th className="px-8 py-5 text-label print:text-black font-black uppercase">Nilai Satuan</th>
+                                    <th className="px-8 py-5 text-label print:text-black font-black uppercase">Ekuitas Aset</th>
+                                    <th className="px-8 py-5 text-label text-right print:hidden">Manajemen</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50 dark:divide-white/5">
@@ -423,42 +436,42 @@ export default function InventoryItemsPage() {
                                     </tr>
                                 ) : paginatedItems.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="p-32 text-center text-label">Tidak ada matriks aset ditemukan.</td>
+                                        <td colSpan={6} className="p-32 text-center text-label">Tidak ada aset ditemukan.</td>
                                     </tr>
                                 ) : (
                                     paginatedItems.map((item) => (
-                                        <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-white/2 transition-all group">
-                                            <td className="px-8 py-3">
+                                        <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-white/2 transition-all group print:border-b print:border-gray-200">
+                                            <td className="px-8 py-3 print:text-black">
                                                 <div className="flex items-center gap-5">
-                                                    <div className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-muted group-hover:bg-accent group-hover:text-white transition-all shadow-inner">
+                                                    <div className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-muted group-hover:bg-accent group-hover:text-white transition-all shadow-inner print:hidden">
                                                         <Package className="w-5 h-5" />
                                                     </div>
                                                     <div>
-                                                        <p className="text-value uppercase">{item.item_name}</p>
-                                                        <p className="text-label mt-1.5 opacity-40">ID: INV-{item.id.toString().padStart(4, '0')}</p>
+                                                        <p className="text-value uppercase print:text-black">{item.item_name}</p>
+                                                        <p className="text-label mt-1.5 opacity-40 print:text-gray-500">ID: INV-{item.id.toString().padStart(4, '0')}</p>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-3">
-                                                <span className="px-4 py-2 bg-white/5 text-slate-500 text-[10px] font-black uppercase rounded-xl border border-white/5 tracking-widest">{item.category}</span>
+                                            <td className="px-8 py-3 print:text-black">
+                                                <span className="px-4 py-2 bg-white/5 text-slate-500 text-[10px] font-black uppercase rounded-xl border border-white/5 tracking-widest print:border-none print:bg-transparent print:p-0 print:text-black">{item.category}</span>
                                             </td>
-                                            <td className="px-8 py-3 text-center">
+                                            <td className="px-8 py-3 text-center print:text-black">
                                                 <div className="flex flex-col items-center">
-                                                    <div className={`px-4 py-2 rounded-xl font-black text-xs tracking-tight ${item.stock <= item.min_stock ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'}`}>
+                                                    <div className={`px-4 py-2 rounded-xl font-black text-xs tracking-tight print:border-none print:bg-transparent print:p-0 print:text-black ${item.stock <= item.min_stock ? 'bg-red-500 text-white shadow-lg shadow-red-500/20 print:text-red-600' : 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'}`}>
                                                         {item.stock} {item.unit}
                                                     </div>
                                                     {item.stock <= item.min_stock && (
-                                                        <span className="text-[8px] font-black text-red-500 uppercase mt-2 tracking-widest animate-pulse">Alert!</span>
+                                                        <span className="text-[8px] font-black text-red-500 uppercase mt-2 tracking-widest animate-pulse print:hidden">Alert!</span>
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-3">
-                                                <p className="text-value tracking-tighter">Rp {parseInt(item.price_per_unit).toLocaleString('id-ID')}</p>
+                                            <td className="px-8 py-3 print:text-black">
+                                                <p className="text-value tracking-tighter print:text-black">Rp {parseInt(item.price_per_unit).toLocaleString('id-ID')}</p>
                                             </td>
-                                            <td className="px-8 py-3">
-                                                <p className="text-value text-accent tracking-tighter font-black">Rp {(item.stock * item.price_per_unit).toLocaleString('id-ID')}</p>
+                                            <td className="px-8 py-3 print:text-black">
+                                                <p className="text-value text-accent tracking-tighter font-black print:text-black">Rp {(item.stock * item.price_per_unit).toLocaleString('id-ID')}</p>
                                             </td>
-                                            <td className="px-8 py-3 text-right">
+                                            <td className="px-8 py-3 text-right print:hidden">
                                                 <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all">
                                                     <button onClick={() => { setSelectedItem(item); setIsPrintModalOpen(true); }} className="p-3.5 rounded-2xl bg-white dark:bg-white/5 text-slate-400 hover:text-accent border border-slate-100 dark:border-white/5 transition-all shadow-lg active:scale-90" title="Cetak Label QR">
                                                         <QrCode className="w-4.5 h-4.5" />
@@ -478,7 +491,7 @@ export default function InventoryItemsPage() {
                         </table>
                     </div>
 
-                    <div className="p-10 border-t border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50/30 dark:bg-white/2">
+                    <div className="p-10 border-t border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50/30 dark:bg-white/2 print:hidden">
                         <p className="text-label">
                             Menampilkan <span className="text-primary">{paginatedItems.length}</span> dari <span className="text-primary">{filteredItems.length}</span> Barang
                         </p>
@@ -501,6 +514,23 @@ export default function InventoryItemsPage() {
                     </div>
                 </div>
             </div>
+
+            <style jsx global>{`
+                @media print {
+                    @page { size: A4; margin: 15mm; }
+                    html, body {
+                        background: white !important;
+                        color: black !important;
+                    }
+                    /* Ensure print overrides work */
+                    .print\\:hidden { display: none !important; }
+                    .print\\:block { display: block !important; }
+                    .print\\:text-black { color: black !important; }
+                    .print\\:border-none { border: none !important; }
+                    .print\\:bg-transparent { background: transparent !important; }
+                    aside, header { display: none !important; }
+                }
+            `}</style>
         </div>
     );
 }

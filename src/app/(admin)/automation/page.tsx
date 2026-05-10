@@ -74,7 +74,7 @@ export default function AutomationPage() {
                     Swal.fire({ icon: 'error', title: 'Gagal Eksekusi', text: data.error, background: '#0f172a', color: '#fff' });
                 }
             } catch (err) {
-                Swal.fire({ icon: 'error', title: 'API Error', text: 'Kegagalan koneksi infrastruktur.', background: '#0f172a', color: '#fff' });
+                Swal.fire({ icon: 'error', title: 'API Error', text: 'Kegagalan koneksi sistem.', background: '#0f172a', color: '#fff' });
             } finally {
                 setLoading(false);
             }

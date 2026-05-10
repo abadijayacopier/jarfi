@@ -50,7 +50,7 @@ export default function OLTManagementPage() {
                 body: JSON.stringify(currentOlt)
             });
             if (res.ok) {
-                Swal.fire({ icon: 'success', title: 'Tindakan Berhasil', text: 'Node infrastruktur telah diperbarui.', background: '#0f172a', color: '#fff' });
+                Swal.fire({ icon: 'success', title: 'Tindakan Berhasil', text: 'Data OLT telah diperbarui.', background: '#0f172a', color: '#fff' });
                 setShowModal(false);
                 fetchOlts();
             }
@@ -76,7 +76,7 @@ export default function OLTManagementPage() {
             try {
                 const res = await fetch(`/api/olts?id=${id}`, { method: 'DELETE' });
                 if (res.ok) {
-                    Swal.fire({ icon: 'success', title: 'Node Dihentikan', text: 'Catatan infrastruktur telah dihapus.', background: '#0f172a', color: '#fff' });
+                    Swal.fire({ icon: 'success', title: 'Node Dihentikan', text: 'Catatan OLT telah dihapus.', background: '#0f172a', color: '#fff' });
                     fetchOlts();
                 }
             } catch (e) { }

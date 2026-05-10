@@ -17,12 +17,12 @@ export default function ToolsPage() {
 
         const result = await Swal.fire({
             title: 'Konfirmasi Rollback Database?',
-            text: "KRITIS: Semua data operasional saat ini akan DIHAPUS PERMANEN dan digantikan dengan artifak ini. Urutan ini tidak dapat dibatalkan setelah diinisialisasi.",
+            text: "KRITIS: Semua data operasional saat ini akan DIHAPUS PERMANEN dan digantikan dengan file backup ini. Proses ini tidak dapat dibatalkan setelah dimulai.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
-            confirmButtonText: 'Inisialisasi Rollback',
-            cancelButtonText: 'Batalkan Urutan',
+            confirmButtonText: 'Mulai Rollback',
+            cancelButtonText: 'Batal',
             background: '#0f172a',
             color: '#fff',
             customClass: {
@@ -33,8 +33,8 @@ export default function ToolsPage() {
         if (result.isConfirmed) {
             setRestoring(true);
             Swal.fire({ 
-                title: 'Memulihkan Infrastruktur...', 
-                text: 'Mendeploy artifak database...', 
+                title: 'Memulihkan Data...', 
+                text: 'Mengembalikan database...', 
                 allowOutsideClick: false, 
                 background: '#0f172a', 
                 color: '#fff', 
@@ -52,7 +52,7 @@ export default function ToolsPage() {
                     });
 
                     if (res.ok) {
-                        Swal.fire({ icon: 'success', title: 'Pemulihan Berhasil', text: 'Status infrastruktur inti telah disinkronkan.', background: '#0f172a', color: '#fff' });
+                        Swal.fire({ icon: 'success', title: 'Pemulihan Berhasil', text: 'Database berhasil dipulihkan.', background: '#0f172a', color: '#fff' });
                     } else {
                         const data = await res.json();
                         Swal.fire({ icon: 'error', title: 'Pemulihan Gagal', text: data.error, background: '#0f172a', color: '#fff' });
@@ -71,7 +71,7 @@ export default function ToolsPage() {
     const handleExportExcel = async () => {
         Swal.fire({ 
             title: 'Membuat Laporan...', 
-            text: 'Menyusun intelijen pelanggan...', 
+            text: 'Menyusun data pelanggan...', 
             allowOutsideClick: false, 
             background: '#0f172a', 
             color: '#fff', 
@@ -107,7 +107,7 @@ export default function ToolsPage() {
                 Swal.close();
             }
         } catch {
-            Swal.fire({ icon: 'error', title: 'Ekspor Gagal', text: 'Tidak dapat mengambil vektor intelijen.', background: '#0f172a', color: '#fff' });
+            Swal.fire({ icon: 'error', title: 'Ekspor Gagal', text: 'Tidak dapat mengambil data pelanggan.', background: '#0f172a', color: '#fff' });
         }
     };
 
@@ -118,9 +118,9 @@ export default function ToolsPage() {
                 <div className="space-y-2">
                     <h3 className="text-4xl font-bold text-primary flex items-center gap-5 tracking-tight">
                         <Database className="w-10 h-10 text-accent fill-accent/10" />
-                        Konsol Infrastruktur
+                        Sistem & Database
                     </h3>
-                    <p className="text-muted font-medium text-lg">Pemeliharaan Sistem, Pemulihan Data, dan Ekspor Intelijen.</p>
+                    <p className="text-muted font-medium text-lg">Pemeliharaan Sistem, Pemulihan Data, dan Ekspor Data.</p>
                 </div>
             </div>
 
@@ -135,7 +135,7 @@ export default function ToolsPage() {
                         </div>
                         <div>
                             <h4 className="text-2xl font-bold text-primary tracking-tight">Snapshot</h4>
-                            <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Arsip Ekosistem Lengkap</p>
+                            <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Backup Database Lengkap</p>
                         </div>
                     </div>
                     
@@ -143,8 +143,8 @@ export default function ToolsPage() {
                         <ul className="space-y-4">
                             {[
                                 'Katalog Pelanggan & Paket',
-                                'Artifak Penagihan & Buku Kas',
-                                'Konfigurasi Node Jaringan'
+                                'Data Penagihan & Buku Kas',
+                                'Konfigurasi Jaringan & ODP'
                             ].map((item, idx) => (
                                 <li key={idx} className="flex items-center gap-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                                     <div className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(16,185,129,0.3)]"></div> {item}
@@ -157,7 +157,7 @@ export default function ToolsPage() {
                         onClick={handleBackup}
                         className="w-full py-5 rounded-2xl bg-accent hover:bg-accent/90 text-white font-bold uppercase tracking-widest text-[10px] transition-all shadow-lg active:scale-95 relative z-10"
                     >
-                        <Download className="w-5 h-5" /> Inisialisasi Backup Data
+                        <Download className="w-5 h-5" /> Mulai Backup Data
                     </button>
                 </div>
 
@@ -171,7 +171,7 @@ export default function ToolsPage() {
                         </div>
                         <div>
                             <h4 className="text-2xl font-bold text-primary tracking-tight">Rollback</h4>
-                            <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Pemulihan Status Arsip</p>
+                            <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Pemulihan dari File Backup</p>
                         </div>
                     </div>
                     
@@ -179,14 +179,14 @@ export default function ToolsPage() {
                         <div className="flex items-start gap-4">
                             <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                             <p className="text-[10px] leading-relaxed text-amber-600 font-bold uppercase tracking-widest italic opacity-80">
-                                Peringatan: Urutan penimpaan terdeteksi. Ini akan menggantikan data operasional saat ini.
+                                Peringatan: Proses ini akan menimpa seluruh database. Ini akan menggantikan data operasional saat ini.
                             </p>
                         </div>
                     </div>
 
                     <label className="w-full py-5 rounded-2xl bg-white/1 hover:bg-white/2 text-slate-400 font-bold uppercase tracking-widest text-[10px] transition-all cursor-pointer flex items-center justify-center gap-4 border border-white/5 active:scale-95 relative z-10 shadow-lg">
                         <Upload className="w-5 h-5" />
-                        Deploy Artifak Status
+                        Pilih File Backup
                         <input type="file" accept=".sql" onChange={handleRestore} className="hidden" />
                     </label>
                 </div>

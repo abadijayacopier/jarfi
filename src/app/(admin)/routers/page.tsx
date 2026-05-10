@@ -92,7 +92,7 @@ export default function RoutersPage() {
                 body: JSON.stringify(currentRouter)
             });
             if (res.ok) {
-                Swal.fire({ icon: 'success', title: 'Tersinkronisasi', text: editMode ? 'Profil gateway telah diperbarui.' : 'Node gateway baru berhasil didaftarkan.', background: '#0f172a', color: '#fff' });
+                Swal.fire({ icon: 'success', title: 'Tersinkronisasi', text: editMode ? 'Profil router telah diperbarui.' : 'Router baru berhasil didaftarkan.', background: '#0f172a', color: '#fff' });
                 setShowModal(false);
                 fetchRouters();
             }
@@ -102,12 +102,12 @@ export default function RoutersPage() {
 
     const handleDelete = async (id: number) => {
         const result = await Swal.fire({
-            title: 'Hentikan Node Gateway?',
-            text: "KRITIS: Integrasi ini akan dihapus secara permanen dari matriks infrastruktur.",
+            title: 'Hapus Router?',
+            text: "PERINGATAN: Router ini akan dihapus secara permanen dari sistem.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
-            confirmButtonText: 'Ya, Hentikan Node',
+            confirmButtonText: 'Ya, Hapus Router',
             cancelButtonText: 'Batal',
             background: '#0f172a',
             color: '#fff'
@@ -118,7 +118,7 @@ export default function RoutersPage() {
             try {
                 const res = await fetch(`/api/routers?id=${id}`, { method: 'DELETE' });
                 if (res.ok) {
-                    Swal.fire({ icon: 'success', title: 'Node Dihentikan', text: 'Catatan gateway telah dihapus.', background: '#0f172a', color: '#fff' });
+                    Swal.fire({ icon: 'success', title: 'Router Dihapus', text: 'Data router telah dihapus.', background: '#0f172a', color: '#fff' });
                     fetchRouters();
                 }
             } catch (e) { }
@@ -151,11 +151,11 @@ export default function RoutersPage() {
                 Swal.fire({ icon: 'success', title: 'Diagnostik Berhasil', text: `Link terverifikasi. Sesi Aktif: ${data.activeSessionCount}`, background: '#0f172a', color: '#fff' });
             } else {
                 setTestSuccess(false);
-                Swal.fire({ icon: 'error', title: 'Kesalahan Diagnostik', text: data.error || 'Gateway tidak terjangkau.', background: '#0f172a', color: '#fff' });
+                Swal.fire({ icon: 'error', title: 'Kesalahan Diagnostik', text: data.error || 'Router tidak dapat dijangkau.', background: '#0f172a', color: '#fff' });
             }
         } catch (err) {
             setTestSuccess(false);
-            Swal.fire({ icon: 'error', title: 'Kesalahan Jaringan', text: 'Gagal menghubungkan ke bridge.', background: '#0f172a', color: '#fff' });
+            Swal.fire({ icon: 'error', title: 'Kesalahan Jaringan', text: 'Gagal menghubungkan ke router.', background: '#0f172a', color: '#fff' });
         }
     };
 
@@ -174,7 +174,7 @@ export default function RoutersPage() {
                 <div className="space-y-2">
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-1 bg-accent rounded-full"></div>
-                        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-accent">Gateway Core v4.0</span>
+                        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-accent">Pengaturan Router</span>
                     </div>
                     <h3 className="text-3xl md:text-4xl font-black text-primary flex items-center gap-4 tracking-tighter">
                         <div className="relative">
@@ -194,7 +194,7 @@ export default function RoutersPage() {
                     }}
                     className="w-full md:w-auto bg-linear-to-r from-accent to-emerald-600 hover:from-emerald-500 hover:to-emerald-600 text-white font-black py-5 px-10 rounded-2xl transition-all shadow-[0_20px_40px_rgba(16,185,129,0.3)] active:scale-95 flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-[11px] border border-white/10"
                 >
-                    <Plus className="w-5 h-5" /> Daftarkan Gateway Baru
+                    <Plus className="w-5 h-5" /> Tambah Router Baru
                 </button>
             </div>
 
@@ -208,7 +208,7 @@ export default function RoutersPage() {
                                 <RouterIcon className="w-8 h-8" />
                             </div>
                             <div className="relative z-10">
-                                <p className="text-[9px] text-muted font-black uppercase tracking-[0.2em] mb-1 opacity-60">Gateway Aktif</p>
+                                <p className="text-[9px] text-muted font-black uppercase tracking-[0.2em] mb-1 opacity-60">Router Aktif</p>
                                 <h4 className="text-3xl font-black text-primary dark:text-white tracking-tighter tabular-nums leading-none">{routers.length}</h4>
                             </div>
                         </div>
@@ -371,7 +371,7 @@ export default function RoutersPage() {
                             <thead>
                                 <tr className="bg-white/2 text-[10px] font-black text-muted uppercase tracking-[0.4em] border-b border-glass-border dark:border-white/5">
                                     <th className="px-10 py-10">Identitas MikroTik</th>
-                                    <th className="px-10 py-10">Vektor Jaringan</th>
+                                    <th className="px-10 py-10">IP Address</th>
                                     <th className="px-10 py-10">Otentikasi</th>
                                     <th className="px-10 py-10">Status Link</th>
                                     <th className="px-10 py-10 text-right">Orkestrasi</th>
@@ -517,7 +517,7 @@ export default function RoutersPage() {
                                     value={currentRouter.name}
                                     onChange={e => setCurrentRouter({...currentRouter, name: e.target.value})}
                                     className="w-full bg-slate-900/50 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold placeholder:text-slate-600 focus:outline-none focus:border-accent/40 transition-all"
-                                    placeholder="CORE-GATEWAY-01"
+                                    placeholder="ROUTER-UTAMA-01"
                                 />
                             </div>
 
