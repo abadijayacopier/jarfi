@@ -1010,7 +1010,7 @@ export default function CustomersPage() {
                                 </div>
                                 <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl space-y-1 border border-slate-100 dark:border-slate-800">
                                     <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Daya Optik (Rx)</p>
-                                    <p className={`text-lg font-black ${selectedCustomer.rx < -27 ? 'text-rose-600' : 'text-slate-800 dark:text-white'}`}>{selectedCustomer.rx?.toFixed(2) || '-22.50'} dBm</p>
+                                    <p className={`text-lg font-black ${selectedCustomer.rx && selectedCustomer.rx < -27 ? 'text-rose-600' : 'text-slate-800 dark:text-white'}`}>{selectedCustomer.rx ? `${selectedCustomer.rx.toFixed(2)} dBm` : '-'}</p>
                                 </div>
                                 <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl space-y-1 border border-slate-100 dark:border-slate-800">
                                     <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Status Pembayaran</p>
@@ -1040,7 +1040,9 @@ export default function CustomersPage() {
                                             </span>
                                             
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">Status Bayar</span>
-                                            <span className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] px-2 py-0.5 rounded-full font-black w-fit uppercase">Lunas</span>
+                                            <span className={`${selectedCustomer.payment_status === 'paid' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'} text-[10px] px-2 py-0.5 rounded-full font-black w-fit uppercase`}>
+                                                {selectedCustomer.payment_status === 'paid' ? 'LUNAS' : 'MENUNGGU'}
+                                            </span>
                                         </div>
                                     </div>
 
@@ -1050,10 +1052,10 @@ export default function CustomersPage() {
                                         </h3>
                                         <div className="grid grid-cols-2 gap-y-4 text-sm">
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">Nama ODP</span>
-                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.odp_name || 'ODP-MGT-01'}</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.odp_name || '-'}</span>
                                             
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">Router Gateway</span>
-                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.router_name || 'CORE-MGT-01'}</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.router_name || '-'}</span>
                                         </div>
                                     </div>
 
@@ -1101,13 +1103,13 @@ export default function CustomersPage() {
                                         </h3>
                                         <div className="grid grid-cols-2 gap-y-4 text-sm">
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">Router / Gerbang</span>
-                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.router_name || 'GERBANG-01'}</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.router_name || '-'}</span>
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">Nama OLT</span>
-                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.olt_name || 'OLT-ZTE-01'}</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.olt_name || '-'}</span>
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">Terminal ODP</span>
-                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.odp_name || 'ODP-MAG-01'}</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.odp_name || '-'}</span>
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">Wilayah Layanan</span>
-                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.region_name || 'MAGETAN'}</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.region_name || '-'}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1120,13 +1122,13 @@ export default function CustomersPage() {
                                         </h3>
                                         <div className="grid grid-cols-2 gap-y-4 text-sm">
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">ID ONU</span>
-                                            <span className="text-slate-800 dark:text-slate-200 font-black">{selectedCustomer.onu_id || 'ONU01'}</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black">{selectedCustomer.onu_id || '-'}</span>
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">MAC ONU</span>
                                             <span className="text-slate-800 dark:text-slate-200 font-mono font-bold text-xs uppercase">{selectedCustomer.onu_mac || '-'}</span>
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">MAC MikroTik</span>
                                             <span className="text-slate-800 dark:text-slate-200 font-mono font-bold text-xs uppercase">{selectedCustomer.mikrotik_mac || '-'}</span>
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">Daya TX</span>
-                                            <span className="text-emerald-600 dark:text-emerald-400 font-black">{selectedCustomer.tx?.toFixed(2) || '2.45'} dBm</span>
+                                            <span className="text-emerald-600 dark:text-emerald-400 font-black">{selectedCustomer.tx ? `${selectedCustomer.tx.toFixed(2)} dBm` : '-'}</span>
                                         </div>
                                     </div>
                                     <div>
@@ -1135,7 +1137,7 @@ export default function CustomersPage() {
                                         </h3>
                                         <div className="grid grid-cols-2 gap-y-4 text-sm">
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">Paket Layanan</span>
-                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.package_name || 'UNLIMITED 10M'}</span>
+                                            <span className="text-slate-800 dark:text-slate-200 font-black uppercase">{selectedCustomer.package_name || '-'}</span>
                                             <span className="text-slate-400 dark:text-slate-500 font-bold">Waktu Terhubung</span>
                                             <span className="text-emerald-600 dark:text-emerald-400 font-black uppercase">
                                                 {(() => {

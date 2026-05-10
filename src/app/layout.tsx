@@ -4,15 +4,26 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import DynamicBranding from "@/components/DynamicBranding";
 import UpdateChecker from "@/components/UpdateChecker";
+import PWARegister from "@/components/PWARegister";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Sahabat Network | ISP Management",
+  title: "JARFI | ISP Management",
   description: "Advanced Management System for ISP & Mikrotik",
+  manifest: "/manifest.json",
   icons: {
-    icon: '/favicon.png',
-  }
+    icon: '/jarfi_logo_1778350215847.png',
+    apple: '/jarfi_logo_1778350215847.png',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "JARFI",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export default function RootLayout({
@@ -26,6 +37,7 @@ export default function RootLayout({
         <ThemeProvider>
           <DynamicBranding />
           <UpdateChecker />
+          <PWARegister />
           {children}
         </ThemeProvider>
       </body>
