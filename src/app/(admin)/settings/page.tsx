@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { 
     Settings, Building2, Save, RefreshCw, CheckCircle2, AlertCircle, FileCheck,
-    CreditCard, Printer, History, Send, MessageCircle, Landmark, Smartphone, Info, Loader2, Wifi
+    CreditCard, Printer, History, Send, MessageCircle, Landmark, Smartphone, Info, Loader2, Wifi,
+    Database, DownloadCloud, UploadCloud
 } from 'lucide-react';
 
 interface SettingsState {
@@ -39,6 +40,8 @@ export default function SettingsPage() {
     const [settings, setSettings] = useState<SettingsState>(defaultSettings);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [isBackingUp, setIsBackingUp] = useState(false);
+    const [isRestoring, setIsRestoring] = useState(false);
     const [activeTab, setActiveTab] = useState('identity');
     const [logs, setLogs] = useState<any[]>([]);
 
@@ -100,6 +103,93 @@ export default function SettingsPage() {
         const newVal = settings[key] === '1' ? '0' : '1';
         setSettings(prev => ({ ...prev, [key]: newVal }));
         fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ [key]: newVal }) });
+    };
+
+    const handleBackup = async () => {
+        setIsBackingUp(true);
+        try {
+            const res = await fetch('/api/backup');
+            if (!res.ok) throw new Error('Backup failed');
+            
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `jarfi_database_backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            
+            Swal.fire({ icon: 'success', title: 'Backup Berhasil', text: 'Database telah diunduh.', background: '#0f172a', color: '#fff' });
+            
+            await fetch('/api/activity-logs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'Database Backup',
+                    description: `Pengguna mengunduh cadangan database sistem`,
+                    color: 'text-emerald-500'
+                })
+            });
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal mencadangkan database.', background: '#0f172a', color: '#fff' });
+        } finally {
+            setIsBackingUp(false);
+        }
+    };
+
+    const handleRestore = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const result = await Swal.fire({
+            title: 'Konfirmasi Restore',
+            text: 'Tindakan ini akan menimpa data saat ini dengan data dari file backup. Lanjutkan?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Restore!',
+            cancelButtonText: 'Batal',
+            background: '#0f172a',
+            color: '#fff',
+            confirmButtonColor: '#3b82f6',
+            cancelButtonColor: '#ef4444'
+        });
+
+        if (result.isConfirmed) {
+            setIsRestoring(true);
+            try {
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    try {
+                        const json = JSON.parse(event.target?.result as string);
+                        const res = await fetch('/api/backup', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(json)
+                        });
+                        
+                        if (res.ok) {
+                            Swal.fire({ icon: 'success', title: 'Restore Berhasil', text: 'Data sistem telah dipulihkan.', background: '#0f172a', color: '#fff' });
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else {
+                            throw new Error('Restore API error');
+                        }
+                    } catch (err) {
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: 'File backup tidak valid atau gagal dipulihkan.', background: '#0f172a', color: '#fff' });
+                    } finally {
+                        setIsRestoring(false);
+                        e.target.value = ''; // Reset input
+                    }
+                };
+                reader.readAsText(file);
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan sistem.', background: '#0f172a', color: '#fff' });
+                setIsRestoring(false);
+                e.target.value = '';
+            }
+        } else {
+            e.target.value = '';
+        }
     };
 
     const updateField = (key: string, val: string) => setSettings(prev => ({ ...prev, [key]: val }));
@@ -496,8 +586,9 @@ export default function SettingsPage() {
 
             {/* TAB: System */}
             {activeTab === 'system' && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="glass p-10 rounded-4xl border border-(--glass-border) shadow-xl bg-white/2 lg:col-span-2">
+                <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                        <div className="glass p-10 rounded-4xl border border-(--glass-border) shadow-xl bg-white/2 lg:col-span-2">
                         <div className="flex items-center gap-5 mb-10">
                             <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-slate-500 border border-white/10 shadow-inner"><History className="w-7 h-7" /></div>
                             <div>
@@ -522,6 +613,60 @@ export default function SettingsPage() {
                                     </div>
                                 ))
                             )}
+                        </div>
+                    </div>
+                    </div>
+                    
+                    {/* Database Backup & Restore Section */}
+                    <div className="glass p-10 rounded-4xl border border-(--glass-border) shadow-xl bg-white/2 relative overflow-hidden">
+                        <div className="flex items-center gap-5 mb-10">
+                            <div className="w-14 h-14 rounded-2xl bg-indigo-500/5 flex items-center justify-center text-indigo-400 border border-indigo-500/10 shadow-inner">
+                                <Database className="w-7 h-7" />
+                            </div>
+                            <div>
+                                <h4 className="text-2xl font-bold text-primary tracking-tight">Database & Pencadangan</h4>
+                                <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Ekspor dan Impor Data Sistem JARFI</p>
+                            </div>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-6">
+                            <div className="flex-1 p-8 bg-slate-50/5 dark:bg-slate-800/50 rounded-3xl border border-(--glass-border) flex flex-col items-center text-center group">
+                                <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <DownloadCloud className="w-8 h-8" />
+                                </div>
+                                <h5 className="font-bold text-primary mb-2">Cadangkan Data</h5>
+                                <p className="text-[10px] text-muted uppercase tracking-widest mb-6">Unduh keseluruhan tabel MySQL</p>
+                                <button 
+                                    onClick={handleBackup} 
+                                    disabled={isBackingUp}
+                                    className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold text-[11px] uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
+                                >
+                                    {isBackingUp ? <Loader2 className="w-4 h-4 animate-spin" /> : <DownloadCloud className="w-4 h-4" />}
+                                    Download Backup
+                                </button>
+                            </div>
+                            
+                            <div className="flex-1 p-8 bg-slate-50/5 dark:bg-slate-800/50 rounded-3xl border border-(--glass-border) flex flex-col items-center text-center group">
+                                <div className="w-16 h-16 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <UploadCloud className="w-8 h-8" />
+                                </div>
+                                <h5 className="font-bold text-primary mb-2">Pulihkan Data</h5>
+                                <p className="text-[10px] text-muted uppercase tracking-widest mb-6">Timpa dengan data JSON sebelumnya</p>
+                                <button 
+                                    onClick={() => document.getElementById('restore-upload')?.click()}
+                                    disabled={isRestoring}
+                                    className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold text-[11px] uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
+                                >
+                                    {isRestoring ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
+                                    Upload Restore
+                                </button>
+                                <input 
+                                    type="file" 
+                                    id="restore-upload" 
+                                    className="hidden" 
+                                    accept=".json" 
+                                    onChange={handleRestore}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
