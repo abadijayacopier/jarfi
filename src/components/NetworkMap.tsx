@@ -71,7 +71,7 @@ const getServerIcon = () => {
         html: `
             <div class="relative flex items-center justify-center">
                 <div class="w-12 h-12 bg-indigo-600 rounded-3xl border-2 border-indigo-400 shadow-[0_0_40px_rgba(99,102,241,0.6)] flex items-center justify-center text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap round="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
                 </div>
             </div>
         `,
@@ -269,8 +269,8 @@ export default function NetworkMap({ odps, customers, controls, onLinkUpdate, on
 
     const handleDeleteLink = async (sourceId: any, targetId: any, type: string) => {
         const result = await Swal.fire({
-            title: 'Putuskan Jalur?',
-            text: "Jalur fiber akan diputus secara permanen dari matriks.",
+            title: 'Putuskan Jalur Fiber?',
+            text: "Jalur fiber akan dihapus dari peta.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
@@ -321,7 +321,7 @@ export default function NetworkMap({ odps, customers, controls, onLinkUpdate, on
         return totalLoss.toFixed(2);
     };
 
-    if (!mounted) return <div className="h-full w-full bg-[#0f172a] flex items-center justify-center text-white font-bold uppercase tracking-widest">NOC Matrix Orchestrator Loading...</div>;
+    if (!mounted) return <div className="h-full w-full bg-[#0f172a] flex items-center justify-center text-white font-bold uppercase tracking-widest">Memuat Peta Jaringan...</div>;
 
     return (
         <MapContainer 
@@ -356,13 +356,13 @@ export default function NetworkMap({ odps, customers, controls, onLinkUpdate, on
                                 <Box className="w-6 h-6 text-indigo-400" />
                             </div>
                             <div>
-                                <span className="font-black uppercase text-xs text-indigo-400 tracking-widest block">Core Infrastructure</span>
-                                <h3 className="font-black text-lg uppercase tracking-tighter">SERVER PUSAT OLT</h3>
+                                <span className="font-black uppercase text-xs text-indigo-400 tracking-widest block">Server Pusat</span>
+                                <h3 className="font-black text-lg uppercase tracking-tighter">SERVER / OLT</h3>
                             </div>
                         </div>
                         <div className="p-4 bg-white/5 rounded-xl border border-white/5">
                             <div className="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                <span>Status Matriks</span>
+                                <span>Status Server</span>
                                 <span className="text-emerald-400">Online & Stabil</span>
                             </div>
                         </div>
@@ -372,7 +372,7 @@ export default function NetworkMap({ odps, customers, controls, onLinkUpdate, on
 
             {userPos && (
                 <Marker position={userPos} icon={getUserLocationIcon()}>
-                    <Popup><span className="text-[10px] font-black uppercase text-blue-400">Teknisi Lapangan</span></Popup>
+                    <Popup><span className="text-[10px] font-black uppercase text-blue-400">Lokasi Saya</span></Popup>
                 </Marker>
             )}
 
@@ -468,7 +468,7 @@ export default function NetworkMap({ odps, customers, controls, onLinkUpdate, on
                                         <h3 className="font-black text-lg uppercase tracking-tight leading-none mb-1">{odp.name}</h3>
                                         <div className="flex items-center gap-2">
                                             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Node Active</span>
+                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">ODP Aktif</span>
                                         </div>
                                     </div>
                                 </div>
@@ -496,7 +496,7 @@ export default function NetworkMap({ odps, customers, controls, onLinkUpdate, on
                                                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Estimasi Redaman</span>
                                                 <div className="text-right">
                                                     <span className="text-sm font-black text-amber-400 tracking-tighter">{cumulativeLoss} dB</span>
-                                                    <p className="text-[7px] text-slate-500 uppercase font-bold tracking-widest mt-0.5">Cumulative from OLT</p>
+                                                    <p className="text-[7px] text-slate-500 uppercase font-bold tracking-widest mt-0.5">Total dari OLT</p>
                                                 </div>
                                             </div>
                                         </>
@@ -508,7 +508,7 @@ export default function NetworkMap({ odps, customers, controls, onLinkUpdate, on
                                     className="w-full py-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white transition-all flex items-center justify-center gap-3 font-black uppercase tracking-widest text-[10px] border border-rose-500/20 group"
                                 >
                                     <Trash2 className="w-4 h-4 group-hover:animate-bounce" />
-                                    Hapus Node Infrastruktur
+                                    Hapus ODP
                                 </button>
                             </div>
                         </Popup>
@@ -546,7 +546,7 @@ export default function NetworkMap({ odps, customers, controls, onLinkUpdate, on
                                 <p className="text-[9px] font-bold text-indigo-400 mb-2">{c.pppoe_username}</p>
                                 <div className="h-px w-full bg-white/5 mb-3"></div>
                                 <div className="flex justify-between items-center text-[8px] font-black uppercase text-slate-500">
-                                    <span>Signal Status</span>
+                                    <span>Status Sinyal</span>
                                     <span className={status === 'normal' ? 'text-emerald-400' : 'text-amber-400'}>{status}</span>
                                 </div>
                             </div>

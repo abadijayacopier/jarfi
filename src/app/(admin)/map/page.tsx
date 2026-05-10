@@ -17,7 +17,7 @@ const NetworkMap = dynamic<NetworkMapProps>(() => import('@/components/NetworkMa
     loading: () => (
         <div className="h-full w-full bg-[#0f172a] animate-pulse rounded-4xl flex items-center justify-center flex-col gap-6">
             <Loader2 className="w-12 h-12 text-indigo-500 animate-spin" />
-            <span className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">Menginisialisasi Matriks NOC...</span>
+            <span className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">Memuat Peta Jaringan...</span>
         </div>
     )
 });
@@ -80,18 +80,22 @@ export default function MapPage() {
         addPoleMode: false
     });
 
-    const [selectedRegion, setSelectedRegion] = useState('1');
+    const [selectedRegion, setSelectedRegion] = useState('all');
+    const [routers, setRouters] = useState<any[]>([]);
 
     const fetchData = async () => {
         try {
-            const [odpRes, custRes] = await Promise.all([
+            const [odpRes, custRes, routerRes] = await Promise.all([
                 fetch('/api/odps'),
-                fetch('/api/customers')
+                fetch('/api/customers'),
+                fetch('/api/routers')
             ]);
             const odpData = await odpRes.json();
             const custData = await custRes.json();
+            const routerData = await routerRes.json();
             setOdps(odpData.odps || []);
             setCustomers(custData.customers || []);
+            setRouters(routerData.routers || []);
         } catch (error) {
             console.warn('Fetch error:', error);
         } finally {
@@ -121,38 +125,56 @@ export default function MapPage() {
     const handleSync = async (type: string) => {
         Swal.fire({
             title: `Menyinkronkan ${type}...`,
-            text: 'Menghubungkan dengan API perangkat keras...',
+            text: 'Menghubungkan dengan router MikroTik...',
             allowOutsideClick: false,
             background: '#0f172a',
             color: '#fff',
             didOpen: () => { Swal.showLoading(); }
         });
 
-        // Simulate API latency
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        await fetchData();
-        
-        Swal.fire({
-            icon: 'success',
-            title: `${type} Tersinkronisasi`,
-            text: 'Semua status node diperbarui ke matriks.',
-            background: '#0f172a',
-            color: '#fff',
-            timer: 1500
-        });
+        try {
+            // Sync pelanggan dari semua router yang terdaftar
+            for (const r of routers) {
+                try {
+                    const secretsRes = await fetch(`/api/mikrotik/secrets?router_id=${r.id}`);
+                    if (secretsRes.ok) {
+                        const secretsData = await secretsRes.json();
+                        const unsynced = (secretsData.secrets || []).filter((s: any) => !s.is_synced);
+                        if (unsynced.length > 0) {
+                            await fetch('/api/mikrotik/secrets', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ router_id: r.id, secrets: unsynced })
+                            });
+                        }
+                    }
+                } catch(e) { /* Router offline, skip */ }
+            }
+            await fetchData();
+            Swal.fire({
+                icon: 'success',
+                title: `${type} Tersinkronisasi`,
+                text: 'Data perangkat berhasil diperbarui.',
+                background: '#0f172a',
+                color: '#fff',
+                timer: 1500
+            });
+        } catch (err) {
+            Swal.fire({ icon: 'error', title: 'Gagal Sinkronisasi', text: 'Periksa koneksi router.', background: '#0f172a', color: '#fff' });
+        }
     };
 
     const handleBackup = () => {
         Swal.fire({
-            title: 'Cadangan Basis Data',
-            text: 'Membangun terowongan aman untuk ekspor...',
+            title: 'Backup Data Peta',
+            text: 'Memulai proses backup data ODP & pelanggan...',
             background: '#0f172a',
             color: '#fff',
             timer: 2000,
             timerProgressBar: true,
             didOpen: () => { Swal.showLoading(); }
         }).then(() => {
-            Swal.fire({ icon: 'success', title: 'Cadangan Aman', text: 'Arsip lokal berhasil dibuat.', background: '#0f172a', color: '#fff' });
+            Swal.fire({ icon: 'success', title: 'Backup Berhasil', text: 'File berhasil disimpan.', background: '#0f172a', color: '#fff' });
         });
     };
 
@@ -195,7 +217,7 @@ export default function MapPage() {
             return;
         }
 
-        Swal.fire({ icon: 'error', title: 'Tidak Ditemukan', text: 'Nama perangkat atau pelanggan tidak terdaftar.', background: '#0f172a', color: '#fff' });
+        Swal.fire({ icon: 'error', title: 'Tidak Ditemukan', text: 'Perangkat atau pelanggan tidak ditemukan di peta.', background: '#0f172a', color: '#fff' });
     };
 
     const handleLocateMe = () => {
@@ -241,7 +263,7 @@ export default function MapPage() {
                 }
             },
             (error) => {
-                let msg = 'Gagal mengambil koordinat matriks.';
+                let msg = 'Gagal mengambil koordinat lokasi.';
                 if (error.code === 1) {
                     msg = 'Izin ditolak. Silakan buka pengaturan browser dan izinkan akses lokasi untuk situs ini.';
                     if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
@@ -303,7 +325,7 @@ export default function MapPage() {
     const handleDeleteOdp = async (id: number) => {
         const result = await Swal.fire({
             title: 'Hapus ODP?',
-            text: "Ini akan menghapus node ODP secara permanen dan memutuskan semua jalur pelanggan yang terhubung di matriks.",
+            text: "Ini akan menghapus ODP secara permanen dan memutuskan koneksi pelanggan yang terhubung.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
@@ -483,7 +505,7 @@ export default function MapPage() {
     };
 
     const toggleControl = (key: keyof typeof controls) => {
-        if (['editOdpLines', 'editUserLines', 'addOdpMode', 'addCustomerMode'].includes(key)) {
+        if (['editOdpLines', 'editUserLines', 'addOdpMode', 'addCustomerMode', 'addPoleMode'].includes(key)) {
             setControls(prev => ({
                 ...prev,
                 editOdpLines: key === 'editOdpLines' ? !prev.editOdpLines : false,
@@ -533,7 +555,7 @@ export default function MapPage() {
 
                 <div className="flex gap-1">
                     <button onClick={handleSearch} className="w-8 h-8 md:w-10 md:h-10 bg-blue-600 hover:bg-blue-500 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Search className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
-                    <button onClick={() => Swal.fire({ title: 'Pemindaian Keamanan', text: 'Tidak ada kerentanan terdeteksi dalam matriks.', icon: 'success', background: '#0f172a', color: '#fff' })} className="w-8 h-8 md:w-10 md:h-10 bg-amber-500 hover:bg-amber-400 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Shield className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
+                    <button onClick={() => Swal.fire({ title: 'Status Jaringan', text: `${customers.filter(c => (c.status || '').toLowerCase() === 'active').length} pelanggan aktif, ${odps.length} ODP terpasang.`, icon: 'info', background: '#0f172a', color: '#fff' })} className="w-8 h-8 md:w-10 md:h-10 bg-amber-500 hover:bg-amber-400 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Shield className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
                     <button onClick={toggleFullscreen} className="w-8 h-8 md:w-10 md:h-10 bg-slate-700 hover:bg-slate-600 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Maximize2 className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
                     <button onClick={() => setIsSidebarVisible(!isSidebarVisible)} className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all ${isSidebarVisible ? 'bg-indigo-600' : 'bg-slate-700 hover:bg-slate-600'}`}><LayoutGrid className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
                     <button onClick={() => toggleControl('addOdpMode')} className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all ${controls.addOdpMode ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-600 hover:bg-emerald-500'}`} title="Pasang ODP"><Plus className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
@@ -593,8 +615,8 @@ export default function MapPage() {
                                     <Shield className="w-6 h-6 text-white" />
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-white font-black uppercase tracking-[0.3em] text-[11px] drop-shadow-lg">Matriks Kontrol</span>
-                                    <span className="text-[7px] font-bold text-white/50 uppercase tracking-widest mt-1">Industrial Intelligence v3</span>
+                                    <span className="text-white font-black uppercase tracking-[0.3em] text-[11px] drop-shadow-lg">Panel Kontrol</span>
+                                    <span className="text-[7px] font-bold text-white/50 uppercase tracking-widest mt-1">Pemetaan Jaringan</span>
                                 </div>
                             </div>
                             <button onClick={() => setIsSidebarVisible(false)} className="w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-all bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 active:scale-90 relative z-10">
@@ -604,7 +626,7 @@ export default function MapPage() {
 
                         <div className="p-8 space-y-8 flex-1 overflow-y-auto custom-scrollbar">
                             <div className="space-y-4">
-                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Matriks Regional</label>
+                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Wilayah / Region Server</label>
                                 <div className="relative">
                                     <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-400" />
                                     <select 
@@ -612,14 +634,16 @@ export default function MapPage() {
                                         onChange={(e) => setSelectedRegion(e.target.value)}
                                         className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white text-[11px] font-black focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none"
                                     >
-                                        <option value="1">Node Region Alpha-1</option>
-                                        <option value="2">Node Region Beta-2</option>
+                                        <option value="all">Semua Region</option>
+                                        {routers.map((r: any) => (
+                                            <option key={r.id} value={r.id}>{r.name || r.ip_address}</option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
 
                             <div className="space-y-4">
-                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Vektor Infrastruktur</label>
+                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Kelola Infrastruktur</label>
                                 <div className="grid grid-cols-1 gap-4">
                                     <button 
                                         onClick={() => toggleControl('addOdpMode')}
@@ -635,7 +659,7 @@ export default function MapPage() {
                                         <div className={`p-2 rounded-xl ${controls.addOdpMode ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'} transition-all`}>
                                             <PlusCircle className={`w-5 h-5 ${controls.addOdpMode ? 'animate-bounce' : ''}`} />
                                         </div>
-                                        <span className="relative z-10">{controls.addOdpMode ? 'Penempatan Node Aktif' : 'Pasang Node ODP Baru'}</span>
+                                        <span className="relative z-10">{controls.addOdpMode ? 'Mode Pasang ODP Aktif' : 'Pasang ODP Baru'}</span>
                                     </button>
 
                                     <button 
@@ -652,7 +676,7 @@ export default function MapPage() {
                                         <div className={`p-2 rounded-xl ${controls.addPoleMode ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'} transition-all`}>
                                             <Monitor className={`w-5 h-5 ${controls.addPoleMode ? 'animate-bounce' : ''}`} />
                                         </div>
-                                        <span className="relative z-10">{controls.addPoleMode ? 'Penempatan Tiang Aktif' : 'Pasang Node Tiang Baru'}</span>
+                                        <span className="relative z-10">{controls.addPoleMode ? 'Mode Pasang Tiang Aktif' : 'Pasang Tiang Baru'}</span>
                                     </button>
 
                                     <button 
@@ -680,13 +704,13 @@ export default function MapPage() {
                             </div>
 
                             <div className="space-y-6">
-                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Matriks Visualisasi</label>
+                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Tampilan Peta</label>
                                 {[
-                                    { id: 'showOdpTooltip', label: 'Metadata ODP', icon: Info },
-                                    { id: 'showOdpLines', label: 'Fiber Backbone', icon: Activity },
-                                    { id: 'showUserLines', label: 'Drop Pelanggan', icon: MousePointer2 },
-                                    { id: 'showServerOlt', label: 'Telemetri OLT', icon: Box },
-                                    { id: 'showOltOdp', label: 'Uplink Matriks', icon: Zap },
+                                    { id: 'showOdpTooltip', label: 'Label ODP', icon: Info },
+                                    { id: 'showOdpLines', label: 'Jalur Fiber ODP', icon: Activity },
+                                    { id: 'showUserLines', label: 'Kabel Drop Pelanggan', icon: MousePointer2 },
+                                    { id: 'showServerOlt', label: 'Server / OLT', icon: Box },
+                                    { id: 'showOltOdp', label: 'Jalur OLT ke ODP', icon: Zap },
                                 ].map((item) => (
                                     <div key={item.id} className="flex justify-between items-center group cursor-pointer" onClick={() => toggleControl(item.id as any)}>
                                         <div className="flex items-center gap-4">
@@ -703,9 +727,9 @@ export default function MapPage() {
                             </div>
 
                             <div className="space-y-6 pt-8 border-t border-white/5">
-                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Mode Edit Industri</label>
+                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Mode Edit Topologi</label>
                                 {[
-                                    { id: 'editOdpLines', label: 'Bangun Backbone', icon: Activity },
+                                    { id: 'editOdpLines', label: 'Hubungkan Jalur Fiber', icon: Activity },
                                     { id: 'editUserLines', label: 'Hubungkan Pelanggan', icon: MousePointer2 },
                                 ].map((item) => (
                                     <div key={item.id} className="flex justify-between items-center group cursor-pointer" onClick={() => toggleControl(item.id as any)}>
@@ -733,7 +757,7 @@ export default function MapPage() {
                             <div className="absolute inset-0 rounded-full bg-emerald-500/30 animate-ping"></div>
                         </div>
                         <div className="flex flex-col min-w-[100px] md:min-w-[120px]">
-                            <span className="text-[7px] md:text-[8px] font-black uppercase text-slate-500 tracking-[0.3em] leading-none mb-1">Aliran Matriks</span>
+                            <span className="text-[7px] md:text-[8px] font-black uppercase text-slate-500 tracking-[0.3em] leading-none mb-1">Status Jaringan</span>
                             <span className="text-[10px] md:text-[11px] font-black text-white uppercase tracking-wider">Pemantauan Aktif</span>
                         </div>
                     </div>
@@ -741,7 +765,7 @@ export default function MapPage() {
                     {/* Telemetry Stats */}
                     <div className="flex items-center gap-6 md:gap-10 shrink-0">
                         {[
-                            { label: 'TOT ONU', value: customers.length, color: 'text-indigo-400', icon: Monitor },
+                            { label: 'PELANGGAN', value: customers.length, color: 'text-indigo-400', icon: Monitor },
                             { label: 'AKTIF', value: customers.filter(c => c.status === 'active').length, color: 'text-emerald-400', icon: Zap },
                             { label: 'SINYAL', value: customers.filter(c => c.rx < -27).length, color: 'text-amber-400', icon: Signal },
                             { label: 'ODP', value: odps.length, color: 'text-indigo-400', icon: Box }
@@ -761,11 +785,11 @@ export default function MapPage() {
                     {/* Infrastructure Overview */}
                     <div className="hidden lg:flex items-center gap-10 shrink-0">
                          <div className="flex flex-col">
-                            <span className="text-[8px] font-black uppercase text-slate-600 tracking-widest mb-1">Pelanggan Global</span>
+                            <span className="text-[8px] font-black uppercase text-slate-600 tracking-widest mb-1">Total Pelanggan</span>
                             <span className="text-sm font-black text-indigo-400">{customers.length} <span className="text-[8px] text-indigo-400/30 ml-1 tracking-widest">AKTIF</span></span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-[8px] font-black uppercase text-slate-600 tracking-widest mb-1">Kesehatan Matriks</span>
+                            <span className="text-[8px] font-black uppercase text-slate-600 tracking-widest mb-1">Kondisi Jaringan</span>
                             <div className="flex items-center gap-2">
                                 <div className="flex -space-x-1">
                                     {[1, 2, 3].map(j => <div key={j} className="w-1.5 h-4 bg-emerald-500/40 rounded-sm"></div>)}
