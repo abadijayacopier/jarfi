@@ -45,8 +45,16 @@ async function startBot() {
     if (geminiKey && !geminiKey.includes('your_api_key')) {
         try {
             const genAI = new GoogleGenerativeAI(geminiKey);
-            model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            console.log('🤖 Otak AI Siap (Gemini Flash).');
+            
+            // Debug: List available models
+            console.log('🔍 Mengecek daftar model yang tersedia...');
+            try {
+                // We use a dummy model to check if the key works at least
+                model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                console.log('🤖 Otak AI Siap (Gemini Flash).');
+            } catch (e) {
+                console.log('⚠️ Gagal inisialisasi AI awal.');
+            }
         } catch (e) {
             console.log('⚠️ Gagal inisialisasi AI.');
         }
@@ -180,20 +188,39 @@ async function startBot() {
                 try {
                     const promptText = `Anda adalah asisten cerdas ISP bernama JarfiMgt_bot. Berikan jawaban yang ramah, singkat, dan membantu kepada bos Anda. Usahakan tanpa menggunakan format teks tebal/miring yang rumit. Pertanyaan: ${msg.text}`;
                     let result;
-                    try {
-                        result = await model.generateContent(promptText);
-                    } catch (aiError) {
-                        if (aiError.message && aiError.message.includes('404')) {
-                            console.log('Fallback ke model gemini-pro (versi 1.0)...');
-                            const settingsDB = await getSettings();
-                            const fallbackKey = settingsDB.gemini_api_key || process.env.GEMINI_API_KEY;
-                            const fallbackGenAI = new GoogleGenerativeAI(fallbackKey);
-                            const fallbackModel = fallbackGenAI.getGenerativeModel({ model: "gemini-pro" });
-                            result = await fallbackModel.generateContent(promptText);
-                        } else {
-                            throw aiError;
+                    
+                    const modelsToTry = ["models/gemini-1.5-flash", "models/gemini-1.5-pro", "models/gemini-pro", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"];
+                    let lastError = null;
+
+                    for (const modelName of modelsToTry) {
+                        try {
+                            const genAI = new GoogleGenerativeAI(geminiKey);
+                            // Coba dengan API v1 (lebih stabil di beberapa region)
+                            const currentModel = genAI.getGenerativeModel({ model: modelName }, { apiVersion: 'v1' });
+                            result = await currentModel.generateContent(promptText);
+                            if (result) {
+                                console.log(`✅ AI Berhasil menggunakan model: ${modelName} (v1)`);
+                                break;
+                            }
+                        } catch (aiError) {
+                            try {
+                                // Fallback ke v1beta jika v1 gagal
+                                const genAI = new GoogleGenerativeAI(geminiKey);
+                                const currentModel = genAI.getGenerativeModel({ model: modelName });
+                                result = await currentModel.generateContent(promptText);
+                                if (result) {
+                                    console.log(`✅ AI Berhasil menggunakan model: ${modelName} (v1beta)`);
+                                    break;
+                                }
+                            } catch (v1betaError) {
+                                lastError = v1betaError;
+                                console.log(`⚠️ Model ${modelName} gagal: ${v1betaError.message}`);
+                                continue;
+                            }
                         }
                     }
+
+                    if (!result) throw lastError || new Error("Semua model AI gagal merespon.");
                     
                     const responseText = result.response.text();
                     
