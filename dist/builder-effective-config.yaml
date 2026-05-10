@@ -1,0 +1,24 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.jarfi.noc
+productName: JARFI NOC
+publish:
+  - provider: github
+    owner: abadijayacopier
+    repo: jarfi
+win:
+  target: nsis
+  icon: public/jarfi_logo_1778350215847.png
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  shortcutName: Dunia WiFi NOC
+  installerIcon: public/jarfi_logo_1778350215847.png
+  uninstallerIcon: public/jarfi_logo_1778350215847.png
+  runAfterFinish: true
+files:
+  - filter:
+      - electron/**/*
+      - public/**/*
+electronVersion: 42.0.1
