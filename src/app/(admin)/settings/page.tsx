@@ -35,6 +35,46 @@ const defaultSettings: SettingsState = {
     hotspot_domain: 'www.jarfi.net',
     gemini_api_key: '',
 };
+const FieldComponent = ({ label, field, value, onChange, type = 'text', placeholder = '', prefix = '' }: any) => (
+    <div>
+        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">{label}</label>
+        <div className="relative">
+            {prefix && <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-sm">{prefix}</span>}
+            <input
+                type={type}
+                value={value || ''}
+                onChange={(e) => onChange(field, e.target.value)}
+                placeholder={placeholder}
+                className={`w-full clean-input ${prefix ? 'pl-14' : ''} py-4 font-bold text-sm`}
+            />
+        </div>
+    </div>
+);
+
+const ToggleComponent = ({ label, desc, field, isOn, onToggle, color = 'accent' }: any) => {
+    const colorMap: any = {
+        accent: { bg: 'bg-accent', icon: 'bg-accent/5 text-accent', glow: 'shadow-lg shadow-accent/20' },
+        teal: { bg: 'bg-teal-500', icon: 'bg-teal-500/5 text-teal-400', glow: 'shadow-lg shadow-teal-500/20' },
+        blue: { bg: 'bg-blue-500', icon: 'bg-blue-500/5 text-blue-400', glow: 'shadow-lg shadow-blue-500/20' },
+    };
+    const c = colorMap[color] || colorMap.accent;
+    return (
+        <div onClick={() => onToggle(field)} className="flex items-center justify-between p-5 bg-white/2 rounded-2xl border border-(--glass-border) cursor-pointer hover:bg-white/5 transition-all active:scale-[0.98]">
+            <div className="flex gap-4 items-center">
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-500 ${isOn ? c.icon : 'bg-white/5 text-slate-600'}`}>
+                    <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <div>
+                    <p className="font-bold text-primary text-sm tracking-tight">{label}</p>
+                    <p className="text-[10px] text-muted mt-0.5 font-bold uppercase tracking-widest">{desc}</p>
+                </div>
+            </div>
+            <div className={`w-12 h-6 rounded-full relative transition-all duration-500 shrink-0 ml-4 ${isOn ? `${c.bg} ${c.glow}` : 'bg-white/10'}`}>
+                <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all duration-500 shadow-lg ${isOn ? 'right-0.5' : 'left-0.5'}`}></div>
+            </div>
+        </div>
+    );
+};
 
 export default function SettingsPage() {
     const [settings, setSettings] = useState<SettingsState>(defaultSettings);
@@ -201,48 +241,6 @@ export default function SettingsPage() {
         { id: 'system', label: 'Sistem', icon: Settings },
     ];
 
-    const Field = ({ label, field, type = 'text', placeholder = '', prefix = '' }: any) => (
-        <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">{label}</label>
-            <div className="relative">
-                {prefix && <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-sm">{prefix}</span>}
-                <input
-                    type={type}
-                    value={settings[field] || ''}
-                    onChange={(e) => updateField(field, e.target.value)}
-                    placeholder={placeholder}
-                    className={`w-full clean-input ${prefix ? 'pl-14' : ''} py-4 font-bold text-sm`}
-                />
-            </div>
-        </div>
-    );
-
-    const Toggle = ({ label, desc, field, color = 'accent' }: any) => {
-        const isOn = settings[field] === '1';
-        const colorMap: any = {
-            accent: { bg: 'bg-accent', icon: 'bg-accent/5 text-accent', glow: 'shadow-lg shadow-accent/20' },
-            teal: { bg: 'bg-teal-500', icon: 'bg-teal-500/5 text-teal-400', glow: 'shadow-lg shadow-teal-500/20' },
-            blue: { bg: 'bg-blue-500', icon: 'bg-blue-500/5 text-blue-400', glow: 'shadow-lg shadow-blue-500/20' },
-        };
-        const c = colorMap[color] || colorMap.accent;
-        return (
-            <div onClick={() => toggleSetting(field)} className="flex items-center justify-between p-5 bg-white/2 rounded-2xl border border-(--glass-border) cursor-pointer hover:bg-white/5 transition-all active:scale-[0.98]">
-                <div className="flex gap-4 items-center">
-                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-500 ${isOn ? c.icon : 'bg-white/5 text-slate-600'}`}>
-                        <CheckCircle2 className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <p className="font-bold text-primary text-sm tracking-tight">{label}</p>
-                        <p className="text-[10px] text-muted mt-0.5 font-bold uppercase tracking-widest">{desc}</p>
-                    </div>
-                </div>
-                <div className={`w-12 h-6 rounded-full relative transition-all duration-500 shrink-0 ml-4 ${isOn ? `${c.bg} ${c.glow}` : 'bg-white/10'}`}>
-                    <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all duration-500 shadow-lg ${isOn ? 'right-0.5' : 'left-0.5'}`}></div>
-                </div>
-            </div>
-        );
-    };
-
     if (loading) return (
         <div className="animate-in fade-in duration-500 pb-10">
             <div className="p-32 text-center">
@@ -295,23 +293,23 @@ export default function SettingsPage() {
                             </div>
                             <form onSubmit={handleSave} className="space-y-8 relative z-10">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <Field label="Nama Brand / Perusahaan" field="company_name" placeholder="Contoh: Sahabat Network" />
-                                    <Field label="URL Logo (Link / Base64)" field="company_logo" placeholder="/logo.png" />
+                                    <FieldComponent label="Nama Brand / Perusahaan" field="company_name" value={settings.company_name} onChange={updateField} placeholder="Contoh: Sahabat Network" />
+                                    <FieldComponent label="URL Logo (Link / Base64)" field="company_logo" value={settings.company_logo} onChange={updateField} placeholder="/logo.png" />
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 ml-1">Alamat Kantor Pusat</label>
                                     <textarea rows={4} value={settings.company_address} onChange={(e) => updateField('company_address', e.target.value)} placeholder="Masukkan alamat lengkap..." className="w-full clean-input resize-none py-5 px-6 font-bold text-sm"></textarea>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <Field label="Email Dukungan" field="company_email" type="email" />
-                                    <Field label="WhatsApp Bisnis" field="company_whatsapp" prefix="+62" />
+                                    <FieldComponent label="Email Dukungan" field="company_email" value={settings.company_email} onChange={updateField} type="email" />
+                                    <FieldComponent label="WhatsApp Bisnis" field="company_whatsapp" value={settings.company_whatsapp} onChange={updateField} prefix="+62" />
                                 </div>
                                 <div className="p-6 bg-accent/5 rounded-3xl border border-accent/10 flex items-center gap-6">
                                     <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center text-accent shadow-inner shrink-0">
                                         <Wifi className="w-7 h-7" />
                                     </div>
                                     <div className="flex-1">
-                                        <Field label="Hotspot DNS Name / Domain" field="hotspot_domain" placeholder="Contoh: wifi.hotspot / www.jarfi.net" />
+                                        <FieldComponent label="Hotspot DNS Name / Domain" field="hotspot_domain" value={settings.hotspot_domain} onChange={updateField} placeholder="Contoh: wifi.hotspot / www.jarfi.net" />
                                         <p className="text-[9px] font-bold text-accent/60 uppercase tracking-widest mt-2 ml-1">Domain ini akan digunakan untuk link QR Code login otomatis.</p>
                                     </div>
                                 </div>
@@ -362,8 +360,8 @@ export default function SettingsPage() {
                                 <h4 className="text-xl font-bold text-primary tracking-tight uppercase">Ops Logika</h4>
                             </div>
                             <div className="space-y-4">
-                                <Toggle label="Protokol Pajak (11%)" desc="Otomatis terapkan ke Buku Kas" field="tax_enabled" color="accent" />
-                                <Toggle label="Isolasi Otomatis" desc="Eksekusi pada H+3" field="auto_isolate" color="teal" />
+                                <ToggleComponent label="Protokol Pajak (11%)" desc="Otomatis terapkan ke Buku Kas" field="tax_enabled" isOn={settings.tax_enabled === '1'} onToggle={toggleSetting} color="accent" />
+                                <ToggleComponent label="Isolasi Otomatis" desc="Eksekusi pada H+3" field="auto_isolate" isOn={settings.auto_isolate === '1'} onToggle={toggleSetting} color="teal" />
                             </div>
                         </div>
                     </div>
@@ -417,19 +415,22 @@ export default function SettingsPage() {
                                 </div>
                             ) : (
                                 <>
-                                    <Field 
+                                    <FieldComponent 
                                         label={settings.payment_method === 'ewallet' ? 'Penyedia Digital' : 'Identitas Bank'} 
                                         field="bank_name" 
+                                        value={settings.bank_name} onChange={updateField}
                                         placeholder={settings.payment_method === 'ewallet' ? 'QRIS / Dana' : 'BCA / BRI'} 
                                     />
-                                    <Field 
+                                    <FieldComponent 
                                         label={settings.payment_method === 'ewallet' ? 'Identitas Dompet' : 'Nomor Rekening'} 
                                         field="bank_account" 
+                                        value={settings.bank_account} onChange={updateField}
                                         placeholder="Kode identifikasi..." 
                                     />
-                                    <Field 
+                                    <FieldComponent 
                                         label="Pemilik Rekening Perusahaan" 
                                         field="bank_holder" 
+                                        value={settings.bank_holder} onChange={updateField}
                                         placeholder="Identitas hukum..." 
                                     />
                                 </>
@@ -507,7 +508,7 @@ export default function SettingsPage() {
                             </div>
                         </div>
                         <div className="space-y-6 relative z-10">
-                            <Toggle label="Aktifkan Telegram" desc="Pengiriman Notifikasi Otomatis" field="telegram_enabled" color="blue" />
+                            <ToggleComponent label="Aktifkan Telegram" desc="Pengiriman Notifikasi Otomatis" field="telegram_enabled" isOn={settings.telegram_enabled === '1'} onToggle={toggleSetting} color="blue" />
                             <div>
                                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Kunci Otak AI (Gemini Key)</label>
                                 <input
@@ -530,9 +531,10 @@ export default function SettingsPage() {
                                 />
                                 <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-2 ml-1 italic opacity-60">Sandi diaktifkan untuk keamanan.</p>
                             </div>
-                            <Field 
+                            <FieldComponent 
                                 label="Identitas Chat (Chat ID)" 
                                 field="telegram_chat_id" 
+                                value={settings.telegram_chat_id} onChange={updateField}
                                 placeholder="Contoh: 123456789 atau -100..." 
                             />
                             <p className="text-[9px] font-bold text-accent/60 uppercase tracking-widest mt-1 ml-1 leading-relaxed">
@@ -569,9 +571,9 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="space-y-6">
-                                <Toggle label="Aktifkan WhatsApp API" desc="Pengiriman Otonom" field="wa_api_enabled" color="accent" />
-                                <Field label="URL Gateway API" field="wa_api_url" placeholder="Endpoint API..." />
-                                <Field label="Rahasia Otentikasi" field="wa_api_token" placeholder="Token Layanan..." type="password" />
+                                <ToggleComponent label="Aktifkan WhatsApp API" desc="Pengiriman Otonom" field="wa_api_enabled" isOn={settings.wa_api_enabled === '1'} onToggle={toggleSetting} color="accent" />
+                                <FieldComponent label="URL Gateway API" field="wa_api_url" value={settings.wa_api_url} onChange={updateField} placeholder="Endpoint API..." />
+                                <FieldComponent label="Rahasia Otentikasi" field="wa_api_token" value={settings.wa_api_token} onChange={updateField} placeholder="Token Layanan..." type="password" />
                             </div>
                         </div>
                     </div>
