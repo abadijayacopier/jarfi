@@ -54,6 +54,33 @@ async function startBot() {
 
     console.log('✅ Bot Terhubung & Menunggu Pesan...');
 
+    // --- SISTEM NOTIFIKASI OTOMATIS (CEK SETIAP 5 MENIT) ---
+    setInterval(async () => {
+        try {
+            const settings = await getSettings();
+            if (settings.telegram_enabled !== '1') return;
+
+            const chatId = settings.telegram_chat_id;
+            if (!chatId) return;
+
+            const [offlineRouters] = await pool.query("SELECT name, ip_address FROM Routers WHERE status = 'OFFLINE'");
+            
+            if (offlineRouters.length > 0) {
+                let alertMsg = `⚠️ *PERINGATAN JARINGAN*\n\n`;
+                alertMsg += `Ditemukan *${offlineRouters.length} Router* Down:\n`;
+                offlineRouters.forEach(r => {
+                    alertMsg += `❌ ${r.name} (${r.ip_address})\n`;
+                });
+                alertMsg += `\nSegera cek lokasi Bos! 📡🚀`;
+                
+                bot.sendMessage(chatId, alertMsg, { parse_mode: 'Markdown' });
+                console.log(`📢 Notifikasi Terkirim ke ID: ${chatId}`);
+            }
+        } catch (e) {
+            console.error('❌ Notif Error:', e.message);
+        }
+    }, 5 * 60 * 1000); // 5 Menit
+
     bot.on('message', async (msg) => {
         const chatId = msg.chat.id;
         const text = msg.text?.toLowerCase() || "";

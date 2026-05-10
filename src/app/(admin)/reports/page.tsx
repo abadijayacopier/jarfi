@@ -18,6 +18,7 @@ export default function ReportsPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
     const [mounted, setMounted] = useState(false);
+    const [stikerPage, setStikerPage] = useState(0);
 
     useEffect(() => {
         setMounted(true);
@@ -87,9 +88,10 @@ export default function ReportsPage() {
     const reports = [
         { id: 'customers', title: 'Data Pelanggan', icon: Users, desc: 'Laporan lengkap identitas & status pelanggan.', color: 'accent' },
         { id: 'finance', title: 'Laba & Rugi', icon: Wallet, desc: 'Neraca keuangan, pendapatan vs pengeluaran.', color: 'emerald-500' },
-        { id: 'bandwidth', title: 'Pemakaian Bandwidth', icon: Activity, desc: 'Statistik trafik & utilisasi link ISP.', color: 'blue-500' },
+        { id: 'bandwidth', title: 'Sinyal & Bandwidth', icon: Activity, desc: 'Kualitas sinyal ONU & utilisasi link.', color: 'blue-500' },
         { id: 'inventory', title: 'Inventaris & Aset', icon: Package, desc: 'Stok barang, nilai aset, & kebutuhan logistik.', color: 'purple-500' },
-        { id: 'journal', title: 'Jurnal Umum', icon: FileText, desc: 'Catatan transaksi harian & kronologi finansial.', color: 'amber-500' }
+        { id: 'journal', title: 'Jurnal Umum', icon: FileText, desc: 'Catatan transaksi harian & kronologi finansial.', color: 'amber-500' },
+        { id: 'stiker', title: 'Stiker ID Pelanggan', icon: Printer, desc: 'Cetak stiker ID ukuran 86×54mm di kertas A3+.', color: 'accent' }
     ];
 
     const handlePrint = () => {
@@ -168,80 +170,247 @@ export default function ReportsPage() {
                             >
                                 <ChevronRight className="w-4 h-4 rotate-180" /> Kembali
                             </button>
-                            <div className="h-10 w-px bg-white/10 hidden lg:block"></div>
-                            {activeReport !== 'customers' && (
-                                <div className="flex items-center gap-4">
-                                    <div className="relative">
-                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+
+                            {/* Filter & Search — Hanya untuk non-stiker */}
+                            {activeReport !== 'stiker' && (
+                                <>
+                                    <div className="h-10 w-px bg-white/10 hidden lg:block"></div>
+                                    {activeReport !== 'customers' && (
+                                        <div className="flex items-center gap-4">
+                                            <div className="relative">
+                                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                                                <input 
+                                                    type="date" 
+                                                    value={dateRange.start}
+                                                    onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                                                    className="h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 text-[11px] font-bold text-primary outline-none focus:border-accent/50 transition-all"
+                                                />
+                                            </div>
+                                            <div className="h-px w-4 bg-white/10"></div>
+                                            <div className="relative">
+                                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                                                <input 
+                                                    type="date" 
+                                                    value={dateRange.end}
+                                                    onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                                                    className="h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 text-[11px] font-bold text-primary outline-none focus:border-accent/50 transition-all"
+                                                />
+                                            </div>
+                                            <button 
+                                                onClick={() => fetchReportData(activeReport)}
+                                                className="h-14 w-14 rounded-2xl bg-accent text-white flex items-center justify-center hover:bg-accent/90 transition-all shadow-lg active:scale-95"
+                                            >
+                                                <Filter className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    )}
+                                    <div className="h-10 w-px bg-white/10 hidden lg:block"></div>
+                                    <div className="relative flex-1 lg:w-80">
+                                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                                         <input 
-                                            type="date" 
-                                            value={dateRange.start}
-                                            onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                                            className="h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 text-[11px] font-bold text-primary outline-none focus:border-accent/50 transition-all"
+                                            type="text" 
+                                            placeholder="Cari cepat di laporan..."
+                                            value={searchTerm}
+                                            onChange={(e) => {
+                                                setSearchTerm(e.target.value);
+                                                setCurrentPage(1);
+                                            }}
+                                            className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 text-[11px] font-bold text-primary outline-none focus:border-accent/50 transition-all"
                                         />
                                     </div>
-                                    <div className="h-px w-4 bg-white/10"></div>
-                                    <div className="relative">
-                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
-                                        <input 
-                                            type="date" 
-                                            value={dateRange.end}
-                                            onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                                            className="h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 text-[11px] font-bold text-primary outline-none focus:border-accent/50 transition-all"
-                                        />
-                                    </div>
-                                    <button 
-                                        onClick={() => fetchReportData(activeReport)}
-                                        className="h-14 w-14 rounded-2xl bg-accent text-white flex items-center justify-center hover:bg-accent/90 transition-all shadow-lg active:scale-95"
-                                    >
-                                        <Filter className="w-5 h-5" />
-                                    </button>
-                                </div>
+                                </>
                             )}
-                            <div className="h-10 w-px bg-white/10 hidden lg:block"></div>
-                            <div className="relative flex-1 lg:w-80">
-                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
-                                <input 
-                                    type="text" 
-                                    placeholder="Cari cepat di laporan..."
-                                    value={searchTerm}
-                                    onChange={(e) => {
-                                        setSearchTerm(e.target.value);
-                                        setCurrentPage(1);
-                                    }}
-                                    className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 text-[11px] font-bold text-primary outline-none focus:border-accent/50 transition-all"
-                                />
+                        </div>
+
+                        {/* Export & Print — Hanya untuk non-stiker */}
+                        {activeReport !== 'stiker' && (
+                            <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
+                                <button 
+                                    onClick={exportToExcel}
+                                    className="h-12 md:h-14 px-4 md:px-8 rounded-2xl bg-white/5 border border-white/10 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-primary hover:bg-white/10 transition-all flex items-center gap-2 md:gap-3 flex-1 md:flex-none justify-center"
+                                >
+                                    <FileSpreadsheet className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-500" /> 
+                                    <span className="md:inline">Excel</span>
+                                </button>
+                                <button 
+                                    onClick={handlePrint}
+                                    className="h-12 md:h-14 px-4 md:px-8 rounded-2xl bg-white/5 border border-white/10 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-primary hover:bg-white/10 transition-all flex items-center gap-2 md:gap-3 flex-1 md:flex-none justify-center"
+                                >
+                                    <Download className="w-3.5 h-3.5 md:w-4 md:h-4 text-blue-500" />
+                                    <span className="md:inline">PDF</span>
+                                </button>
+                                <button 
+                                    onClick={handlePrint}
+                                    className="h-12 md:h-14 px-6 md:px-10 rounded-2xl bg-accent text-white shadow-xl shadow-accent/20 text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-accent/90 transition-all flex items-center gap-2 md:gap-3 w-full md:w-auto justify-center"
+                                >
+                                    <PrinterIcon className="w-3.5 h-3.5 md:w-4 md:h-4" /> 
+                                    <span className="inline">Cetak</span>
+                                </button>
                             </div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
-                            <button 
-                                onClick={exportToExcel}
-                                className="h-12 md:h-14 px-4 md:px-8 rounded-2xl bg-white/5 border border-white/10 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-primary hover:bg-white/10 transition-all flex items-center gap-2 md:gap-3 flex-1 md:flex-none justify-center"
-                            >
-                                <FileSpreadsheet className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-500" /> 
-                                <span className="md:inline">Excel</span>
-                            </button>
-                            <button className="h-12 md:h-14 px-4 md:px-8 rounded-2xl bg-white/5 border border-white/10 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-primary hover:bg-white/10 transition-all flex items-center gap-2 md:gap-3 flex-1 md:flex-none justify-center">
-                                <Download className="w-3.5 h-3.5 md:w-4 md:h-4 text-blue-500" />
-                                <span className="md:inline">PDF</span>
-                            </button>
-                            <button 
-                                onClick={handlePrint}
-                                className="h-12 md:h-14 px-6 md:px-10 rounded-2xl bg-accent text-white shadow-xl shadow-accent/20 text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-accent/90 transition-all flex items-center gap-2 md:gap-3 w-full md:w-auto justify-center"
-                            >
-                                <PrinterIcon className="w-3.5 h-3.5 md:w-4 md:h-4" /> 
-                                <span className="inline">Cetak</span>
-                            </button>
-                        </div>
+                        )}
                     </div>
 
                     {/* The Actual Report Content (Printable) */}
+                    {activeReport === 'stiker' ? (
+                        /* ========== STIKER ID PELANGGAN - JOSS EDITION ========== */
+                        <div className="space-y-8">
+                            {/* Stiker Controls - UI Only */}
+                            <div className="glass p-8 rounded-[32px] border-white/10 flex flex-col md:flex-row justify-between items-center gap-6 print:hidden">
+                                <div className="space-y-1">
+                                    <h2 className="text-xl font-black uppercase tracking-tight text-white">Preview Stiker ID</h2>
+                                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest">A3+ (470×310mm) • Sheet {stikerPage + 1} of {Math.ceil(reportData.length / 25)}</p>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <button 
+                                        disabled={stikerPage === 0}
+                                        onClick={() => setStikerPage(p => p - 1)}
+                                        className="h-12 px-6 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-primary disabled:opacity-20 hover:bg-white/10 transition-all"
+                                    >
+                                        Prev Sheet
+                                    </button>
+                                    <div className="text-xs font-black text-accent">{stikerPage + 1}</div>
+                                    <button 
+                                        disabled={stikerPage >= Math.ceil(reportData.length / 25) - 1}
+                                        onClick={() => setStikerPage(p => p + 1)}
+                                        className="h-12 px-6 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-primary disabled:opacity-20 hover:bg-white/10 transition-all"
+                                    >
+                                        Next Sheet
+                                    </button>
+                                    <div className="w-px h-8 bg-white/10 mx-2"></div>
+                                    <button 
+                                        onClick={handlePrint}
+                                        className="h-12 px-8 rounded-xl bg-accent text-white shadow-lg shadow-accent/20 text-[10px] font-black uppercase tracking-widest hover:bg-accent/90 transition-all flex items-center gap-2"
+                                    >
+                                        <Printer className="w-4 h-4" /> Cetak Semua
+                                    </button>
+                                </div>
+                            </div>
+
+                            {loading ? (
+                                <div className="flex flex-col items-center justify-center py-40 space-y-4">
+                                    <Loader2 className="w-16 h-16 text-accent animate-spin" />
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Rendering Joss Layout...</p>
+                                </div>
+                            ) : (
+                                <div className="print:block">
+                                    {/* Di UI hanya tampilkan sheet aktif, saat print tampilkan semua */}
+                                    {Array.from({ length: Math.ceil(reportData.length / 25) }).map((_, sheetIdx) => (
+                                        <div 
+                                            key={sheetIdx} 
+                                            className={`${sheetIdx === stikerPage ? 'block' : 'hidden print:block'} mx-auto mb-12 print:mb-0 bg-white shadow-2xl print:shadow-none overflow-hidden`}
+                                            style={{ 
+                                                width: '470mm', height: '310mm', 
+                                                padding: '14mm',
+                                                pageBreakAfter: 'always',
+                                                boxSizing: 'border-box',
+                                                position: 'relative'
+                                            }}
+                                        >
+                                            {/* Background Watermark Joss */}
+                                            <div className="absolute inset-0 opacity-[0.03] pointer-events-none flex items-center justify-center rotate-[-30deg] scale-150">
+                                                <h1 className="text-[100mm] font-black whitespace-nowrap">{summary?.company_name || 'NETWORK'}</h1>
+                                            </div>
+
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 86mm)', gridTemplateRows: 'repeat(5, 54mm)', gap: '3mm', position: 'relative', zIndex: 1 }}>
+                                                {reportData.slice(sheetIdx * 25, (sheetIdx + 1) * 25).map((item: any, idx: number) => (
+                                                    <div 
+                                                        key={idx} 
+                                                        className="relative bg-white border border-slate-100"
+                                                        style={{ 
+                                                            width: '86mm', height: '54mm',
+                                                            borderRadius: '2mm',
+                                                            padding: '0',
+                                                            boxSizing: 'border-box',
+                                                            overflow: 'hidden',
+                                                        }}
+                                                    >
+                                                        {/* Garis Bantu Potong */}
+                                                        <div className="absolute -inset-[0.1mm] border-[0.2mm] border-dashed border-slate-300 pointer-events-none"></div>
+
+                                                        {/* Header */}
+                                                        <div className="h-[10mm] px-[3mm] flex items-center justify-between" style={{ background: 'linear-gradient(90deg, #10b981 0%, #059669 100%)' }}>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <div className="w-[5mm] h-[5mm] rounded-md bg-white/20 flex items-center justify-center border border-white/30">
+                                                                    <Activity className="w-[3mm] h-[3mm] text-white" />
+                                                                </div>
+                                                                <span className="text-[8pt] font-black text-white uppercase tracking-wide">{summary?.company_name || 'NETWORKS'}</span>
+                                                            </div>
+                                                            <span className="text-[6pt] font-black text-white/70 tracking-widest uppercase">#{item.customer_id?.toString().padStart(4, '0')}</span>
+                                                        </div>
+                                                        
+                                                        {/* Body */}
+                                                        <div className="px-[3mm] pt-[2mm] pb-[1mm] h-[calc(54mm-10mm-1.5mm)] flex gap-[2mm]">
+                                                            {/* Left: Data Pelanggan */}
+                                                            <div className="flex-1 flex flex-col justify-between min-w-0">
+                                                                <div>
+                                                                    <h4 className="text-[10pt] font-black text-slate-900 uppercase tracking-tight leading-tight truncate">{item.customer_name}</h4>
+                                                                    <p className="text-[7pt] font-bold text-slate-400 truncate">@{item.username}</p>
+                                                                    
+                                                                    <div className="mt-[1.5mm] pt-[1.5mm] border-t border-slate-100 space-y-[1mm]">
+                                                                        <div className="grid grid-cols-2 gap-[2mm]">
+                                                                            <div>
+                                                                                <p className="text-[5pt] font-black text-slate-300 uppercase">Speed</p>
+                                                                                <p className="text-[7pt] font-black text-slate-800">{item.speed || '-'}</p>
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-[5pt] font-black text-slate-300 uppercase">Paket</p>
+                                                                                <p className="text-[7pt] font-black text-slate-800 truncate">{item.package_name}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-[5pt] font-black text-slate-300 uppercase">Alamat</p>
+                                                                            <p className="text-[6.5pt] font-semibold text-slate-600 leading-tight line-clamp-1">{item.address || '-'}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Payment Info */}
+                                                                <div className="mt-[1mm] pt-[1mm] border-t border-dashed border-slate-200">
+                                                                    <p className="text-[5pt] font-black text-emerald-600 uppercase">Pembayaran</p>
+                                                                    <p className="text-[7pt] font-black text-slate-800 leading-tight">
+                                                                        {summary?.bank_name || '-'} • {summary?.bank_account || '-'}
+                                                                    </p>
+                                                                    <p className="text-[5.5pt] font-semibold text-slate-400">a.n {summary?.bank_holder || '-'}</p>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Right: QR + Phone */}
+                                                            <div className="w-[20mm] flex flex-col items-center justify-between border-l border-slate-100 pl-[2mm]">
+                                                                <div className="flex flex-col items-center">
+                                                                    <div className="p-[1mm] bg-white border border-slate-100 rounded-lg">
+                                                                        <img 
+                                                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(item.username || '')}`}
+                                                                            alt="QR"
+                                                                            className="w-[14mm] h-[14mm]"
+                                                                        />
+                                                                    </div>
+                                                                    <span className="text-[5pt] font-black text-slate-300 uppercase tracking-wider mt-[0.5mm]">Scan ID</span>
+                                                                </div>
+                                                                <div className="text-center w-full">
+                                                                    <p className="text-[5pt] font-black text-slate-300 uppercase">Telp/WA</p>
+                                                                    <p className="text-[6pt] font-bold text-slate-500 truncate">{item.phone || '-'}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Status Bar */}
+                                                        <div className={`absolute bottom-0 left-0 right-0 h-[1.5mm] ${(item.status || '').toUpperCase() === 'ACTIVE' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                    ) : (
                     <div className="bg-white text-slate-900 p-12 md:p-20 rounded-[40px] shadow-2xl min-h-[1000px] print:shadow-none print:p-0 print:rounded-none">
                         {/* Print Header */}
                         <div className="flex justify-between items-start border-b-2 border-slate-900 pb-12 mb-6">
                             <div className="space-y-4">
-                                <h1 className="text-4xl font-black tracking-tighter uppercase">JARFI NETWORKS</h1>
-                                <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-60">High-Performance ISP Infrastructure</p>
+                                <h1 className="text-4xl font-black tracking-tighter uppercase">{summary?.company_name || 'NETWORKS'}</h1>
+                                <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-60">High-Performance Infrastructure</p>
                                 <div className="text-[11px] font-medium leading-relaxed max-w-sm">
                                     Jl. Teknologi Masa Depan No. 99, Jakarta<br />
                                     Telp: +62 812 3456 789 | Email: cs@jarfi.net
@@ -308,10 +477,11 @@ export default function ReportsPage() {
                                                     </>
                                                 ) : activeReport === 'bandwidth' ? (
                                                     <>
-                                                        <th className="px-6 py-6 border-b border-slate-200">Username</th>
+                                                        <th className="px-6 py-6 border-b border-slate-200">Pelanggan</th>
+                                                        <th className="px-6 py-6 border-b border-slate-200">Paket / Speed</th>
                                                         <th className="px-6 py-6 border-b border-slate-200">OLT Node</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200 text-right">Download (RX)</th>
-                                                        <th className="px-6 py-6 border-b border-slate-200 text-right">Upload (TX)</th>
+                                                        <th className="px-6 py-6 border-b border-slate-200 text-right">Sinyal RX (dBm)</th>
+                                                        <th className="px-6 py-6 border-b border-slate-200 text-right">Sinyal TX (dBm)</th>
                                                     </>
                                                 ) : (
                                                     <>
@@ -333,8 +503,8 @@ export default function ReportsPage() {
                                                             <td className="px-6 py-5 font-mono text-[10px]">{item.username}</td>
                                                             <td className="px-6 py-5">{item.package_name}</td>
                                                             <td className="px-6 py-5 text-center">
-                                                                <span className={`px-2 py-1 rounded-md text-[9px] font-black uppercase ${item.status.toUpperCase() === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                                                                    {item.status}
+                                                                <span className={`px-2 py-1 rounded-md text-[9px] font-black uppercase ${(item.status || '').toUpperCase() === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                                                                    {item.status || 'N/A'}
                                                                 </span>
                                                             </td>
                                                             <td className="px-6 py-5 text-right font-bold">{formatIDR(item.monthly_fee || 0)}</td>
@@ -370,10 +540,23 @@ export default function ReportsPage() {
                                                         </>
                                                     ) : activeReport === 'bandwidth' ? (
                                                         <>
-                                                            <td className="px-6 py-5 font-bold">{item.name}</td>
+                                                            <td className="px-6 py-5">
+                                                                <div><span className="font-bold">{item.customer_name}</span></div>
+                                                                <div className="text-[10px] text-slate-400 font-mono">{item.name}</div>
+                                                            </td>
+                                                            <td className="px-6 py-5">
+                                                                <div className="font-bold">{item.package_name}</div>
+                                                                <div className="text-[10px] text-slate-400">{item.speed}</div>
+                                                            </td>
                                                             <td className="px-6 py-5">{item.olt}</td>
-                                                            <td className="px-6 py-5 text-right font-mono font-bold text-emerald-600">{(item.rx / 1000000).toFixed(2)} Mbps</td>
-                                                            <td className="px-6 py-5 text-right font-mono font-bold text-blue-600">{(item.tx / 1000000).toFixed(2)} Mbps</td>
+                                                            <td className="px-6 py-5 text-right font-mono font-bold">
+                                                                <span className={Number(item.rx) < -25 ? 'text-rose-600' : Number(item.rx) < -20 ? 'text-amber-600' : 'text-emerald-600'}>
+                                                                    {Number(item.rx).toFixed(2)} dBm
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-6 py-5 text-right font-mono font-bold">
+                                                                <span className="text-blue-600">{Number(item.tx).toFixed(2)} dBm</span>
+                                                            </td>
                                                         </>
                                                     ) : (
                                                         <>
@@ -493,16 +676,16 @@ export default function ReportsPage() {
                                             ) : activeReport === 'bandwidth' ? (
                                                 <>
                                                     <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                        <span>Rata-rata Download</span>
-                                                        <span className="text-emerald-400 font-bold">{(summary?.avg_rx / 1000000).toFixed(2)} Mbps</span>
+                                                        <span>Rata-rata RX Signal</span>
+                                                        <span className={`font-bold ${(summary?.avg_rx || 0) < -25 ? 'text-rose-600' : 'text-emerald-600'}`}>{(summary?.avg_rx || 0).toFixed(2)} dBm</span>
                                                     </div>
                                                     <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                        <span>Rata-rata Upload</span>
-                                                        <span className="text-blue-400 font-bold">{(summary?.avg_tx / 1000000).toFixed(2)} Mbps</span>
+                                                        <span>Rata-rata TX Signal</span>
+                                                        <span className="text-blue-400 font-bold">{(summary?.avg_tx || 0).toFixed(2)} dBm</span>
                                                     </div>
                                                     <div className="h-px bg-slate-200"></div>
                                                     <div className="flex justify-between items-center bg-slate-900 text-white p-6 rounded-2xl shadow-xl">
-                                                        <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Total Node Aktif</span>
+                                                        <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Pelanggan Aktif Terpantau</span>
                                                         <span className="text-xl font-black tracking-tighter">{summary?.total_active} User</span>
                                                     </div>
                                                 </>
@@ -536,32 +719,61 @@ export default function ReportsPage() {
 
                         {/* Footer - Print Only */}
                         <div className="hidden print:block fixed bottom-0 left-0 right-0 py-8 border-t border-slate-100 text-[8px] font-bold text-slate-400 text-center uppercase tracking-[0.3em]">
-                            Dokumen ini dihasilkan secara otomatis oleh Sistem Manajemen ISP JARFI NETWORKS • Halaman 1 dari 1
+                            Dokumen ini dihasilkan secara otomatis oleh Sistem Manajemen {summary?.company_name || 'Networks'} • Halaman 1 dari 1
                         </div>
                     </div>
+                    )}
                 </div>
             )}
 
             {/* Custom Print Styles */}
             <style jsx global>{`
                 @media print {
+                    /* Reset base */
                     body {
                         background: white !important;
                         color: black !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }
-                    .print\\:hidden {
+
+                    /* Hide ALL layout chrome */
+                    aside,
+                    header,
+                    footer,
+                    .print\\:hidden,
+                    .print\\:!hidden {
                         display: none !important;
                     }
+
+                    /* Reset flex layout so content takes full width */
+                    body > div,
+                    body > div > div {
+                        display: block !important;
+                        width: 100% !important;
+                        overflow: visible !important;
+                    }
+
+                    /* Remove all padding/margin from content area */
+                    main {
+                        padding: 0 !important;
+                        margin: 0 !important;
+                    }
+
+                    /* Paper size */
                     @page {
-                        size: A4;
-                        margin: 20mm;
+                        size: ${activeReport === 'stiker' ? '470mm 310mm' : 'A4'};
+                        margin: ${activeReport === 'stiker' ? '0mm' : '20mm'};
                     }
-                    /* Support for Continuous Form */
-                    @page :left {
-                        margin-left: 10mm;
-                    }
+
+                    /* Allow content overflow for tables */
                     .custom-scrollbar {
                         overflow: visible !important;
+                    }
+
+                    /* Remove shadows in print */
+                    * {
+                        box-shadow: none !important;
                     }
                 }
             `}</style>

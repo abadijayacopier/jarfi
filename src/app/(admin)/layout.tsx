@@ -209,11 +209,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
         <div className="flex h-screen bg-(--background) text-(--foreground) overflow-hidden font-sans relative transition-colors duration-500">
             {/* Ambient Background Elements */}
-            <div className="fixed top-[-10%] right-[-10%] w-[50%] h-[50%] bg-accent/3 rounded-full blur-[150px] z-0 pointer-events-none"></div>
-            <div className="fixed bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-teal-500/3 rounded-full blur-[150px] z-0 pointer-events-none"></div>
+            <div className="fixed top-[-10%] right-[-10%] w-[50%] h-[50%] bg-accent/3 rounded-full blur-[150px] z-0 pointer-events-none print:hidden"></div>
+            <div className="fixed bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-teal-500/3 rounded-full blur-[150px] z-0 pointer-events-none print:hidden"></div>
 
             {/* Sidebar Desktop */}
-            <aside className="hidden lg:flex flex-col w-72 h-screen sticky top-0 bg-slate-50 dark:bg-slate-950/40 backdrop-blur-3xl border-r border-slate-200 dark:border-white/10 z-40 transition-colors duration-500">
+            <aside className="hidden lg:flex flex-col w-72 h-screen sticky top-0 bg-slate-50 dark:bg-slate-950/40 backdrop-blur-3xl border-r border-slate-200 dark:border-white/10 z-40 transition-colors duration-500 print:!hidden">
                 <div className="p-8 flex flex-col h-full">
                     {/* Logo Section */}
                     <Link href="/dashboard" className="flex items-center gap-3 group/logo mb-12">
@@ -312,7 +312,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             <div className="flex-1 flex flex-col min-w-0 overflow-y-auto custom-scrollbar">
                 {/* Top Header */}
-                <header className="h-20 flex items-center px-6 lg:px-8 sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-b border-slate-200 dark:border-white/5 transition-all duration-500">
+                <header className="h-20 flex items-center px-6 lg:px-8 sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-b border-slate-200 dark:border-white/5 transition-all duration-500 print:hidden">
                     <div className="w-full flex items-center justify-between">
                         {/* Page Title & Mobile Toggle */}
                         <div className="flex items-center gap-4">
@@ -401,13 +401,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </div>
                 </header>
 
-                <main className="flex-1 px-6 lg:px-12 pt-4 pb-24 relative w-full flex flex-col">
+                <main className="flex-1 px-6 lg:px-12 pt-4 pb-24 relative w-full flex flex-col print:!px-0 print:!pt-0 print:!pb-0">
                     <div className="flex-1 min-h-0">
                         {children}
                     </div>
 
                     {/* Centered Floating Footer */}
-                    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
+                    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 pointer-events-none print:hidden">
                         <footer className="glass px-10 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 flex flex-col items-center gap-1 opacity-40 hover:opacity-100 transition-all duration-500 shadow-2xl pointer-events-auto backdrop-blur-xl bg-white/50 dark:bg-slate-900/50 min-w-[300px]">
                             <p className="text-[7px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] leading-none">
                                 Sistem Manajemen Jaringan WiFi

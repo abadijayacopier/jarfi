@@ -50,8 +50,17 @@ export async function POST(req: Request) {
             const safeName = String(secret.name || 'user_unknown');
             
             // CEK APAKAH USERNAME INI SUDAH ADA DI DATABASE?
-            const [existing]: any = await pool.query('SELECT id FROM Customers WHERE pppoe_username = ?', [safeName]);
-            if (existing.length > 0) continue; // Skip if already exists to avoid duplicate entry error
+            const [existing]: any = await pool.query('SELECT id, package_id FROM Customers WHERE pppoe_username = ?', [safeName]);
+            if (existing.length > 0) {
+                // Jika sudah ada tapi package_id masih NULL, update dari profil MikroTik
+                if (!existing[0].package_id && secret.profile) {
+                    const [pkgs]: any = await pool.query('SELECT id FROM Packages WHERE name = ? LIMIT 1', [secret.profile]);
+                    if (pkgs.length > 0) {
+                        await pool.query('UPDATE Customers SET package_id = ? WHERE id = ?', [pkgs[0].id, existing[0].id]);
+                    }
+                }
+                continue;
+            }
 
             // Buat data user bayangan / sinkron
             const safeEmailName = safeName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();

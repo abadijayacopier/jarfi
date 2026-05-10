@@ -62,8 +62,16 @@
       }
     ],
     "win": {
-      "target": "portable",
-      "icon": "public/favicon.ico"
+      "target": "nsis",
+      "icon": "public/jarfi_logo_1778350215847.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "Dunia WiFi NOC",
+      "installerIcon": "public/jarfi_logo_1778350215847.png",
+      "uninstallerIcon": "public/jarfi_logo_1778350215847.png",
+      "runAfterFinish": true
     },
     "directories": {
       "output": "dist"

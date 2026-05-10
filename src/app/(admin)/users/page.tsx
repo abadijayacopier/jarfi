@@ -15,6 +15,7 @@ export default function UserManagementPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [editMode, setEditMode] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [viewingUser, setViewingUser] = useState<any | null>(null);
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -77,22 +78,7 @@ export default function UserManagementPage() {
   };
 
   const handleView = (u: any) => {
-    Swal.fire({
-      title: 'Detail Petugas',
-      html: `
-        <div class="text-left space-y-4 p-4 bg-black/10 rounded-2xl">
-          <p><strong>Nama:</strong> ${u.name}</p>
-          <p><strong>Email:</strong> ${u.email}</p>
-          <p><strong>Password:</strong> <code class="bg-accent/10 px-2 rounded">${u.password || '******'}</code></p>
-          <p><strong>Role:</strong> <span class="px-2 py-0.5 bg-accent text-white rounded text-[10px] uppercase">${u.role}</span></p>
-        </div>
-      `,
-      icon: 'info',
-      confirmButtonText: 'Tutup',
-      background: '#1a1d21',
-      color: '#fff',
-      confirmButtonColor: 'var(--accent)'
-    });
+    setViewingUser(u);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -420,6 +406,66 @@ export default function UserManagementPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Modal Detail User */}
+      {viewingUser && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setViewingUser(null)}></div>
+          <div className="bg-[#1a1d21] w-full max-w-sm rounded-[40px] border border-white/10 overflow-hidden relative z-10 shadow-2xl animate-in zoom-in-95 duration-300">
+            {/* Header / Avatar */}
+            <div className="h-32 bg-gradient-to-br from-accent to-accent/40 relative">
+                <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
+                    <div className="w-24 h-24 rounded-[32px] bg-[#1a1d21] border-[6px] border-[#1a1d21] shadow-xl flex items-center justify-center overflow-hidden">
+                        {viewingUser.avatar ? (
+                            <img src={viewingUser.avatar} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-accent text-white text-3xl font-black italic">
+                                {viewingUser.name.substring(0, 2).toUpperCase()}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <div className="pt-14 pb-10 px-8 text-center">
+                <h3 className="text-xl font-black text-white uppercase tracking-tight leading-none">{viewingUser.name}</h3>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2 mb-6">{viewingUser.email}</p>
+
+                <div className="inline-block px-4 py-1.5 bg-accent/10 border border-accent/20 rounded-full mb-8">
+                    <span className="text-[10px] font-black text-accent uppercase tracking-[0.2em]">{viewingUser.role}</span>
+                </div>
+
+                <div className="bg-black/30 rounded-3xl p-6 text-left border border-white/5 space-y-4">
+                    <div>
+                        <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">ID Petugas</p>
+                        <p className="text-xs font-bold text-slate-400">#JARFI-USR-{viewingUser.id.toString().padStart(4, '0')}</p>
+                    </div>
+                    <div>
+                        <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Kredensial Login</p>
+                        <div className="flex items-center justify-between gap-2 p-3 bg-white/5 rounded-xl border border-white/5">
+                            <span className="text-xs font-mono text-emerald-400">{viewingUser.password || '••••••••'}</span>
+                            <button 
+                                onClick={() => {
+                                    navigator.clipboard.writeText(viewingUser.password || '');
+                                    Swal.fire({ title: 'Copied!', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
+                                }}
+                                className="p-1.5 hover:bg-white/10 rounded-lg text-slate-500 transition-all"
+                            >
+                                <Eye className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button 
+                    onClick={() => setViewingUser(null)}
+                    className="w-full mt-8 bg-white/5 hover:bg-white/10 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all border border-white/5"
+                >
+                    Tutup Detail
+                </button>
+            </div>
           </div>
         </div>
       )}

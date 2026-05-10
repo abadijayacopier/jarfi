@@ -16,7 +16,8 @@ export async function GET() {
             { name: 'last_disconnect', type: 'DATETIME' },
             { name: 'odp_id', type: 'INT' },
             { name: 'latitude', type: 'VARCHAR(50)' },
-            { name: 'longitude', type: 'VARCHAR(50)' }
+            { name: 'longitude', type: 'VARCHAR(50)' },
+            { name: 'address', type: 'TEXT' }
         ];
 
         for (const col of columns) {
