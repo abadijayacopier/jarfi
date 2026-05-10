@@ -17,6 +17,10 @@ export async function GET() {
             errors: [] as string[]
         };
 
+        // 0. Cek Pengaturan Auto Isolate
+        const [settings]: any = await pool.query("SELECT value FROM Settings WHERE `key` = 'auto_isolate'");
+        const isAutoIsolateEnabled = settings.length > 0 ? settings[0].value === '1' : true; // Default true if not set
+
         // 1. Dapatkan semua pelanggan aktif
         const [customers]: any = await pool.query(`
             SELECT c.*, p.name as package_name, p.price, r.ip_address, r.username as r_user, r.password as r_pass, r.api_port, r.isolir_profile
@@ -48,8 +52,8 @@ export async function GET() {
                 }
 
                 // 3. LOGIKA AUTO-ISOLIR
-                // Jika Belum Bayar DAN sudah lewat tanggal jatuh tempo
-                if (invoiceStatus === 'UNPAID' && currentDay > customer.due_date && customer.status === 'ACTIVE') {
+                // Jika Belum Bayar DAN sudah lewat tanggal jatuh tempo DAN pengaturan aktif
+                if (isAutoIsolateEnabled && invoiceStatus === 'UNPAID' && currentDay > customer.due_date && customer.status === 'ACTIVE') {
                     const mk = new MikrotikService({
                         host: customer.ip_address,
                         user: customer.r_user,

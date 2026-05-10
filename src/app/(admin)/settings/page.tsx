@@ -360,8 +360,8 @@ export default function SettingsPage() {
                                 <h4 className="text-xl font-bold text-primary tracking-tight uppercase">Ops Logika</h4>
                             </div>
                             <div className="space-y-4">
-                                <ToggleComponent label="Protokol Pajak (11%)" desc="Otomatis terapkan ke Buku Kas" field="tax_enabled" isOn={settings.tax_enabled === '1'} onToggle={toggleSetting} color="accent" />
-                                <ToggleComponent label="Isolasi Otomatis" desc="Eksekusi pada H+3" field="auto_isolate" isOn={settings.auto_isolate === '1'} onToggle={toggleSetting} color="teal" />
+                                <ToggleComponent label="Pajak (PPN 11%)" desc="Terapkan pada tiap tagihan" field="tax_enabled" isOn={settings.tax_enabled === '1'} onToggle={toggleSetting} color="accent" />
+                                <ToggleComponent label="Auto Isolir Pelanggan" desc="Putus akses otomatis jika nunggak" field="auto_isolate" isOn={settings.auto_isolate === '1'} onToggle={toggleSetting} color="teal" />
                             </div>
                         </div>
                     </div>
