@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import Swal from 'sweetalert2';
 
 export default function OLTDetailPage() {
     const { id } = useParams();
@@ -32,6 +33,47 @@ export default function OLTDetailPage() {
         });
     }, [id]);
 
+    const handleSync = async () => {
+        if (!olt) return;
+
+        Swal.fire({
+            title: 'Connecting to OLT...',
+            text: 'Mencoba login via Telnet ke ' + olt.ip_address,
+            allowOutsideClick: false,
+            background: '#0f172a',
+            color: '#fff',
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        try {
+            // Kita coba kirim perintah dasar dulu untuk ngetes koneksi
+            const command = olt.type === 'EPON' ? 'show onu all status' : 'show gpon onu state';
+            
+            const res = await fetch(`/api/olts/${olt.id}/telnet`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: command }) // Perintah disesuaikan merek OLT
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil Terhubung!',
+                    html: `<div class="text-left"><p class="text-sm mb-2 text-emerald-400">Respon Asli dari OLT (Raw Data):</p><pre class="bg-black/50 p-4 rounded-xl text-[10px] text-green-400 overflow-x-auto whitespace-pre-wrap font-mono max-h-60 custom-scrollbar">${data.output}</pre></div>`,
+                    width: 600,
+                    background: '#0f172a',
+                    color: '#fff'
+                });
+            } else {
+                Swal.fire({ icon: 'error', title: 'Gagal Connect', text: data.error, background: '#0f172a', color: '#fff' });
+            }
+        } catch (error: any) {
+            Swal.fire({ icon: 'error', title: 'Error Jaringan', text: error.message, background: '#0f172a', color: '#fff' });
+        }
+    };
+
     if (loading) return <div className="p-20 text-center animate-pulse uppercase font-black text-slate-500 tracking-widest">Loading OLT Engine...</div>;
     if (!olt) return <div className="p-20 text-center text-red-400 font-bold">OLT Not Found</div>;
 
@@ -52,10 +94,10 @@ export default function OLTDetailPage() {
                     </div>
                 </div>
                 <div className="flex gap-3">
-                    <button className="px-6 py-3 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl font-bold hover:bg-indigo-500/20 transition-all flex items-center gap-2">
-                        <RefreshCw className="w-4 h-4" /> Sync ONU
+                    <button onClick={handleSync} className="px-6 py-3 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl font-bold hover:bg-indigo-500/20 transition-all flex items-center gap-2 shadow-xl active:scale-95">
+                        <RefreshCw className="w-4 h-4" /> Sync ONU (Tes Telnet)
                     </button>
-                    <button className="px-6 py-3 bg-emerald-500 text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-xl shadow-emerald-500/20 hover:bg-emerald-400 transition-all">
+                    <button className="px-6 py-3 bg-emerald-500 text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-xl shadow-emerald-500/20 hover:bg-emerald-400 transition-all active:scale-95">
                         Refresh All Stats
                     </button>
                 </div>

@@ -35,8 +35,8 @@ export default function AdvancedMonitorChart({
     if (!mounted) return <div className="w-full h-full bg-white/5 rounded-3xl animate-pulse" />;
 
     return (
-        <div className="w-full h-full min-h-[350px] relative mt-4">
-            <ResponsiveContainer width="100%" height="100%">
+        <div className="w-full h-full min-h-[350px] relative mt-4 overflow-hidden">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <AreaChart data={data} margin={{ top: 20, right: 10, left: 10, bottom: 0 }}>
                     <defs>
                         <linearGradient id="colorRx" x1="0" y1="0" x2="0" y2="1">

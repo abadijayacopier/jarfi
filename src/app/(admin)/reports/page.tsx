@@ -228,7 +228,7 @@ export default function ReportsPage() {
                                     className="h-12 md:h-14 px-6 md:px-8 rounded-2xl bg-emerald-50 text-[10px] md:text-xs font-black uppercase tracking-widest text-emerald-600 hover:bg-emerald-100 transition-all flex items-center gap-2 md:gap-3 flex-1 md:flex-none justify-center border border-emerald-200"
                                 >
                                     <FileSpreadsheet className="w-4 h-4 md:w-5 md:h-5" /> 
-                                    <span className="md:inline">Export Excel</span>
+                                    <span className="md:inline">Ekspor Spreadsheet</span>
                                 </button>
                                 <button 
                                     onClick={handlePrint}
@@ -255,7 +255,7 @@ export default function ReportsPage() {
                                         onClick={() => setStikerPage(p => p - 1)}
                                         className="h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-primary disabled:opacity-20 hover:bg-white/10 transition-all shrink-0"
                                     >
-                                        Prev
+                                        Sebelumnya
                                     </button>
                                     
                                     {Array.from({ length: Math.ceil(reportData.length / 25) }).map((_, i) => (
@@ -273,7 +273,7 @@ export default function ReportsPage() {
                                         onClick={() => setStikerPage(p => p + 1)}
                                         className="h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-primary disabled:opacity-20 hover:bg-white/10 transition-all shrink-0"
                                     >
-                                        Next
+                                        Selanjutnya
                                     </button>
                                     <div className="w-px h-8 bg-white/10 mx-2 shrink-0"></div>
                                     <button 

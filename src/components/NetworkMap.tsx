@@ -321,15 +321,15 @@ export default function NetworkMap({ odps, customers, controls, onLinkUpdate, on
         return totalLoss.toFixed(2);
     };
 
-    if (!mounted) return <div className="h-full w-full bg-[#0f172a] flex items-center justify-center text-white font-bold uppercase tracking-widest">Memuat Peta Jaringan...</div>;
+    if (!mounted) return <div className="h-full w-full bg-white dark:bg-[#0f172a] flex items-center justify-center text-primary font-bold uppercase tracking-widest">Memuat Peta Jaringan...</div>;
 
     return (
         <MapContainer 
             center={center}
             zoom={zoom}
             maxZoom={22}
-            style={{ height: '100%', width: '100%', background: '#0f172a' }}
-            className="z-0"
+            style={{ height: '100%', width: '100%' }}
+            className={`z-0 ${mapStyle === 'dark' ? '[&_.leaflet-tile-pane]:brightness-100' : ''}`}
             zoomControl={false}
         >
             {mounted && (
@@ -338,10 +338,12 @@ export default function NetworkMap({ odps, customers, controls, onLinkUpdate, on
                     <MapEvents />
                     
                     <TileLayer
-                        attribution={mapStyle === 'dark' ? '&copy; CARTO' : '&copy; Google'}
+                        attribution={mapStyle === 'dark' ? '&copy; CARTO' : mapStyle === 'satellite' ? '&copy; Google' : '&copy; OpenStreetMap'}
                         url={mapStyle === 'dark' 
                             ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" 
-                            : "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+                            : mapStyle === 'satellite'
+                            ? "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+                            : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                         }
                         maxZoom={22}
                     />

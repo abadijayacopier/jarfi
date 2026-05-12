@@ -1,0 +1,37 @@
+name: Build and Release Electron
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger on version tags (e.g., v4.2.1)
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Download MariaDB Embedded
+        run: node scripts/download-mariadb.js
+
+      - name: Generate Application Icons
+        run: node scripts/convert-icon.js
+
+      - name: Build Next.js Application
+        run: npm run build
+
+      - name: Build and Publish Electron App
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder build --win --publish always

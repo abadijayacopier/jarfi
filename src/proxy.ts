@@ -4,7 +4,7 @@ import { decrypt } from '@/lib/auth';
 // Add paths that don't require authentication
 const publicRoutes = ['/login', '/api/auth/login'];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
   const isPublicRoute = publicRoutes.includes(path);
 

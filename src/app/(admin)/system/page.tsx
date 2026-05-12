@@ -108,7 +108,7 @@ export default function SystemMonitorPage() {
                             onChange={e => setSelectedInterface(e.target.value)} 
                             className="bg-transparent text-slate-700 dark:text-slate-200 text-[9px] font-black uppercase tracking-widest focus:outline-none cursor-pointer appearance-none"
                         >
-                            {interfaces.length === 0 ? <option>MEMERIKSA...</option> : interfaces.map(i => <option key={i} value={i} className="bg-slate-900">{i}</option>)}
+                            {interfaces.length === 0 ? <option>MEMERIKSA NODE...</option> : interfaces.map(i => <option key={i} value={i} className="bg-slate-900">{i}</option>)}
                         </select>
                     </div>
                     <div className="px-4 py-2 bg-accent/10 rounded-xl border border-accent/20 flex items-center gap-2.5">
@@ -123,10 +123,10 @@ export default function SystemMonitorPage() {
                 {[
                     { label: 'Downlink (RX)', value: formatMbps(currentStats.rx), unit: 'Mbps', icon: ArrowDown, color: 'accent', detail: 'Ingress' },
                     { label: 'Uplink (TX)', value: formatMbps(currentStats.tx), unit: 'Mbps', icon: ArrowUp, color: 'blue-500', detail: 'Egress' },
-                    { label: 'Latensi', value: currentStats.latency, unit: 'ms', icon: Zap, color: 'amber-500', detail: 'ICMP' },
-                    { label: 'Beban Inti', value: currentStats.cpu, unit: '%', icon: Cpu, color: 'purple-500', detail: 'CPU' }
+                    { label: 'Latensi Respon', value: currentStats.latency, unit: 'ms', icon: Zap, color: 'amber-500', detail: 'ICMP Delay' },
+                    { label: 'Beban Inti', value: currentStats.cpu, unit: '%', icon: Cpu, color: 'purple-500', detail: 'CPU Load' }
                 ].map((stat, idx) => (
-                    <div key={idx} className="bg-white dark:bg-slate-900/50 p-6 rounded-[28px] border border-slate-200 dark:border-white/5 relative overflow-hidden group hover:shadow-xl hover:-translate-y-1 transition-all duration-500 shadow-sm backdrop-blur-xl">
+                    <div key={idx} className="bg-white/5 dark:bg-slate-900/50 p-6 rounded-[28px] border border-slate-200 dark:border-white/5 relative overflow-hidden group hover:shadow-xl hover:-translate-y-1 transition-all duration-500 shadow-sm backdrop-blur-xl">
                         <div className={`absolute -right-6 -top-6 w-16 h-16 bg-${stat.color}/5 rounded-full blur-2xl group-hover:bg-${stat.color}/10 transition-all duration-700`}></div>
                         <p className="text-slate-400 dark:text-slate-500 text-[8px] font-black uppercase tracking-widest mb-2">{stat.label}</p>
                         <div className="flex items-baseline gap-2">

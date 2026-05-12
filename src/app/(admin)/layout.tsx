@@ -7,7 +7,7 @@ import {
     LayoutDashboard, Router as RouterIcon, Users, Activity, Ticket, Receipt,
     Settings, LogOut, ChevronLeft, ChevronRight, Menu, Package, Zap, Map,
     Database, Bell, Globe, Box, Wallet, ChevronDown, Archive, Warehouse, Cpu,
-    FileText, X as CloseIcon, User
+    FileText, X as CloseIcon, User, Download, AlertTriangle, BellOff
 } from 'lucide-react';
 
 // Force refresh for Turbopack stale state
@@ -23,6 +23,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const [user, setUser] = useState<any>(null);
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [updateAvailable, setUpdateAvailable] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [notificationCount, setNotificationCount] = useState(0);
@@ -95,9 +96,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             }
         };
 
+        // Listen for updates from Electron
+        const handleUpdateAvailable = () => {
+            setUpdateAvailable(true);
+        };
+        window.addEventListener('update-available', handleUpdateAvailable);
+
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
             clearInterval(timer);
+            window.removeEventListener('update-available', handleUpdateAvailable);
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
@@ -132,44 +140,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         return false;
     };
 
-    useEffect(() => {
-        // Listen for Electron Update Events
-        if (typeof window !== 'undefined' && (window as any).electronAPI) {
-            const api = (window as any).electronAPI;
-            
-            api.onUpdateAvailable(() => {
-                setUpdateAvailable(true);
-                Swal.fire({
-                    title: 'Update Tersedia!',
-                    text: 'Versi baru sedang diunduh secara otomatis...',
-                    icon: 'info',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 5000,
-                    background: '#1a1d21',
-                    color: '#fff'
-                });
-            });
-
-            api.onUpdateDownloaded(() => {
-                Swal.fire({
-                    title: 'Update Siap!',
-                    text: 'Versi terbaru sudah diunduh. Restart sekarang untuk update?',
-                    icon: 'success',
-                    showCancelButton: true,
-                    confirmButtonText: 'Restart Sekarang',
-                    cancelButtonText: 'Nanti Saja',
-                    background: '#1a1d21',
-                    color: '#fff'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        api.restartApp();
-                    }
-                });
-            });
-        }
-    }, []);
+    // Auto-updater events are now handled by UpdateChecker component
 
     const getPageTitle = () => {
         const item = navItems.find(i => i.href === pathname);
@@ -342,17 +313,71 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                             <div className="flex items-center gap-2 border-r border-slate-200 dark:border-white/10 pr-4 md:pr-6">
                                 <ThemeToggle />
-                                <button className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all relative ${(updateAvailable || notificationCount > 0) ? 'text-accent bg-accent/10 animate-bounce' : 'text-slate-400 hover:text-accent hover:bg-slate-100 dark:hover:bg-white/5'}`}>
-                                    <Bell className="w-5 h-5" />
-                                    {(updateAvailable || notificationCount > 0) && (
-                                        <div className="absolute top-2 right-2 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-lg">
-                                            <span className="text-[8px] font-black text-white">{notificationCount > 0 ? notificationCount : '!'}</span>
-                                        </div>
-                                    )}
-                                </button>
-                            </div>
+                                <div className="relative">
+                                    <button 
+                                        onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all relative ${(updateAvailable || notificationCount > 0) ? 'text-accent bg-accent/10' : 'text-slate-400 hover:text-accent hover:bg-slate-100 dark:hover:bg-white/5'}`}
+                                    >
+                                        <Bell className={`w-5 h-5 ${updateAvailable ? 'animate-swing' : ''}`} />
+                                        {(updateAvailable || notificationCount > 0) && (
+                                            <div className={`absolute top-2 right-2 w-4 h-4 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-lg ${updateAvailable ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}>
+                                                <span className="text-[8px] font-black text-white">{updateAvailable ? '↑' : (notificationCount > 0 ? notificationCount : '!')}</span>
+                                            </div>
+                                        )}
+                                    </button>
 
-                            {/* User Profile - Reference Style Dropdown */}
+                                    {/* Notification Dropdown (Near Bell) */}
+                                    {isNotificationOpen && (
+                                        <>
+                                            <div className="fixed inset-0 z-40" onClick={() => setIsNotificationOpen(false)}></div>
+                                            <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-3xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                                                <div className="p-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+                                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pemberitahuan</h3>
+                                                    {notificationCount > 0 && <span className="px-2 py-0.5 bg-red-500 text-[8px] font-black text-white rounded-full">BARU</span>}
+                                                </div>
+                                                <div className="max-h-[400px] overflow-y-auto no-scrollbar">
+                                                    {updateAvailable && (
+                                                        <button 
+                                                            onClick={() => {
+                                                                window.dispatchEvent(new CustomEvent('show-update-modal'));
+                                                                setIsNotificationOpen(false);
+                                                            }}
+                                                            className="w-full p-4 flex items-start gap-4 hover:bg-emerald-500/5 transition-colors border-b border-slate-50 dark:border-white/5 group"
+                                                        >
+                                                            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0 group-hover:scale-110 transition-transform">
+                                                                <Download className="w-5 h-5" />
+                                                            </div>
+                                                            <div className="text-left">
+                                                                <p className="text-[12px] font-bold text-slate-800 dark:text-white">Update v4.2.0 Tersedia</p>
+                                                                <p className="text-[10px] text-slate-500 mt-1">Sistem mendeteksi versi baru. Klik untuk memperbarui aplikasi.</p>
+                                                            </div>
+                                                        </button>
+                                                    )}
+
+                                                    {notificationCount > 0 ? (
+                                                        <div className="p-4 flex items-start gap-4 bg-red-500/5 border-b border-slate-50 dark:border-white/5">
+                                                            <div className="w-10 h-10 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500 shrink-0">
+                                                                <AlertTriangle className="w-5 h-5" />
+                                                            </div>
+                                                            <div className="text-left">
+                                                                <p className="text-[12px] font-bold text-slate-800 dark:text-white">Router Offline</p>
+                                                                <p className="text-[10px] text-slate-500 mt-1">Terdeteksi {notificationCount} router sedang bermasalah. Cek Region Server.</p>
+                                                            </div>
+                                                        </div>
+                                                    ) : !updateAvailable && (
+                                                        <div className="p-12 text-center">
+                                                            <div className="w-16 h-16 rounded-3xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-300 dark:text-slate-600 mx-auto mb-4">
+                                                                <BellOff className="w-8 h-8" />
+                                                            </div>
+                                                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Tidak ada notifikasi</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>                            {/* User Profile - Dropdown Style */}
                             <div className="relative">
                                 <div 
                                     className="flex items-center gap-4 group cursor-pointer" 
@@ -375,19 +400,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 {isProfileOpen && (
                                     <>
                                         <div className="fixed inset-0 z-40" onClick={() => setIsProfileOpen(false)}></div>
-                                        <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-3xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                                             <div className="p-2 space-y-1">
                                                 <button 
                                                     onClick={() => { router.push('/settings'); setIsProfileOpen(false); }}
-                                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-all text-[12px] font-bold"
+                                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-all text-[12px] font-bold group/item"
                                                 >
-                                                    <User className="w-4 h-4" />
+                                                    <User className="w-4 h-4 text-slate-400 group-hover/item:text-accent" />
                                                     Profil Saya
                                                 </button>
                                                 <div className="h-px bg-slate-100 dark:bg-white/5 mx-2 my-1"></div>
                                                 <button 
                                                     onClick={() => { handleLogout(); setIsProfileOpen(false); }}
-                                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all text-[12px] font-bold"
+                                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all text-[12px] font-bold group/item"
                                                 >
                                                     <LogOut className="w-4 h-4" />
                                                     Keluar

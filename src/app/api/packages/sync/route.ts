@@ -23,7 +23,9 @@ export async function POST(req: Request) {
             // Skip default profiles
             if (['default', 'default-encryption'].includes(profile.name)) continue;
 
-            const name = profile.name;
+            const name = String(profile.name || '');
+            if (!name) continue;
+
             const speedLimit = profile['rate-limit'] || '10M/10M';
             
             // Intelligent Price Detection from name (e.g., "150K LT" -> 150000)

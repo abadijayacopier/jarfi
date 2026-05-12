@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { NetworkMapProps } from '@/components/NetworkMap';
+import { useTheme } from '@/components/ThemeProvider';
 import { 
     Map as MapIcon, Plus, Info, Layers, Crosshair, Box, Search, 
     Loader2, Navigation, ChevronLeft, ChevronRight, Zap, X, 
@@ -64,7 +65,17 @@ export default function MapPage() {
             setIsSidebarVisible(true);
         }
     }, []);
-    const [mapStyle, setMapStyle] = useState('dark');
+    const { theme } = useTheme();
+    const resolvedTheme = theme === 'system' 
+        ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') 
+        : theme;
+    const [mapStyle, setMapStyle] = useState(resolvedTheme === 'dark' ? 'dark' : 'light');
+
+    // Sync map style when global theme changes
+    useEffect(() => {
+        const newStyle = resolvedTheme === 'dark' ? 'dark' : 'light';
+        setMapStyle(newStyle);
+    }, [resolvedTheme]);
     
     // Map Controls State
     const [controls, setControls] = useState({
@@ -520,7 +531,7 @@ export default function MapPage() {
     };
 
     return (
-        <div className="h-[calc(100vh-140px)] flex flex-col relative overflow-hidden -mx-6 md:-mx-12 -mt-6 bg-[#0f172a]">
+        <div className="h-[calc(100vh-140px)] flex flex-col relative overflow-hidden -mx-6 md:-mx-12 -mt-6 bg-slate-100 dark:bg-[#0f172a]">
             {/* NOC Header Bar - Optimized for Mobile */}
             <div className="absolute top-4 md:top-6 left-4 md:left-6 z-10 flex overflow-x-auto no-scrollbar gap-1.5 md:gap-2 animate-in slide-in-from-top duration-500 max-w-[calc(100%-32px)] lg:max-w-[calc(100%-400px)] pb-4">
                 <button onClick={() => handleSync('Mikrotik')} className="px-4 py-2.5 bg-indigo-600/90 hover:bg-indigo-600 text-white rounded-xl shadow-xl backdrop-blur-md flex items-center gap-2 transition-all border border-indigo-400/20 group">
@@ -538,7 +549,7 @@ export default function MapPage() {
 
                 <div className="h-10 w-px bg-white/5 mx-1 hidden lg:block"></div>
 
-                <div className="flex bg-slate-900/90 backdrop-blur-md rounded-2xl border border-white/5 p-1.5 shadow-2xl">
+                <div className="flex bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-white/5 p-1.5 shadow-2xl">
                     <button className="px-4 py-1.5 bg-rose-600 text-white rounded-lg flex items-center gap-2 transition-all">
                         <Box className="w-3.5 h-3.5" />
                         <span className="text-[9px] font-black uppercase tracking-widest">Perangkat</span>
@@ -549,7 +560,7 @@ export default function MapPage() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                        className="bg-transparent pl-4 pr-4 py-1.5 text-white text-[10px] font-bold tracking-widest focus:outline-none w-[200px]"
+                        className="bg-transparent pl-4 pr-4 py-1.5 text-slate-700 dark:text-white text-[10px] font-bold tracking-widest focus:outline-none w-[200px]"
                     />
                 </div>
 
@@ -560,7 +571,7 @@ export default function MapPage() {
                     <button onClick={() => setIsSidebarVisible(!isSidebarVisible)} className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all ${isSidebarVisible ? 'bg-indigo-600' : 'bg-slate-700 hover:bg-slate-600'}`}><LayoutGrid className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
                     <button onClick={() => toggleControl('addOdpMode')} className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all ${controls.addOdpMode ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-600 hover:bg-emerald-500'}`} title="Pasang ODP"><Plus className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
                     <button onClick={() => toggleControl('addPoleMode')} className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all ${controls.addPoleMode ? 'bg-slate-400 animate-pulse' : 'bg-slate-600 hover:bg-slate-500'}`} title="Pasang Tiang"><Monitor className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
-                    <button onClick={() => setMapStyle(mapStyle === 'dark' ? 'satellite' : 'dark')} className="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 hover:bg-indigo-500 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Layers className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
+                    <button onClick={() => setMapStyle(mapStyle === 'dark' ? 'light' : mapStyle === 'light' ? 'satellite' : 'dark')} className="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 hover:bg-indigo-500 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all" title={`Mode: ${mapStyle}`}><Layers className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
                     <button onClick={handleLocateMe} className="w-8 h-8 md:w-10 md:h-10 bg-rose-600 hover:bg-rose-500 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg transition-all"><Navigation className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
                 </div>
             </div>
@@ -604,7 +615,7 @@ export default function MapPage() {
             {/* NOC Sidebar - Control Panel */}
             {isSidebarVisible && <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-90 lg:hidden" onClick={() => setIsSidebarVisible(false)}></div>}
             <div className={`fixed lg:absolute bottom-0 lg:bottom-auto lg:top-6 lg:right-6 z-100 lg:w-[340px] w-full lg:h-[calc(100vh-200px)] flex items-end lg:items-start p-0 lg:p-0 pointer-events-none transition-all duration-500 ${isSidebarVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full lg:translate-x-full pointer-events-none'}`}>
-                    <div className="bg-[#0f172a] lg:bg-[#0f172a]/90 backdrop-blur-3xl rounded-t-[48px] lg:rounded-[40px] shadow-[0_-20px_80px_rgba(0,0,0,0.8)] lg:shadow-[0_0_60px_rgba(0,0,0,0.6)] overflow-hidden border-t lg:border border-white/15 w-full h-[75vh] lg:h-full flex flex-col pointer-events-auto transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]">
+                    <div className="bg-white dark:bg-[#0f172a] lg:bg-white/95 lg:dark:bg-[#0f172a]/90 backdrop-blur-3xl rounded-t-[48px] lg:rounded-[40px] shadow-[0_-20px_80px_rgba(0,0,0,0.15)] dark:shadow-[0_-20px_80px_rgba(0,0,0,0.8)] lg:shadow-[0_0_60px_rgba(0,0,0,0.1)] lg:dark:shadow-[0_0_60px_rgba(0,0,0,0.6)] overflow-hidden border-t lg:border border-slate-200 dark:border-white/15 w-full h-[75vh] lg:h-full flex flex-col pointer-events-auto transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]">
                         {/* Drawer Handle for Mobile */}
                         <div className="lg:hidden w-16 h-1.5 bg-white/10 rounded-full mx-auto mt-4 mb-2 shadow-inner"></div>
                         
@@ -632,7 +643,7 @@ export default function MapPage() {
                                     <select 
                                         value={selectedRegion}
                                         onChange={(e) => setSelectedRegion(e.target.value)}
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white text-[11px] font-black focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none"
+                                        className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl pl-12 pr-4 py-4 text-slate-800 dark:text-white text-[11px] font-black focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none"
                                     >
                                         <option value="all">Semua Region</option>
                                         {routers.map((r: any) => (
@@ -650,7 +661,7 @@ export default function MapPage() {
                                         className={`w-full py-6 rounded-3xl flex items-center justify-center gap-5 transition-all font-black uppercase tracking-[0.3em] text-[10px] relative overflow-hidden group shadow-2xl ${
                                             controls.addOdpMode 
                                             ? 'bg-emerald-500 text-white shadow-[0_0_40px_rgba(16,185,129,0.4)] border-emerald-400' 
-                                            : 'bg-slate-900/50 text-slate-400 hover:text-white border border-white/5 hover:bg-white/5'
+                                            : 'bg-slate-100 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white border border-slate-200 dark:border-white/5 hover:bg-slate-200 dark:hover:bg-white/5'
                                         }`}
                                     >
                                         {controls.addOdpMode && (
@@ -667,7 +678,7 @@ export default function MapPage() {
                                         className={`w-full py-6 rounded-3xl flex items-center justify-center gap-5 transition-all font-black uppercase tracking-[0.3em] text-[10px] relative overflow-hidden group shadow-2xl ${
                                             controls.addPoleMode 
                                             ? 'bg-slate-400 text-slate-900 shadow-[0_0_40px_rgba(148,163,184,0.4)] border-slate-300' 
-                                            : 'bg-slate-900/50 text-slate-400 hover:text-white border border-white/5 hover:bg-white/5'
+                                            : 'bg-slate-100 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white border border-slate-200 dark:border-white/5 hover:bg-slate-200 dark:hover:bg-white/5'
                                         }`}
                                     >
                                         {controls.addPoleMode && (
@@ -684,7 +695,7 @@ export default function MapPage() {
                                         className={`w-full py-6 rounded-3xl flex items-center justify-center gap-5 transition-all font-black uppercase tracking-[0.3em] text-[10px] relative overflow-hidden group shadow-2xl ${
                                             controls.addCustomerMode 
                                             ? 'bg-indigo-500 text-white shadow-[0_0_40px_rgba(99,102,241,0.4)] border-indigo-400' 
-                                            : 'bg-slate-900/50 text-slate-400 hover:text-white border border-white/5 hover:bg-white/5'
+                                            : 'bg-slate-100 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white border border-slate-200 dark:border-white/5 hover:bg-slate-200 dark:hover:bg-white/5'
                                         }`}
                                     >
                                         {controls.addCustomerMode && (
@@ -749,7 +760,7 @@ export default function MapPage() {
                     </div>
             </div>
             <div className="absolute bottom-6 md:bottom-10 left-6 md:left-10 right-6 md:right-10 z-20 flex flex-col md:flex-row justify-between items-end md:items-center gap-4 pointer-events-none">
-                <div className="bg-[#0f172a]/90 md:bg-[#0f172a]/95 backdrop-blur-3xl px-6 md:px-8 py-3 md:py-4 rounded-3xl md:rounded-[32px] border border-white/10 md:border-white/5 shadow-2xl pointer-events-auto flex items-center gap-6 md:gap-10 animate-in slide-in-from-bottom duration-700 max-w-full overflow-x-auto no-scrollbar">
+                <div className="bg-white/95 dark:bg-[#0f172a]/95 backdrop-blur-3xl px-6 md:px-8 py-3 md:py-4 rounded-3xl md:rounded-[32px] border border-slate-200 dark:border-white/5 shadow-xl dark:shadow-2xl pointer-events-auto flex items-center gap-6 md:gap-10 animate-in slide-in-from-bottom duration-700 max-w-full overflow-x-auto no-scrollbar">
                     {/* System Pulse */}
                     <div className="flex items-center gap-4 md:gap-5 border-r border-white/10 pr-6 md:pr-10 shrink-0">
                         <div className="relative">
@@ -758,7 +769,7 @@ export default function MapPage() {
                         </div>
                         <div className="flex flex-col min-w-[100px] md:min-w-[120px]">
                             <span className="text-[7px] md:text-[8px] font-black uppercase text-slate-500 tracking-[0.3em] leading-none mb-1">Status Jaringan</span>
-                            <span className="text-[10px] md:text-[11px] font-black text-white uppercase tracking-wider">Pemantauan Aktif</span>
+                            <span className="text-[10px] md:text-[11px] font-black text-slate-800 dark:text-white uppercase tracking-wider">Pemantauan Aktif</span>
                         </div>
                     </div>
 
@@ -774,7 +785,7 @@ export default function MapPage() {
                                 <span className="text-[7px] md:text-[8px] font-black uppercase text-slate-600 tracking-widest mb-1">{stat.label}</span>
                                 <div className="flex items-center gap-2">
                                     <stat.icon className={`w-2.5 h-2.5 md:w-3 md:h-3 ${stat.color} opacity-40`} />
-                                    <span className="text-xs md:text-sm font-black text-white">{stat.value}</span>
+                                    <span className="text-xs md:text-sm font-black text-slate-800 dark:text-white">{stat.value}</span>
                                 </div>
                             </div>
                         ))}
@@ -803,7 +814,7 @@ export default function MapPage() {
 
                 {/* Map Action Controls */}
                 <div className="flex md:flex-row gap-3 pointer-events-auto items-center">
-                    <div className="flex md:flex-col gap-2 p-1.5 bg-[#0f172a]/90 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl">
+                    <div className="flex md:flex-col gap-2 p-1.5 bg-white/90 dark:bg-[#0f172a]/90 backdrop-blur-2xl rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl dark:shadow-2xl">
                         <button onClick={() => setMapZoom(z => Math.min(22, z + 1))} className="w-10 h-10 bg-white/5 hover:bg-indigo-600 rounded-xl flex items-center justify-center text-white transition-all"><Plus className="w-4 h-4" /></button>
                         <button onClick={() => setMapZoom(z => Math.max(1, z - 1))} className="w-10 h-10 bg-white/5 hover:bg-indigo-600 rounded-xl flex items-center justify-center text-white transition-all"><Minus className="w-4 h-4" /></button>
                     </div>

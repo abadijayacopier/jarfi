@@ -9,16 +9,33 @@ publish:
     repo: jarfi
 win:
   target: nsis
-  icon: public/jarfi_logo_1778350215847.png
+  icon: public/icon.ico
+  requestedExecutionLevel: requireAdministrator
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
-  shortcutName: Dunia WiFi NOC
-  installerIcon: public/jarfi_logo_1778350215847.png
-  uninstallerIcon: public/jarfi_logo_1778350215847.png
+  shortcutName: JARFI NOC
+  installerIcon: public/icon.ico
+  uninstallerIcon: public/icon.ico
   runAfterFinish: true
+  include: build/installer.nsh
+extraResources:
+  - from: extraResources/mariadb
+    to: mariadb
+    filter:
+      - '**/*'
+  - from: scripts/setup-jarfi-db.bat
+    to: mariadb/setup-jarfi-db.bat
 files:
   - filter:
       - electron/**/*
       - public/**/*
+      - .next/standalone/**/*
+      - .next/static/**/*
+      - schema.sql
+      - package.json
+      - build/installer.nsh
+asarUnpack:
+  - .next/standalone/**/*
+  - schema.sql
 electronVersion: 42.0.1

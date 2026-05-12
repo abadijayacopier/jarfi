@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JARFI Setup</title>
+    <title>JARFI NOC - Launcher</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0f1113;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: transparent;
             color: white;
             height: 100vh;
             display: flex;
@@ -17,107 +20,375 @@
             overflow: hidden;
             -webkit-app-region: drag;
         }
-        .container {
-            background: rgba(26, 29, 33, 0.8);
-            backdrop-filter: blur(20px);
-            padding: 40px;
-            border-radius: 30px;
-            width: 80%;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+
+        .launcher-window {
+            background: rgba(8, 10, 15, 0.94);
+            backdrop-filter: blur(40px) saturate(180%);
+            padding: 36px 40px;
+            border-radius: 32px;
+            width: 430px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
             text-align: center;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            box-shadow: 0 50px 120px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.06);
             -webkit-app-region: no-drag;
+            position: relative;
         }
-        .logo {
-            width: 60px;
-            height: 60px;
-            background: #2563eb;
-            margin: 0 auto 20px;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+
+        /* ── Brand ── */
+        .brand-section { margin-bottom: 24px; }
+        .logo-box {
+            width: 72px; height: 72px;
+            background: linear-gradient(135deg, #0ea5e9, #2563eb);
+            margin: 0 auto 14px;
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; font-weight: 800;
+            box-shadow: 0 10px 28px rgba(14, 165, 233, 0.3);
+            position: relative;
         }
-        h1 { font-size: 24px; margin-bottom: 10px; }
-        p { color: #9ca3af; font-size: 14px; margin-bottom: 30px; }
-        .input-group { text-align: left; margin-bottom: 25px; }
-        label { display: block; font-size: 12px; font-weight: bold; color: #6b7280; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        input {
-            width: 100%;
-            background: #0f1113;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 12px;
-            color: white;
-            font-size: 16px;
-            box-sizing: border-box;
+        .logo-box::after {
+            content: '';
+            position: absolute; inset: 0;
+            border-radius: 20px;
+            background: linear-gradient(to bottom right, rgba(255,255,255,0.3), transparent);
+            opacity: 0.4;
+        }
+        h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+        .tagline { color: #64748b; font-size: 12px; margin-top: 3px; font-weight: 500; }
+        .version { 
+            display: inline-block; margin-top: 6px;
+            font-size: 9px; font-weight: 700; color: #0ea5e9;
+            background: rgba(14, 165, 233, 0.1);
+            border: 1px solid rgba(14, 165, 233, 0.2);
+            padding: 2px 8px; border-radius: 5px;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── Status Cards ── */
+        .dashboard-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+
+        .status-card {
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px 16px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: space-between;
             transition: all 0.3s;
         }
-        input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 10px rgba(37, 99, 235, 0.2); }
-        button {
-            width: 100%;
-            padding: 15px;
-            background: #2563eb;
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-weight: bold;
+
+        .card-left { display: flex; align-items: center; gap: 12px; }
+        .card-icon {
+            width: 34px; height: 34px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
             font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
         }
-        button:hover { background: #1d4ed8; transform: translateY(-2px); }
-        .close-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            color: #6b7280;
-            cursor: pointer;
-            font-size: 20px;
+        .card-label { font-size: 9px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.8px; text-align: left; }
+        .card-value { font-size: 12px; font-weight: 600; color: #cbd5e1; text-align: left; }
+
+        .badge {
+            display: flex; align-items: center; gap: 5px;
+            padding: 4px 8px; border-radius: 7px;
+            background: rgba(0,0,0,0.3);
+            font-size: 9px; font-weight: 800; letter-spacing: 0.4px;
         }
+        .dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+        .badge-online { color: #34d399; }
+        .badge-online .dot { background: #34d399; box-shadow: 0 0 6px #34d399; }
+        .badge-offline { color: #f87171; }
+        .badge-offline .dot { background: #f87171; }
+        .badge-loading { color: #fbbf24; }
+        .badge-loading .dot { background: #fbbf24; animation: blink 0.8s infinite; }
+
+        @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.2} }
+        @keyframes spin { to{transform:rotate(360deg)} }
+
+        /* ── Buttons ── */
+        .action-area { display: flex; flex-direction: column; gap: 8px; }
+
+        .btn {
+            width: 100%; padding: 14px;
+            border-radius: 14px; border: none;
+            font-weight: 700; font-size: 14px; font-family: inherit;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            color: white;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-power {
+            background: linear-gradient(135deg, #0ea5e9, #2563eb);
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.25);
+        }
+        .btn-power:hover:not(:disabled) { box-shadow: 0 10px 28px rgba(14, 165, 233, 0.4); transform: translateY(-1px); }
+
+        .btn-launch {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.25);
+        }
+        .btn-launch:hover { box-shadow: 0 10px 28px rgba(16, 185, 129, 0.4); transform: translateY(-1px); }
+
+        .url-input {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 12px 14px;
+            border-radius: 12px;
+            color: white; font-size: 13px; font-family: inherit;
+            width: 100%; outline: none;
+            transition: border-color 0.2s;
+        }
+        .url-input:focus { border-color: rgba(14, 165, 233, 0.5); }
+        .hidden { display: none !important; }
+
+        /* ── Log ── */
+        .log-area {
+            margin-top: 10px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            padding: 8px 12px;
+            max-height: 80px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #1e293b transparent;
+        }
+        .log-area::-webkit-scrollbar { width: 4px; }
+        .log-area::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 2px; }
+        .log-text {
+            font-size: 10px; font-family: 'Consolas', 'Courier New', monospace;
+            color: #64748b; line-height: 1.6;
+            text-align: left;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .log-text .ok { color: #34d399; }
+        .log-text .warn { color: #fbbf24; }
+        .log-text .err { color: #f87171; }
+
+        /* ── Title bar ── */
+        .control-btns {
+            position: absolute; top: 18px; right: 18px;
+            display: flex; gap: 8px;
+        }
+        .icon-btn {
+            background: rgba(255,255,255,0.04);
+            width: 28px; height: 28px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: #475569; cursor: pointer; font-size: 13px;
+            transition: all 0.2s; border: none;
+        }
+        .icon-btn:hover { background: rgba(255,255,255,0.08); color: white; }
+        .btn-close:hover { background: #ef4444; color: white; }
+
+        #copyright { margin-top: 16px; font-size: 9px; color: #334155; font-weight: 600; }
     </style>
 </head>
 <body>
-    <div class="close-btn" id="closeBtn">&times;</div>
-    <div class="container">
-        <div class="logo">JF</div>
-        <h1>Setup Server</h1>
-        <p>Silakan masukkan Alamat IP Publik atau Domain server pusat Anda.</p>
-        
-        <div class="input-group">
-            <label>Domain / IP Server</label>
-            <input type="text" id="serverUrl" placeholder="contoh: 103.123.xx.xx:3000" />
+    <div class="launcher-window">
+        <div class="control-btns">
+            <div class="icon-btn" id="configBtn" title="Settings">⚙️</div>
+            <div class="icon-btn btn-close" id="closeBtn" title="Close">&times;</div>
         </div>
 
-        <button id="saveBtn">Simpan & Hubungkan</button>
-        
-        <p style="margin-top: 30px; font-size: 10px;">
-            ISP Management System v0.1.0 by Supriyanto<br/>
-            &copy; <span id="copyright-year"></span> JARFI Industrial Network
-        </p>
+        <div class="brand-section">
+            <div class="logo-box">JF</div>
+            <h1>JARFI NOC</h1>
+            <div class="tagline">Network Operation Center</div>
+            <span class="version">v4.1.0 STANDALONE</span>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="status-card">
+                <div class="card-left">
+                    <div class="card-icon">🗄️</div>
+                    <div>
+                        <div class="card-label">Database</div>
+                        <div class="card-value" id="dbText">Mengecek...</div>
+                    </div>
+                </div>
+                <div class="badge badge-loading" id="dbBadge">
+                    <div class="dot"></div>
+                    <span>CHECK</span>
+                </div>
+            </div>
+
+            <div class="status-card">
+                <div class="card-left">
+                    <div class="card-icon">⚡</div>
+                    <div>
+                        <div class="card-label">Server</div>
+                        <div class="card-value" id="serverText">Mengecek...</div>
+                    </div>
+                </div>
+                <div class="badge badge-loading" id="serverBadge">
+                    <div class="dot"></div>
+                    <span>CHECK</span>
+                </div>
+            </div>
+
+            <div class="status-card">
+                <div class="card-left">
+                    <div class="card-icon">🌐</div>
+                    <div>
+                        <div class="card-label">Dashboard</div>
+                        <div class="card-value" id="urlDisplay">localhost:3000</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-area">
+            <input type="text" id="urlInput" class="url-input hidden" placeholder="http://localhost:3000" value="http://localhost:3000">
+
+            <button class="btn btn-power" id="powerBtn">
+                ⚡ START ALL SERVICES
+            </button>
+
+            <button class="btn btn-launch hidden" id="launchBtn">
+                🚀 BUKA DASHBOARD
+            </button>
+        </div>
+
+        <div class="log-area">
+            <div class="log-text" id="logText">Siap. Klik START untuk memulai.</div>
+        </div>
+
+        <div id="copyright">JARFI INDUSTRIAL NETWORK &copy; 2026</div>
     </div>
 
     <script>
-        document.getElementById('copyright-year').textContent = new Date().getFullYear();
-        const saveBtn = document.getElementById('saveBtn');
-        const closeBtn = document.getElementById('closeBtn');
-        const urlInput = document.getElementById('serverUrl');
+        const API = window.electronAPI;
 
-        saveBtn.addEventListener('click', () => {
-            const url = urlInput.value;
-            if (url) {
-                window.electronAPI.saveSettings(url);
-            } else {
-                alert('Silakan masukkan alamat IP terlebih dahulu');
+        // DOM
+        const dbText = document.getElementById('dbText');
+        const dbBadge = document.getElementById('dbBadge');
+        const serverText = document.getElementById('serverText');
+        const serverBadge = document.getElementById('serverBadge');
+        const powerBtn = document.getElementById('powerBtn');
+        const launchBtn = document.getElementById('launchBtn');
+        const urlInput = document.getElementById('urlInput');
+        const urlDisplay = document.getElementById('urlDisplay');
+        const logEl = document.getElementById('logText');
+
+        let isStarting = false;
+
+        // ── Helpers ──
+        function setBadge(badge, state) {
+            badge.className = 'badge badge-' + state;
+            const label = badge.querySelector('span');
+            if (state === 'online') label.textContent = 'ONLINE';
+            else if (state === 'loading') label.textContent = 'WAIT';
+            else label.textContent = 'OFF';
+        }
+
+        function addLog(msg) {
+            const t = new Date().toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+            let cls = '';
+            if (msg.includes('✅')) cls = 'ok';
+            else if (msg.includes('⚠️') || msg.includes('🔄')) cls = 'warn';
+            else if (msg.includes('❌')) cls = 'err';
+            
+            const line = `<span class="${cls}">[${t}] ${msg}</span>`;
+            logEl.innerHTML += '\n' + line;
+            logEl.parentElement.scrollTop = logEl.parentElement.scrollHeight;
+        }
+
+        // ── Status Check ──
+        async function pollStatus() {
+            try {
+                const s = await API.checkStatus();
+
+                if (s.database) {
+                    setBadge(dbBadge, 'online');
+                    dbText.textContent = 'MariaDB Connected';
+                } else {
+                    setBadge(dbBadge, isStarting ? 'loading' : 'offline');
+                    dbText.textContent = isStarting ? 'Starting...' : 'Tidak terhubung';
+                }
+
+                if (s.server) {
+                    setBadge(serverBadge, 'online');
+                    serverText.textContent = 'Ready (port 3000)';
+                } else {
+                    setBadge(serverBadge, isStarting ? 'loading' : 'offline');
+                    serverText.textContent = isStarting ? 'Starting...' : 'Tidak berjalan';
+                }
+
+                // Jika server online → tampilkan tombol launch
+                if (s.server) {
+                    powerBtn.classList.add('hidden');
+                    launchBtn.classList.remove('hidden');
+                    if (isStarting) {
+                        isStarting = false;
+                        addLog('✅ Semua service READY!');
+                    }
+                } else if (!isStarting) {
+                    powerBtn.classList.remove('hidden');
+                    powerBtn.disabled = false;
+                    powerBtn.textContent = '⚡ START ALL SERVICES';
+                    launchBtn.classList.add('hidden');
+                }
+            } catch (e) {
+                // Status check gagal, jangan crash
+                dbText.textContent = 'Error check';
+                serverText.textContent = 'Error check';
+            }
+        }
+
+        // ── Actions ──
+        powerBtn.addEventListener('click', async () => {
+            if (isStarting) return;
+            isStarting = true;
+
+            powerBtn.disabled = true;
+            powerBtn.textContent = '⏳ STARTING...';
+            setBadge(dbBadge, 'loading');
+            setBadge(serverBadge, 'loading');
+            dbText.textContent = 'Starting...';
+            serverText.textContent = 'Starting...';
+            addLog('🔄 Memulai semua service...');
+
+            try {
+                const result = await API.startAllServices();
+                if (result.database) addLog('✅ Database OK');
+                else addLog('⚠️ Database: skip / tidak tersedia');
+                
+                if (result.server) addLog('✅ Server dimulai');
+                else addLog('❌ Server gagal start');
+            } catch (e) {
+                addLog('❌ Error: ' + (e.message || 'Unknown'));
+                isStarting = false;
+                powerBtn.disabled = false;
+                powerBtn.textContent = '⚡ START ALL SERVICES';
             }
         });
 
-        closeBtn.addEventListener('click', () => {
-            window.electronAPI.closeSettings();
+        launchBtn.addEventListener('click', () => {
+            const url = urlInput.value || 'http://localhost:3000';
+            addLog('🚀 Membuka dashboard...');
+            API.saveSettings(url);
         });
+
+        document.getElementById('configBtn').addEventListener('click', () => {
+            urlInput.classList.toggle('hidden');
+        });
+
+        document.getElementById('closeBtn').addEventListener('click', () => {
+            API.closeSettings();
+        });
+
+        // ── Log dari main process ──
+        API.onLogMessage((msg) => {
+            addLog(msg);
+        });
+
+        // ── Start polling ──
+        pollStatus();
+        setInterval(pollStatus, 2000);
     </script>
 </body>
 </html>

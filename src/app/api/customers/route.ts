@@ -18,7 +18,10 @@ export async function GET() {
             { name: 'odp_id', type: 'INT' },
             { name: 'latitude', type: 'VARCHAR(50)' },
             { name: 'longitude', type: 'VARCHAR(50)' },
-            { name: 'address', type: 'TEXT' }
+            { name: 'address', type: 'TEXT' },
+            { name: 'connection_type', type: "ENUM('PPPOE', 'STATIC', 'DHCP') DEFAULT 'PPPOE'" },
+            { name: 'remote_address', type: 'VARCHAR(45)' },
+            { name: 'mac_address', type: 'VARCHAR(17)' }
         ];
 
         for (const col of columns) {
@@ -43,7 +46,11 @@ export async function GET() {
 
 export async function POST(req: Request) {
     try {
-        const { name, phone, router_id, package_id, pppoe_username, pppoe_password, due_date } = await req.json();
+        const { 
+            name, phone, router_id, package_id, 
+            connection_type, pppoe_username, pppoe_password, 
+            remote_address, mac_address, due_date 
+        } = await req.json();
 
         const dummyEmail = `${name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}${Math.floor(Math.random() * 10000)}@jarfi.local`;
         const [userRes]: any = await pool.query(
@@ -53,11 +60,11 @@ export async function POST(req: Request) {
         const userId = userRes.insertId;
 
         await pool.query(
-            'INSERT INTO Customers (user_id, router_id, package_id, pppoe_username, pppoe_password, due_date, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [userId, router_id, package_id, pppoe_username, pppoe_password, due_date, 'ACTIVE']
+            'INSERT INTO Customers (user_id, router_id, package_id, connection_type, pppoe_username, pppoe_password, remote_address, mac_address, due_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [userId, router_id, package_id, connection_type || 'PPPOE', pppoe_username, pppoe_password, remote_address, mac_address, due_date, 'ACTIVE']
         );
 
-        if (router_id) {
+        if (router_id && connection_type === 'PPPOE') {
             const [routers]: any = await pool.query('SELECT * FROM Routers WHERE id = ?', [router_id]);
             if (routers.length > 0) {
                 const router = routers[0];
@@ -87,7 +94,11 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
     try {
         const body = await req.json();
-        const { id, user_id, name, phone, package_id, pppoe_password, latitude, longitude, odp_id } = body;
+        const { 
+            id, user_id, name, phone, package_id, 
+            connection_type, pppoe_password, remote_address, mac_address,
+            latitude, longitude, odp_id 
+        } = body;
 
         const [customers]: any = await pool.query('SELECT c.*, p.name as package_name, r.id as router_id, r.ip_address, r.username, r.password as r_password, r.api_port FROM Customers c LEFT JOIN Packages p ON c.package_id = p.id LEFT JOIN Routers r ON c.router_id = r.id WHERE c.id = ?', [id]);
         if (customers.length === 0) return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
@@ -115,6 +126,9 @@ export async function PUT(req: Request) {
 
         if (package_id !== undefined) { updates.push('package_id = ?'); params.push(package_id); }
         if (pppoe_password !== undefined) { updates.push('pppoe_password = ?'); params.push(pppoe_password); }
+        if (connection_type !== undefined) { updates.push('connection_type = ?'); params.push(connection_type); }
+        if (remote_address !== undefined) { updates.push('remote_address = ?'); params.push(remote_address); }
+        if (mac_address !== undefined) { updates.push('mac_address = ?'); params.push(mac_address); }
         if (latitude !== undefined) { updates.push('latitude = ?'); params.push(latitude); }
         if (longitude !== undefined) { updates.push('longitude = ?'); params.push(longitude); }
         if (odp_id !== undefined) { updates.push('odp_id = ?'); params.push(odp_id); }

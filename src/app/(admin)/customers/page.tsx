@@ -41,7 +41,10 @@ export default function CustomersPage() {
     const [editId, setEditId] = useState<number | null>(null);
     const [formData, setFormData] = useState({ 
         user_id: '', name: '', phone: '', router_id: '', package_id: '', 
-        pppoe_username: '', pppoe_password: '', due_date: 1, 
+        connection_type: 'PPPOE',
+        pppoe_username: '', pppoe_password: '', 
+        remote_address: '', mac_address: '',
+        due_date: 1, 
         latitude: '', longitude: '', odp_id: '' 
     });
 
@@ -129,7 +132,7 @@ export default function CustomersPage() {
                 if (!document.hidden) {
                     fetchAllTraffic();
                 }
-            }, 10000);
+            }, 3000); // 3 seconds real-time update
 
             const oltTimer = setInterval(() => {
                 if (!document.hidden) {
@@ -341,7 +344,7 @@ export default function CustomersPage() {
                         return cleanT === cleanC && cleanT !== '';
                     });
                     
-                    return { ...c, status: isActive ? 'active' : 'inactive' };
+                    return { ...c, status: isActive ? 'TERHUBUNG' : 'TERPUTUS' };
                 }));
 
                 // Update chart data if a customer is selected
@@ -468,8 +471,11 @@ export default function CustomersPage() {
             phone: c.phone || '',
             router_id: c.router_id ? c.router_id.toString() : '',
             package_id: c.package_id ? c.package_id.toString() : '',
+            connection_type: c.connection_type || 'PPPOE',
             pppoe_username: c.pppoe_username || '',
             pppoe_password: '', 
+            remote_address: c.remote_address || '',
+            mac_address: c.mac_address || '',
             due_date: c.due_date || 1,
             latitude: c.latitude ? c.latitude.toString() : '',
             longitude: c.longitude ? c.longitude.toString() : '',
@@ -559,7 +565,7 @@ export default function CustomersPage() {
                                 className="h-14 bg-accent/5 hover:bg-accent/10 text-accent font-black px-8 rounded-2xl transition-all border border-accent/10 flex items-center gap-3 uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-50"
                             >
                                 {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                                Sync OLT
+                                Sinkron OLT
                             </button>
                             
                             <div className="flex h-14 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-1 shadow-sm">
@@ -585,7 +591,7 @@ export default function CustomersPage() {
                                 className="h-14 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-600 font-black px-8 rounded-2xl transition-all border border-indigo-600/10 flex items-center gap-3 uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-50 shadow-sm"
                             >
                                 {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RouterIcon className="w-4 h-4" />}
-                                Sync MikroTik
+                                Sinkron MikroTik
                             </button>
                             
                             <button 
@@ -594,13 +600,13 @@ export default function CustomersPage() {
                                 className="h-14 flex items-center gap-3 px-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm active:scale-95 disabled:opacity-50"
                             >
                                 <RefreshCw className={`w-4 h-4 text-slate-600 dark:text-slate-400 ${isSyncing ? 'animate-spin' : ''}`} />
-                                <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">Refresh</span>
+                                <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">Segarkan</span>
                             </button>
                         </div>
                     </div>
                     
                     <button 
-                        onClick={() => { setIsEditing(false); setFormData({ user_id: '', name: '', phone: '', router_id: '', package_id: '', pppoe_username: '', pppoe_password: '', due_date: 1, latitude: '', longitude: '', odp_id: '' }); setShowForm(true); }} 
+                        onClick={() => { setIsEditing(false); setFormData({ user_id: '', name: '', phone: '', router_id: '', package_id: '', connection_type: 'PPPOE', pppoe_username: '', pppoe_password: '', remote_address: '', mac_address: '', due_date: 1, latitude: '', longitude: '', odp_id: '' }); setShowForm(true); }} 
                         className="h-14 px-8 bg-indigo-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-95 whitespace-nowrap shrink-0"
                     >
                         + Tambah Pelanggan
@@ -642,7 +648,7 @@ export default function CustomersPage() {
                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                         <input 
                             type="text" 
-                            placeholder="Cari ID PPPOE atau Nama..." 
+                            placeholder="Cari Username PPPoE atau Nama..." 
                             value={searchTerm}
                             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                             className="w-full pl-18 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-accent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600 outline-none"
@@ -704,8 +710,8 @@ export default function CustomersPage() {
                                     </td>
                                      <td className="px-8 py-3">
                                         <div className="flex flex-col gap-2">
-                                            <span className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest w-fit shadow-md transition-all ${c.status === 'active' ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-rose-500 text-white shadow-rose-500/20'}`}>
-                                                {c.status === 'active' ? 'terhubung' : 'nonaktif'}
+                                            <span className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest w-fit shadow-md transition-all ${c.status === 'TERHUBUNG' ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-rose-500 text-white shadow-rose-500/20'}`}>
+                                                {c.status === 'TERHUBUNG' ? 'aktif' : 'mati'}
                                             </span>
                                         </div>
                                     </td>
@@ -901,11 +907,24 @@ export default function CustomersPage() {
                                     </div>
                                 </div>
 
-                                {/* Section 2: Provisi Jaringan */}
+                                 {/* Section 2: Provisi Jaringan */}
                                 <div className="space-y-6">
                                     <div className="flex items-center gap-3 mb-2">
                                         <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
                                         <h3 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">Provisi Jaringan</h3>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Tipe Koneksi</label>
+                                        <select 
+                                            required 
+                                            value={formData.connection_type} 
+                                            onChange={(e) => setFormData({...formData, connection_type: e.target.value})} 
+                                            className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-emerald-500/20 focus:bg-white dark:focus:bg-slate-800 rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 transition-all outline-none appearance-none"
+                                        >
+                                            <option value="PPPOE">PPPoE (User & Pass)</option>
+                                            <option value="STATIC">IP Static (ARP)</option>
+                                            <option value="DHCP">DHCP (MAC Address)</option>
+                                        </select>
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Router Gerbang</label>
@@ -914,13 +933,41 @@ export default function CustomersPage() {
                                             {routers.map(r => <option key={r.id} value={r.id}>{r.name} ({r.ip_address})</option>)}
                                         </select>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Kredensial PPPoE</label>
-                                        <div className="space-y-3">
-                                            <input type="text" required value={formData.pppoe_username} onChange={(e) => setFormData({...formData, pppoe_username: e.target.value})} className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-indigo-500/20 focus:bg-white dark:focus:bg-slate-800 rounded-2xl text-sm font-mono font-bold text-indigo-600 dark:text-indigo-400 transition-all outline-none" placeholder="Username" />
-                                            <input type="password" required={!isEditing} value={formData.pppoe_password} onChange={(e) => setFormData({...formData, pppoe_password: e.target.value})} className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-indigo-500/20 focus:bg-white dark:focus:bg-slate-800 rounded-2xl text-sm font-mono font-bold text-slate-600 dark:text-slate-400 transition-all outline-none" placeholder={isEditing ? "Kosongkan jika tidak ganti" : "Password"} />
+
+                                    {formData.connection_type === 'PPPOE' ? (
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Kredensial PPPoE</label>
+                                            <div className="space-y-3">
+                                                <input type="text" required value={formData.pppoe_username} onChange={(e) => setFormData({...formData, pppoe_username: e.target.value})} className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-indigo-500/20 focus:bg-white dark:focus:bg-slate-800 rounded-2xl text-sm font-mono font-bold text-indigo-600 dark:text-indigo-400 transition-all outline-none" placeholder="Username" />
+                                                <input type="password" required={!isEditing} value={formData.pppoe_password} onChange={(e) => setFormData({...formData, pppoe_password: e.target.value})} className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-indigo-500/20 focus:bg-white dark:focus:bg-slate-800 rounded-2xl text-sm font-mono font-bold text-slate-600 dark:text-slate-400 transition-all outline-none" placeholder={isEditing ? "Kosongkan jika tidak ganti" : "Password"} />
+                                            </div>
                                         </div>
-                                    </div>
+                                    ) : formData.connection_type === 'STATIC' ? (
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Konfigurasi IP Static</label>
+                                            <input 
+                                                type="text" 
+                                                required 
+                                                value={formData.remote_address} 
+                                                onChange={(e) => setFormData({...formData, remote_address: e.target.value})} 
+                                                className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-indigo-500/20 focus:bg-white dark:focus:bg-slate-800 rounded-2xl text-sm font-mono font-bold text-indigo-600 dark:text-indigo-400 transition-all outline-none" 
+                                                placeholder="Contoh: 192.168.1.10" 
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Konfigurasi DHCP (MAC)</label>
+                                            <input 
+                                                type="text" 
+                                                required 
+                                                value={formData.mac_address} 
+                                                onChange={(e) => setFormData({...formData, mac_address: e.target.value})} 
+                                                className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-indigo-500/20 focus:bg-white dark:focus:bg-slate-800 rounded-2xl text-sm font-mono font-bold text-indigo-600 dark:text-indigo-400 transition-all outline-none" 
+                                                placeholder="Contoh: AA:BB:CC:DD:EE:FF" 
+                                            />
+                                        </div>
+                                    )}
+
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Tingkat Layanan (Paket)</label>
                                         <select required value={formData.package_id} onChange={(e) => setFormData({...formData, package_id: e.target.value})} className="w-full p-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-emerald-500/20 focus:bg-white dark:focus:bg-slate-800 rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 transition-all outline-none appearance-none">

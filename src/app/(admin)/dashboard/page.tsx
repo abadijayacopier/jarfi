@@ -33,7 +33,7 @@ export default function Dashboard() {
 
     useEffect(() => {
         fetchStats();
-        const interval = setInterval(fetchStats, 10000); // 10 seconds
+        const interval = setInterval(fetchStats, 3000); // 3 seconds for real-time telemetry
         return () => clearInterval(interval);
     }, []);
 
@@ -96,8 +96,8 @@ export default function Dashboard() {
                             <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.5)]"></div>
                             <span className="text-[10px] font-black text-accent uppercase tracking-[0.3em]">Pusat Kendali Jaringan</span>
                         </div>
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl xl:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[0.95] uppercase">
-                            Ekosistem <br />
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl xl:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[0.95] uppercase break-words">
+                            Ekosistem <br className="hidden sm:block" />
                             <span className="text-emerald-500 bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500">Dunia WiFi.</span>
                         </h2>
                     </div>
@@ -106,9 +106,9 @@ export default function Dashboard() {
                         <div className="text-xl sm:text-2xl md:text-4xl font-black tracking-tighter text-slate-900 dark:text-white tabular-nums drop-shadow-2xl">
                             {loading ? '...' : `Rp ${parseInt(stats.expectedRevenue as any).toLocaleString('id-ID')}`}
                         </div>
-                        <div className="flex items-center gap-2 mt-4 px-4 py-2 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full border border-emerald-500/20 backdrop-blur-xl shadow-lg shadow-emerald-500/5">
+                        <div className="flex items-center gap-2 mt-6 px-4 py-2 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full border border-emerald-500/20 backdrop-blur-xl shadow-lg shadow-emerald-500/5">
                             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></div>
-                            <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Aliran Kas Terverifikasi</span>
+                            <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest leading-none">Arus Kas Terverifikasi</span>
                         </div>
                     </div>
                 </div>
@@ -187,7 +187,7 @@ export default function Dashboard() {
                                 onChange={(e) => setSelectedLogRouter(e.target.value)}
                                 className="bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest text-primary focus:outline-none focus:border-accent/40"
                             >
-                                <option value="">Global Traffic</option>
+                                <option value="">Seluruh Jaringan</option>
                                 {stats.routerStats.map((r: any) => (
                                     <option key={r.id} value={r.id}>{r.name}</option>
                                 ))}
@@ -212,7 +212,7 @@ export default function Dashboard() {
                                     <div className="w-16 h-16 rounded-3xl bg-accent/10 flex items-center justify-center text-accent">
                                         <Activity className="w-8 h-8" />
                                     </div>
-                                    <span className="text-[10px] font-black text-muted uppercase tracking-[0.3em]">Menganalisis Sinyal...</span>
+                                    <span className="text-[10px] font-black text-muted uppercase tracking-[0.3em]">Sinkronisasi Gelombang...</span>
                                 </div>
                             </div>
                         ) : (

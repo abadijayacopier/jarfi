@@ -1,8 +1,8 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ['routeros-client', 'node-routeros', 'mysql2', 'source-map-support'],
-  allowedDevOrigins: ['100.100.30.4'],
+  output: 'standalone',
+  allowedDevOrigins: ['100.100.30.3', '100.100.30.4', 'localhost', '0.0.0.0'],
 };
 
 export default nextConfig;

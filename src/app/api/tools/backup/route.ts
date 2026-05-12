@@ -18,7 +18,7 @@ export async function GET() {
                 
                 for (const row of rows) {
                     const values = Object.values(row).map(val => {
-                        if (val === null) return 'NULL';
+                        if (val == null) return 'NULL';
                         if (typeof val === 'number') return val;
                         return `'${val.toString().replace(/'/g, "''")}'`;
                     }).join(', ');

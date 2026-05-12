@@ -76,6 +76,9 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => { e.target.setCustomValidity(''); setEmail(e.target.value); }}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
                 className="w-full bg-[#0f1113] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-600/50 focus:border-blue-600 transition-all placeholder:text-gray-600"
                 placeholder="admin@jarfi.com"
               />

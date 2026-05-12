@@ -49,6 +49,17 @@ export class MikrotikService {
         return this.execute(api => api.menu('/ip/hotspot/user').add({ name, password, profile }));
     }
 
+    public async addHotspotProfile(name: string, rateLimit: string, sessionTimeout?: string, sharedUsers?: string) {
+        const params: any = { name, 'rate-limit': rateLimit || '' };
+        if (sessionTimeout) params['session-timeout'] = sessionTimeout;
+        if (sharedUsers) params['shared-users'] = sharedUsers;
+        return this.execute(api => api.menu('/ip/hotspot/user/profile').add(params));
+    }
+
+    public async removeHotspotProfile(id: string) {
+        return this.execute(api => api.menu('/ip/hotspot/user/profile').remove(id));
+    }
+
     public async getSecrets() {
         return this.execute(api => api.menu('/ppp/secret').get());
     }

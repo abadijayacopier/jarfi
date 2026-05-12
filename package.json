@@ -1,6 +1,7 @@
 {
   "name": "jarfi",
-  "version": "4.1.0",
+  "version": "4.2.1",
+  "description": "JARFI NOC - AI-Powered Network Operation Center for ISP management",
   "private": true,
   "author": "Supriyanto",
   "repository": {
@@ -10,11 +11,13 @@
   "main": "electron/main.js",
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
-    "build": "next build",
+    "build": "next build && xcopy /E /I /Y public .next\\standalone\\public && xcopy /E /I /Y .next\\static .next\\standalone\\.next\\static",
     "start": "next start",
     "lint": "eslint",
     "electron-dev": "electron .",
-    "electron-pack": "electron-builder build --win --publish never",
+    "generate-icon": "node scripts/convert-icon.js",
+    "download-mariadb": "node scripts/download-mariadb.js",
+    "electron-pack": "node scripts/download-mariadb.js && node scripts/convert-icon.js && npm run build && electron-builder build --win --publish never",
     "bot": "node scripts/dunia-wifi-bot.js"
   },
   "dependencies": {
@@ -35,7 +38,8 @@
     "recharts": "^3.8.1",
     "routeros-client": "^1.1.1",
     "source-map-support": "^0.5.21",
-    "sweetalert2": "^11.26.24"
+    "sweetalert2": "^11.26.24",
+    "telnet-client": "^2.2.13"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -48,6 +52,7 @@
     "electron-serve": "^3.0.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   },
@@ -63,22 +68,46 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "public/jarfi_logo_1778350215847.png"
+      "icon": "public/icon.ico",
+      "requestedExecutionLevel": "requireAdministrator"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "shortcutName": "Dunia WiFi NOC",
-      "installerIcon": "public/jarfi_logo_1778350215847.png",
-      "uninstallerIcon": "public/jarfi_logo_1778350215847.png",
-      "runAfterFinish": true
+      "shortcutName": "JARFI NOC",
+      "installerIcon": "public/icon.ico",
+      "uninstallerIcon": "public/icon.ico",
+      "runAfterFinish": true,
+      "include": "build/installer.nsh"
     },
     "directories": {
       "output": "dist"
     },
+    "extraResources": [
+      {
+        "from": "extraResources/mariadb",
+        "to": "mariadb",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "scripts/setup-jarfi-db.bat",
+        "to": "mariadb/setup-jarfi-db.bat"
+      }
+    ],
     "files": [
       "electron/**/*",
-      "public/**/*"
+      "public/**/*",
+      ".next/standalone/**/*",
+      ".next/static/**/*",
+      "schema.sql",
+      "package.json",
+      "build/installer.nsh"
+    ],
+    "asarUnpack": [
+      ".next/standalone/**/*",
+      "schema.sql"
     ]
   }
 }

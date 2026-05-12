@@ -165,3 +165,34 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb {
   @apply bg-accent/20 rounded-full hover:bg-accent/40 transition-colors;
 }
+/* @css-ignore-end */
+
+/* SweetAlert2 Dark Theme Overrides */
+.swal2-popup.swal2-modal {
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 32px !important;
+}
+
+.dark .swal2-popup.swal2-modal {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+.swal2-input, .swal2-select, .swal2-textarea {
+  background: var(--input-bg) !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--input-border) !important;
+  border-radius: 16px !important;
+  padding: 12px !important;
+  font-size: 14px !important;
+  box-shadow: none !important;
+}
+
+.swal2-select option {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+.swal2-title, .swal2-content {
+  color: inherit !important;
+}

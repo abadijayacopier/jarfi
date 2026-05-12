@@ -130,16 +130,16 @@ export default function VouchersPage() {
                 fetchVouchers();
                 Swal.fire({
                     icon: 'success',
-                    title: 'Voucher Dibuat',
-                    text: `${data.count} Voucher telah berhasil di-generate dan disimpan.`,
+                    title: 'Token Dibuat',
+                    text: `${data.count} Token telah berhasil di-injeksi dan disimpan.`,
                     background: '#0f172a',
                     color: '#fff'
                 });
             } else {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Gagal',
-                    text: data.error || 'Gagal memproses batch voucher.',
+                    title: 'Injeksi Gagal',
+                    text: data.error || 'Gagal memproses batch token.',
                     background: '#0f172a',
                     color: '#fff'
                 });
@@ -250,7 +250,7 @@ export default function VouchersPage() {
                         className="bg-accent hover:bg-accent/90 text-white font-bold py-3.5 px-8 rounded-2xl transition-all shadow-xl active:scale-95 flex items-center gap-3 uppercase tracking-widest text-[10px]"
                     >
                         <PlusCircle className="w-5 h-5" />
-                        {showAddForm ? 'Batalkan' : 'Buat Voucher'}
+                        {showAddForm ? 'Batalkan' : 'Injeksi Token'}
                     </button>
                 </div>
             </div>
@@ -518,13 +518,13 @@ export default function VouchersPage() {
                             >
                                 Sebelumnya
                             </button>
-                            <button 
-                                onClick={() => setCurrentPage(p => p + 1)}
-                                disabled={currentPage >= Math.ceil(vouchers.length / itemsPerPage)}
-                                className="px-6 py-3.5 rounded-xl glass border border-white/5 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-primary disabled:opacity-20 transition-all active:scale-95"
-                            >
-                                Node Berikutnya
-                            </button>
+                                <button 
+                                    onClick={() => setCurrentPage(p => p + 1)}
+                                    disabled={currentPage >= Math.ceil(vouchers.length / itemsPerPage)}
+                                    className="px-6 py-3.5 rounded-xl glass border border-white/5 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-primary disabled:opacity-20 transition-all active:scale-95"
+                                >
+                                    Selanjutnya
+                                </button>
                         </div>
                     </div>
                 )}

@@ -34,13 +34,14 @@ export async function GET(request: Request) {
 
         const conn = await client.connect();
         
-        // Fetch active users and interfaces
+        // Fetch active users and interfaces with basic info
         const [activeUsers, interfaces] = await Promise.all([
             conn.menu('/ppp/active').get(),
             conn.menu('/interface').get()
         ]);
 
         const now = Date.now();
+        const cacheTTL = 60000; // 1 minute cache expiry
         
         // Collect interface names for monitoring
         // Only monitor interfaces that are dynamic pppoe-in or physical ones used by active users
@@ -58,23 +59,26 @@ export async function GET(request: Request) {
         let monitorData: any[] = [];
         if (monitorList) {
             try {
-                // Get instantaneous rates directly from MikroTik
-                monitorData = await conn.menu('/interface/monitor-traffic')
-                    .where('interface', monitorList)
-                    .where('once', true)
-                    .get();
+                // Use a more direct command approach which is often more stable across RouterOS versions
+                monitorData = await conn.write('/interface/monitor-traffic', [
+                    `=interface=${monitorList}`,
+                    '=once='
+                ]);
             } catch (e) {
-                console.error('Monitor-traffic failed, falling back to delta:', e);
+                // If it still fails, we rely on the delta calculation fallback
             }
         }
 
         const monitorMap: Record<string, any> = {};
         if (Array.isArray(monitorData)) {
             monitorData.forEach((m: any) => {
-                monitorMap[m.name] = {
-                    rx: parseInt(m['rx-bits-per-second'] || '0'),
-                    tx: parseInt(m['tx-bits-per-second'] || '0')
-                };
+                const name = m.name || m.interface;
+                if (name) {
+                    monitorMap[name] = {
+                        rx: parseInt(m['rx-bits-per-second'] || '0'),
+                        tx: parseInt(m['tx-bits-per-second'] || '0')
+                    };
+                }
             });
         }
 
@@ -89,28 +93,30 @@ export async function GET(request: Request) {
             const currentRxPkt = parseInt(i.rxPacket || i['rx-packet'] || '0');
             const currentTxPkt = parseInt(i.txPacket || i['tx-packet'] || '0');
             
-            // Use monitor-traffic data for speed (Instantaneous)
+            // Priority: monitor-traffic data for speed (Instantaneous)
             const monitorStats = monitorMap[i.name];
             let rxSpeed = 0;
             let txSpeed = 0;
 
-            if (monitorStats) {
+            const cacheKey = `${routerId}_${i.name}`;
+            const lastData = trafficCache.get(cacheKey);
+
+            if (monitorStats && (monitorStats.rx > 0 || monitorStats.tx > 0)) {
                 // Router TX is user RX (Download), Router RX is user TX (Upload)
                 rxSpeed = monitorStats.tx; 
                 txSpeed = monitorStats.rx;
-            } else {
+            } else if (lastData) {
                 // Fallback to delta calculation
-                const cacheKey = `${routerId}_${i.name}`;
-                const lastData = trafficCache.get(cacheKey);
-                if (lastData && lastData.rx > 0 && lastData.tx > 0) {
-                    const timeDiff = (now - lastData.time) / 1000;
-                    if (timeDiff > 0 && timeDiff < 60) {
-                        rxSpeed = Math.max(0, Math.round(((currentTx - lastData.tx) * 8) / timeDiff));
-                        txSpeed = Math.max(0, Math.round(((currentRx - lastData.rx) * 8) / timeDiff));
-                    }
+                const timeDiff = (now - lastData.time) / 1000;
+                if (timeDiff > 0.5 && timeDiff < 60) {
+                    // MikroTik stores bytes, we want bits per second
+                    rxSpeed = Math.max(0, Math.round(((currentTx - lastData.tx) * 8) / timeDiff));
+                    txSpeed = Math.max(0, Math.round(((currentRx - lastData.rx) * 8) / timeDiff));
                 }
-                trafficCache.set(cacheKey, { rx: currentRx, tx: currentTx, time: now });
             }
+            
+            // Always update cache for next delta
+            trafficCache.set(cacheKey, { rx: currentRx, tx: currentTx, time: now });
             
             statsMap[i.name] = { 
                 rx: rxSpeed, 
